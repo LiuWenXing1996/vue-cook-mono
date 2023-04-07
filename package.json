@@ -1,0 +1,18 @@
+{
+  "name": "vue-cook-monorepo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:vue-cook": "pnpm --filter 'vue-cook' dev",
+    "dev:example": "wait-on ./packages/vue-cook/dist/vue-cook.js && pnpm --filter 'vue-cook-use-example' dev",
+    "dev": "concurrently pnpm:dev:*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "wait-on": "^7.0.1"
+  }
+}

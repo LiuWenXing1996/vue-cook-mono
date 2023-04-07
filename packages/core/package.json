@@ -1,0 +1,45 @@
+{
+  "name": "@vue-cook/core",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "一个基于vue的低代码平台辅助工具，让你的vue组件更容易低代码化。",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-cook.umd.js",
+  "module": "./dist/vue-cook.es.js",
+  "types": "./dist/index.d.ts",
+  "license": "MIT",
+  "author": "LiuWenXing1996 lwx_redstone@163.com",
+  "keywords": [
+    "low-code",
+    "vue3"
+  ],
+  "scripts": {
+    "dev": "run-p watch:**",
+    "watch:lib-build": "vite build -w",
+    "watch:dts-emit": "vue-tsc -w --declaration --emitDeclarationOnly --outDir .local/dts-temp -p ./tsconfig.dts.json",
+    "watch:dts-build": "rollup -w -c rollup.dts.config.js",
+    "build": "vue-tsc && vite build",
+    "build:dts": " && rollup -c rollup.dts.config.js",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@types/json-schema": "^7.0.11",
+    "json-schema": "^0.4.0",
+    "lodash-es": "^4.17.21",
+    "runtypes": "^6.6.0",
+    "vue": "^3.2.47",
+    "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.7",
+    "@vitejs/plugin-vue": "^4.1.0",
+    "npm-run-all": "^4.1.5",
+    "rollup": "^3.20.2",
+    "rollup-plugin-dts": "^5.3.0",
+    "typescript": "^4.9.3",
+    "vite": "^4.2.0",
+    "vue-tsc": "^1.2.0"
+  }
+}
