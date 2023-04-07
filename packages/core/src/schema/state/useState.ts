@@ -1,13 +1,17 @@
-import { getInnerContext } from '../context/contextMap'
+import { getCurrentInstance } from 'vue'
+import { getInnerContext } from '../context/componentInstanceContextMap'
 import type { IContext } from '../context/createContext'
 import type { IState, IStateConfig, IStateType } from './defineState'
 
 export const useState = <T, ST extends IStateType>(
-  context: IContext,
   config: IStateConfig<T, ST>
 ) => {
+  const currentInstance = getCurrentInstance()
+  if (!currentInstance) {
+    return
+  }
   const { name } = config
-  const innerContext = getInnerContext(context.uid)
+  const innerContext = getInnerContext(currentInstance)
   if (!innerContext) {
     return
   }
@@ -31,16 +35,19 @@ export type IConfigsToStates<CR extends Record<string, IStateConfig>> = {
 }
 
 export const useStates = <CR extends Record<string, IStateConfig>>(
-  context: IContext,
   configs: CR
 ): IConfigsToStates<CR> => {
   const states: Record<string, IState | undefined> = {}
-  const innerContext = getInnerContext(context.uid)
-  if (innerContext) {
-    const keys = Object.keys(configs)
-    keys.forEach(key => {
-      states[key] = innerContext.getState(key)
-    })
+  const currentInstance = getCurrentInstance()
+  if (currentInstance) {
+    const innerContext = getInnerContext(currentInstance)
+    if (innerContext) {
+      const keys = Object.keys(configs)
+      keys.forEach(key => {
+        states[key] = innerContext.getState(key)
+      })
+    }
   }
+
   return states as IConfigsToStates<CR>
 }

@@ -1,12 +1,18 @@
-import type { UnwrapRef, WatchStopHandle } from 'vue'
+import {
+  ComponentInternalInstance,
+  UnwrapRef,
+  WatchStopHandle,
+  getCurrentInstance,
+  onMounted
+} from 'vue'
 import { computed, ref, watch } from 'vue'
-import { getInnerContext } from '../context/contextMap'
-import type { IContext } from '../context/createContext'
+import { getInnerContext } from '../context/componentInstanceContextMap'
 import type { IState, IStateConfig, IStateType } from './defineState'
 
-export type IStateInitFunction<T, ST extends IStateType> = (
-  context: IContext
-) => IStateInitRes<T, ST>
+export type IStateInitFunction<T, ST extends IStateType> = () => IStateInitRes<
+  T,
+  ST
+>
 
 export type IStateInitRes<T, ST extends IStateType> = ST extends 'Ref'
   ? IRefStateInitReturn<T>
@@ -29,9 +35,9 @@ export type IComputedReadOnlyStateInitReturn<T> = {
 
 export const initState = <T, ST extends IStateType>(
   config: IStateConfig<T, ST>,
-  context: IContext
+  componentInstance: ComponentInternalInstance
 ) => {
-  const innerContext = getInnerContext(context.uid)
+  const innerContext = getInnerContext(componentInstance)
   if (!innerContext) {
     return
   }
@@ -42,7 +48,7 @@ export const initState = <T, ST extends IStateType>(
   if (innerContext.isStateInited(name)) {
     return
   }
-  const stateInit = init(context)
+  const stateInit = init()
   let state: IState<T, IStateType> | undefined = undefined
   if (type === 'Ref') {
     state = ref(stateInit as IStateInitRes<T, 'Ref'>)
@@ -68,7 +74,7 @@ export const initState = <T, ST extends IStateType>(
       >(
         watchState,
         (...rest) => {
-          return watcher.callback(context, ...rest, stopHandler)
+          return watcher.callback(...rest, stopHandler)
         },
         {
           deep,
@@ -81,4 +87,10 @@ export const initState = <T, ST extends IStateType>(
   const stateMap = innerContext.getStateMap()
   stateMap.set(name, state) // 即使state最后的结果是undefined，也算state初始化成功
   return state as IState<T, ST>
+}
+
+export const initStates = (configs: Record<string, IStateConfig>) => {
+  onMounted(() => {
+    const componentInstance = getCurrentInstance()
+  })
 }

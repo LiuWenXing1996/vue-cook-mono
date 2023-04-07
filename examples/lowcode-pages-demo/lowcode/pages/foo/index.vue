@@ -20,8 +20,11 @@ import methodcount from './methods/count'
 import methodhello from './methods/hello'
 
 export default {
+    props:{
+        a:String
+    },
     components: {},
-    setup: () => {
+    setup: (props,cotext) => {
         const statesConfig = {
             refNumber: staterefNumber,
             refString: staterefString

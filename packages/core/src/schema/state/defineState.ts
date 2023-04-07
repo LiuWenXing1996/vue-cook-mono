@@ -1,4 +1,11 @@
-import type { ComputedRef, Ref, UnwrapRef, WritableComputedRef } from 'vue'
+import {
+  ComponentInternalInstance,
+  ComputedRef,
+  Ref,
+  UnwrapRef,
+  WritableComputedRef,
+  getCurrentInstance
+} from 'vue'
 import type { IContext } from '../context/createContext'
 import type { IStateInitFunction } from './initState'
 import { deepFreeze } from '../../utils/deepFreeze'
@@ -16,7 +23,6 @@ export interface IStateConfig<T = any, ST extends IStateType = IStateType> {
 }
 
 export type IWatchCallback<T> = (
-  context: IContext,
   value: UnwrapRef<T> | T,
   oldValue: UnwrapRef<T> | T | undefined,
   onCleanup: (cleanupFn: () => void) => void,

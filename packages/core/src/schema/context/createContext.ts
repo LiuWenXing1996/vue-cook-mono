@@ -9,11 +9,13 @@ import type { IMethod, IMethodConfig, IMethodMap } from '../method/defineMethod'
 import { initMethod } from '../method/initMethod'
 import { uniqueId } from 'lodash-es'
 import { setInnerContext } from './contextMap'
+import { link } from './componentInstanceContextMap'
 import { warn } from '../../utils/customConsole'
 import {
   IContextDataManager,
   createContextDataManager
 } from './contextDataManager'
+import { ComponentInternalInstance, getCurrentInstance, readonly } from 'vue'
 
 export interface IContextConfig {
   states: Record<string, IStateConfig>
@@ -32,11 +34,14 @@ const exposeContext = (innerContext: IInnerContext) => {
   }
 }
 
-const createInnerContext = (config: IContextConfig) => {
+const createInnerContext = (
+  componentInstance: ComponentInternalInstance,
+  config: IContextConfig
+) => {
   const uid = uniqueId('context')
   const stateMap = createContextDataManager<IState, IStateConfig>({
     init: (config: IStateConfig) => {
-      return initState(config, context)
+      return initState(config, componentInstance)
     },
     configRecord: config.states,
     dataType: 'state'
@@ -51,7 +56,9 @@ const createInnerContext = (config: IContextConfig) => {
   }) as IContextDataManager<IMethod, IMethodConfig>
 
   const innerContext = {
-    uid,
+    get uid () {
+      return uid
+    },
     // state
     initState: (config: IStateConfig) => stateMap.initData(config),
     isStateInited: (name: string) => stateMap.isDataInited(name),
@@ -69,14 +76,20 @@ const createInnerContext = (config: IContextConfig) => {
     getMethodMap: () => methodMap.getDataMap(),
     getMethodObj: () => methodMap.getDataObj()
   }
-
+  setInnerContext(uid, innerContext)
+  link(componentInstance, innerContext)
   const context = exposeContext(innerContext)
 
   return innerContext
 }
 
 export const createContext = (config: IContextConfig) => {
-  const innerContext = createInnerContext(config)
+  const currentInstance = getCurrentInstance()
+  if (!currentInstance) {
+    return
+  }
+
+  const innerContext = createInnerContext(currentInstance, config)
   const conetxt = exposeContext(innerContext)
   return conetxt
 }

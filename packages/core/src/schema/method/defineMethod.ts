@@ -6,7 +6,7 @@ export type IMethod = Function
 
 export interface IMethodConfig<T extends IMethod = IMethod> {
   name: string
-  init: (context: IContext) => T
+  init: () => T
   expose?: boolean
 }
 
