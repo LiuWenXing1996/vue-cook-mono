@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../lowcode/index.ts"],
-  "sourcesContent": ["const a = 'aaasa'\n\nexport default {\n  a\n}\n"],
-  "mappings": ";;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA,IAAM,IAAI;AAEV,IAAO,kBAAQ;AAAA,EACb;AACF;",
-  "names": []
-}

@@ -1,13 +1,16 @@
 import { basename, extname, join } from 'node:path'
 import { readdir, readFile } from 'node:fs/promises'
-import { outputFile, ensureFile } from 'fs-extra'
+import fsExtra from 'fs-extra'
 import dayjs from 'dayjs'
-
+const { outputFile, ensureFile, existsSync } = fsExtra
 const findModules = async (
   path: string,
   pathName: string,
   typeName: string
 ) => {
+  if (!existsSync(path)) {
+    return []
+  }
   const fileList = await readdir(path)
   const moduleList = fileList.map(e => {
     const extName = extname(e)
@@ -52,13 +55,13 @@ export default async (path: string) => {
  * 生成时间：${dayjs().format('YYYY-MM-DD HH:mm:ss')}
  */
 import { createContext, useStates, useMethods } from '@vue-cook/core'
-// states
+${stateModules.length > 0 ? '// states' : ''}
 ${stateModules
   .map(e => {
     return `import ${e.moduleName} from '${e.path}'`
   })
   .join('\n')}
-// methods
+${methodModules.length > 0 ? '// methods' : ''}
 ${methodModules
   .map(e => {
     return `import ${e.moduleName} from '${e.path}'`
@@ -73,9 +76,9 @@ export default {
             .map((e, index) => {
               if (index > 0) {
                 return `
-            ${e.name}: ${e.moduleName}`
+            ${e.name}: { ...${e.moduleName}, name: "${e.name}" }`
               } else {
-                return `  ${e.name}: ${e.moduleName}`
+                return `  ${e.name}: { ...${e.moduleName}, name: "${e.name}" }`
               }
             })
             .join(',')}
@@ -85,9 +88,9 @@ export default {
             .map((e, index) => {
               if (index > 0) {
                 return `
-            ${e.name}: ${e.moduleName}`
+            ${e.name}: { ...${e.moduleName}, name: "${e.name}" }`
               } else {
-                return `  ${e.name}: ${e.moduleName}`
+                return `  ${e.name}: { ...${e.moduleName}, name: "${e.name}" }`
               }
             })
             .join(',')}

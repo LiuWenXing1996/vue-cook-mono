@@ -2,7 +2,10 @@
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
 import { run } from "@vue-cook/core"
-import {getCurrentInstance} from "vue"
+import { getCurrentInstance } from "vue"
+// import ss from "virtual:vue-cook-lowcode"
+
+// console.log(ss)
 </script>
 
 <template>

@@ -6,6 +6,7 @@
     "src/**/*.vue",
     "lowcode/**/*",
     "lowcode/**/*.vue",
+    "./package.json"
   ],
   "compilerOptions": {
     "baseUrl": ".",

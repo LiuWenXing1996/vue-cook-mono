@@ -1,7 +1,7 @@
-import { defineState } from "@vue-cook/core"
+import { defineState, Number } from '@vue-cook/core'
 
 export default defineState({
-  name: 'refString',
+  typeDefine: Number(),
   type: 'Ref',
   init: ctx => {
     return 1

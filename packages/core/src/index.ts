@@ -1,8 +1,7 @@
 import * as A from 'runtypes'
 
-export const RunType = A
+// export const RunType = A
 
-export type { IGlobalInject } from './lowcode'
 export { run } from './lowcode'
 export { defineState } from './schema/state/defineState'
 export { useState, useStates } from './schema/state/useState'

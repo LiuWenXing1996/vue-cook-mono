@@ -4,15 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev:vue-cook": "pnpm --filter 'vue-cook' dev",
-    "dev:example": "wait-on ./packages/vue-cook/dist/vue-cook.js && pnpm --filter 'vue-cook-use-example' dev",
-    "dev": "concurrently pnpm:dev:*"
+    "dev": "tsx ./scripts/run.ts dev",
+    "build": "tsx ./scripts/run.ts build",
+    "clean": "tsx ./scripts/run.ts clean"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "concurrently": "^7.6.0",
-    "wait-on": "^7.0.1"
+    "@types/node": "^18.14.2",
+    "commander": "^10.0.0",
+    "concurrently": "^8.0.1",
+    "tsx": "^3.12.6"
   }
 }

@@ -1,27 +1,8 @@
-import { ElButton } from 'element-plus'
-import refNumber from './states/refNumber'
-
-const tpl = {
-  tag: ElButton.name,
-  props: {
-    text: {
-      isVar: true,
-      type: 'string',
-      value: refNumber
-    },
-    icon: {
-      isVar: false,
-      value: 'loading'
-    },
-  },
-  events: {},
-  classNames: {},
-  styles: {},
-  children: [
-    {
-      text: {}
-    }
-  ]
+import staterefNumber from './states/refNumber'
+import staterefString from './states/refString'
+const statesConfig = {
+  refNumber: { ...staterefNumber, name: "refNumber" },// TODO:这个地方的name也要去掉
+  refString: { ...staterefString, name: "refString" }
 }
 
-export default {}
+export default statesConfig

@@ -43,7 +43,7 @@ export type IState<
 export type IStateMap = Map<string, IState | undefined>
 
 export const defineState = <T, ST extends IStateType = IStateType>(
-  config: IStateConfig<T, ST>
+  config: Omit<IStateConfig<T, ST>, 'name'>
 ) => deepFreeze(config)
 
 export type IGetInit<T extends IStateConfig<any, any>> = ReturnType<T['init']>
