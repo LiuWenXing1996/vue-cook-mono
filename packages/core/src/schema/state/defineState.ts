@@ -1,13 +1,14 @@
 import type { ComputedRef, Ref, UnwrapRef, WritableComputedRef } from 'vue'
-import type { IContext } from '../context/createContext'
 import type { IStateInitFunction } from './initState'
 import { deepFreeze } from '../../utils/deepFreeze'
 import { Type } from '../../utils/types/type'
+import { IBaseDefineConfig } from '../context/defineHelperManager'
+import { IContext } from '../context/contextManager'
 
 export type IStateType = 'Ref' | 'Computed' | 'ComputedWritable'
 
-export interface IStateConfig<T = any, ST extends IStateType = IStateType> {
-  name: string // TODO:移除这个名称的定义，直接使用文件名？？？？？，好像不行，这样的话useState找不到对应的数据了
+export interface IStateConfig<T = any, ST extends IStateType = IStateType>
+  extends IBaseDefineConfig {
   type: ST
   typeDefine: Type<T>
   expose?: boolean

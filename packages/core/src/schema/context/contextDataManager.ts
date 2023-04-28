@@ -1,11 +1,12 @@
 import { warn } from '../../utils/customConsole'
+import { getInnerContext } from './contextMap'
 
-export type IDataType = 'state' | 'method'
+export type IContextDataType = 'state' | 'action'
 
 export interface IParams<C> {
   init: (config: C) => void
-  configRecord: Record<string, C>
-  dataType: IDataType
+  dataType: IContextDataType
+  conetxtUid: string
 }
 
 export type IContextDataManager<D, C> = ReturnType<
@@ -13,7 +14,8 @@ export type IContextDataManager<D, C> = ReturnType<
 >
 
 export const createContextDataManager = <D, C>(params: IParams<C>) => {
-  const { init, configRecord, dataType } = params
+  
+  const { init, conetxtUid, dataType } = params
   const dataMap = new Map<string, D | undefined>()
 
   const manager = {
@@ -21,11 +23,17 @@ export const createContextDataManager = <D, C>(params: IParams<C>) => {
       return init(config)
     },
     isDataInited: (name: string) => dataMap.has(name),
-    hasData: (name: string) => Boolean(configRecord[name]),
+    hasData: (name: string, isConsole: boolean = false) => {
+      const innerContext = getInnerContext(conetxtUid,isConsole);
+      const res = Boolean(configRecord[name])
+      if (!res && isConsole) {
+        warn(`没有找到名为 ${name} 的 ${dataType}`)
+      }
+      return res
+    },
     getData: (name: string) => {
       const { hasData, isDataInited, initData, getDataConfig } = manager
-      if (!hasData(name)) {
-        warn(`没有找到名为 ${name} 的 ${dataType}`)
+      if (!hasData(name, true)) {
         return
       }
       if (!isDataInited(name)) {
@@ -46,7 +54,8 @@ export const createContextDataManager = <D, C>(params: IParams<C>) => {
         obj[e] = manager.getData(e)
       })
       return obj
-    }
+    },
+    isNeedInit: () => {}
   }
 
   return manager

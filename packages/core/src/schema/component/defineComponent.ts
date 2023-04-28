@@ -4,7 +4,7 @@ import type { IMethodConfig } from '../method/defineMethod'
 import type { IStateConfig } from '../state/defineState'
 import { get } from 'lodash-es'
 import { createContext } from '../context/createContext'
-import { getInnerContext } from '../context/contextMap'
+import { getInnerContext } from '../context/contextManager'
 
 export interface IComponentConfig {
   name: string

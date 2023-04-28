@@ -2,7 +2,15 @@ export type DeepReadonly<T> = {
   readonly [K in keyof T]: keyof T[K] extends never ? T[K] : DeepReadonly<T[K]>
 }
 
-export function deepFreeze<T extends Record<string, any>> (value: T): DeepReadonly<T> {
+export type IDeepReadonlyWithUid<C> = DeepReadonly<
+  C & {
+    uid: string
+  }
+>
+
+export function deepFreeze<T extends Record<string, any>> (
+  value: T
+): DeepReadonly<T> {
   Object.freeze(value)
 
   Object.getOwnPropertyNames(value).forEach(function (prop) {

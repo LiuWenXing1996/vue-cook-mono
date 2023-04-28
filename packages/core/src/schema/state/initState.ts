@@ -1,8 +1,13 @@
 import type { UnwrapRef, WatchStopHandle } from 'vue'
 import { computed, ref, watch } from 'vue'
-import { getInnerContext } from '../context/contextMap'
-import type { IContext } from '../context/createContext'
+import {
+  IContext,
+  exposeContext,
+  innerContextManager
+} from '../context/contextManager'
 import type { IState, IStateConfig, IStateType } from './defineState'
+import { getInnerDefineHelperByContextUid } from '../context/defineHelperManager'
+import { IDeepReadonlyWithUid } from '../../utils/deepFreeze'
 
 export type IStateInitFunction<T, ST extends IStateType> = (
   context: IContext
@@ -28,31 +33,48 @@ export type IComputedReadOnlyStateInitReturn<T> = {
 }
 
 export const initState = <T, ST extends IStateType>(
-  config: IStateConfig<T, ST>,
-  context: IContext
+  configUid: string,
+  contextId: string,
+  isConsole: boolean = false
 ) => {
-  const innerContext = getInnerContext(context.uid)
+  const innerContext = innerContextManager.get(contextId, isConsole)
   if (!innerContext) {
     return
   }
-  const { name, init, watchers = [], type } = config
-  if (!innerContext.hasState(name)) {
+  const { stateManager } = innerContext
+  const { isNeedInit } = stateManager
+  if (!isNeedInit(configUid, isConsole)) {
     return
   }
-  if (innerContext.isStateInited(name)) {
+  const innerDefineHelper = getInnerDefineHelperByContextUid(contextId)
+  if (!innerDefineHelper) {
     return
   }
-  const stateInit = init(context)
+  const { stateConfigManager } = innerDefineHelper
+  const config = stateConfigManager.get(configUid, isConsole)
+  if (!config) {
+    return
+  }
+  const {
+    init,
+    watchers = [],
+    type
+  } = config as IDeepReadonlyWithUid<IStateConfig<T, ST>>
+  const context = exposeContext(innerContext)
+  const stateInitFuncRes = init(context)
   let state: IState<T, IStateType> | undefined = undefined
   if (type === 'Ref') {
-    state = ref(stateInit as IStateInitRes<T, 'Ref'>)
+    state = ref(stateInitFuncRes as IStateInitRes<T, 'Ref'>)
   }
   if (type === 'Computed') {
-    const { getter } = stateInit as IStateInitRes<T, 'Computed'>
+    const { getter } = stateInitFuncRes as IStateInitRes<T, 'Computed'>
     state = computed(getter)
   }
   if (type === 'ComputedWritable') {
-    const { getter, setter } = stateInit as IStateInitRes<T, 'ComputedWritable'>
+    const { getter, setter } = stateInitFuncRes as IStateInitRes<
+      T,
+      'ComputedWritable'
+    >
     state = computed({
       get: getter,
       set: setter
@@ -78,7 +100,8 @@ export const initState = <T, ST extends IStateType>(
       )
     })
   }
-  const stateMap = innerContext.getStateMap()
-  stateMap.set(name, state) // 即使state最后的结果是undefined，也算state初始化成功
+  if (!stateManager.isInited(configUid)) {
+    stateManager.set(configUid, state)
+  }
   return state as IState<T, ST>
 }

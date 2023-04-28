@@ -1,4 +1,4 @@
-import { getInnerContext } from '../context/contextMap'
+import { getInnerContext } from '../context/contextManager'
 import type { IContext } from '../context/createContext'
 import type { IState, IStateConfig, IStateType } from './defineState'
 
