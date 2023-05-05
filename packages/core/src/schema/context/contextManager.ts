@@ -1,36 +1,36 @@
 import {
-  IResourceConfig,
-  IResourceType,
-  createUidResourceManager
-} from '../../utils/uidResourceManager'
-import { IAction } from '../action/defineAction'
+  ResourceConfig,
+  ResourceType,
+  createResourceManager
+} from '../../utils/resourceManager'
+import { Action } from '../action/defineAction'
 import { initAction } from '../action/initAction'
-import { IState } from '../state/defineState'
+import { State } from '../state/defineState'
 import { initState } from '../state/initState'
-import { getInnerDefineHelperByContextUid } from './defineHelperManager'
+import { getInternalDefineHelperByContextUid } from './defineHelperManager'
 
-export const innerContextManager =
-  createUidResourceManager<IInnerContext>('context')
+export const internalContextManager =
+  createResourceManager<InternalContext>('context')
 
-export interface IContextConfig {
+export interface ContextConfig {
   name: string
   defineHelperUid: string
 }
 
-export interface IInnerContextConfig extends IContextConfig {
+export interface InternalContextConfig extends ContextConfig {
   uid: string
 }
 
-export type IInnerContext = ReturnType<typeof createInnerContext>
-export type IContext = ReturnType<typeof exposeContext>
-export type IContextDataResourceType = Extract<
-  IResourceType,
+export type InternalContext = ReturnType<typeof createInternalContext>
+export type Context = ReturnType<typeof exposeContext>
+export type ContextDataResourceType = Extract<
+  ResourceType,
   'state' | 'action'
 >
 
-export const exposeContext = (innerContext: IInnerContext) => {
-  const { uid, name,stateManager } = innerContext
-  const useState = ()=>{
+export const exposeContext = (internalContext: InternalContext) => {
+  const { uid, name, stateManager } = internalContext
+  const useState = () => {
     stateManager.get()
   }
   return {
@@ -39,33 +39,36 @@ export const exposeContext = (innerContext: IInnerContext) => {
   }
 }
 
-export interface IContextDataParams<C> {
+export interface ContextDataParams<C> {
   init: (config: C) => void
   conetxtUid: string
 }
 
-export type IContextDataManager<T> = ReturnType<
+export type ContextDataManager<T> = ReturnType<
   typeof createContextDataManager<T>
 >
 
 const createContextDataManager = <D>(config: {
-  type: IContextDataResourceType
-  parent: IResourceConfig<'context'>
+  type: ContextDataResourceType
+  parent: ResourceConfig<'context'>
   initData: (configUid: string, contextUid: string) => void
 }) => {
   const { type, parent, initData } = config
-  const dataManager = createUidResourceManager<D>(type, parent)
+  const dataManager = createResourceManager<D>(type, parent)
 
   const isInited = (uid: string) => {
     return dataManager.has(uid)
   }
 
   const isNeedInit = (uid: string, isConsole: boolean = false) => {
-    const innerContext = innerContextManager.get(parent.uid, isConsole)
-    if (!innerContext) {
+    const internalContext = internalContextManager.get(parent.uid, isConsole)
+    if (!internalContext) {
       return false
     }
-    const defineHelper = getInnerDefineHelperByContextUid(parent.uid, isConsole)
+    const defineHelper = getInternalDefineHelperByContextUid(
+      parent.uid,
+      isConsole
+    )
     if (!defineHelper) {
       return false
     }
@@ -93,17 +96,17 @@ const createContextDataManager = <D>(config: {
   }
 }
 
-const createInnerContext = (config: IInnerContextConfig) => {
+const createInternalContext = (config: InternalContextConfig) => {
   const { defineHelperUid, name, uid } = config
 
-  const parent: IResourceConfig<'context'> = {
+  const parent: ResourceConfig<'context'> = {
     type: 'context',
-    uid: uid
+    uid
   }
 
   const dataManagerObject: Record<
-    IContextDataResourceType,
-    IContextDataManager<any>
+    ContextDataResourceType,
+    ContextDataManager<any>
   > = {
     state: createContextDataManager<IState>({
       type: 'state',
@@ -118,25 +121,25 @@ const createInnerContext = (config: IInnerContextConfig) => {
       }
     })
   }
-  const innerContext = {
+  const internalContext = {
     name,
     uid,
     defineHelperUid,
-    stateManager: dataManagerObject.state as IContextDataManager<IState>,
-    actionManager: dataManagerObject.state as IContextDataManager<IAction>,
+    stateManager: dataManagerObject.state as ContextDataManager<IState>,
+    actionManager: dataManagerObject.state as ContextDataManager<IAction>,
     dataManagerObject
   }
 
-  return innerContext
+  return internalContext
 }
 
-export const createContext = (config: IContextConfig) => {
+export const createContext = (config: ContextConfig) => {
   const { name } = config
-  const uid = innerContextManager.makeUid(name)
-  const innerContext = createInnerContext({
+  const uid = internalContextManager.makeUid(name)
+  const internalContext = createInternalContext({
     ...config,
     uid
   })
-  const conetxt = exposeContext(innerContext)
+  const conetxt = exposeContext(internalContext)
   return conetxt
 }

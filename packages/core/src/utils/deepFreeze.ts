@@ -2,7 +2,7 @@ export type DeepReadonly<T> = {
   readonly [K in keyof T]: keyof T[K] extends never ? T[K] : DeepReadonly<T[K]>
 }
 
-export type IDeepReadonlyWithUid<C> = DeepReadonly<
+export type DeepReadonlyWithUid<C> = DeepReadonly<
   C & {
     uid: string
   }

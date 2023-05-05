@@ -1,45 +1,45 @@
-import { getInnerContext } from '../context/contextManager'
-import type { IContext } from '../context/createContext'
-import type { IAction, IActionConfig } from './defineAction'
+import { getInternalContext } from '../context/contextManager'
+import type { Context } from '../context/createContext'
+import type { Action, ActionConfig } from './defineAction'
 
-export const useAction = <T extends IAction>(
-  context: IContext,
-  config: IActionConfig<T>
+export const useAction = <T extends Action>(
+  context: Context,
+  config: ActionConfig<T>
 ) => {
   const { name } = config
-  const innerContext = getInnerContext(context.uid)
-  if (!innerContext) {
+  const internalContext = getInternalContext(context.uid)
+  if (!internalContext) {
     return
   }
-  const { hasAction } = innerContext
+  const { hasAction } = internalContext
   if (!hasAction(name)) {
     return
   }
-  const action = innerContext.getAction(name)
+  const action = internalContext.getAction(name)
   return action as T
 }
 
-export type IConfigToAction<C extends IActionConfig> = C extends IActionConfig<
+export type ConfigToAction<C extends ActionConfig> = C extends ActionConfig<
   infer T
 >
   ? T
   : unknown
 
-export type IConfigsToActions<CR extends Record<string, IActionConfig>> = {
-  [key in keyof CR]: IConfigToAction<CR[key]> | undefined
+export type ConfigsToActions<CR extends Record<string, ActionConfig>> = {
+  [key in keyof CR]: ConfigToAction<CR[key]> | undefined
 }
 
-export const useActions = <CR extends Record<string, IActionConfig>>(
-  context: IContext,
+export const useActions = <CR extends Record<string, ActionConfig>>(
+  context: Context,
   configs: CR
-): IConfigsToActions<CR> => {
-  const actions: Record<string, IAction | undefined> = {}
-  const innerContext = getInnerContext(context.uid)
-  if (innerContext) {
+): ConfigsToActions<CR> => {
+  const actions: Record<string, Action | undefined> = {}
+  const internalContext = getInternalContext(context.uid)
+  if (internalContext) {
     const keys = Object.keys(configs)
     keys.forEach(key => {
-      actions[key] = innerContext.getAction(key)
+      actions[key] = internalContext.getAction(key)
     })
   }
-  return actions as IConfigsToActions<CR>
+  return actions as ConfigsToActions<CR>
 }

@@ -1,7 +1,7 @@
 import { deepFreeze } from '../../utils/deepFreeze'
 
-export interface IBaseConfig {
+export interface BaseConfig {
   name: string
 }
 
-export const defineBase = (config: IBaseConfig) => deepFreeze(config)
+export const defineBase = (config: BaseConfig) => deepFreeze(config)
