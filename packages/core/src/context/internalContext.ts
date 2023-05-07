@@ -1,4 +1,4 @@
-import { State } from '../schema/state/state'
+import { State, StateType } from '../schema/state/state'
 import { deepFreeze } from '../utils/deepFreeze'
 import { ResourceManager } from '../utils/resourceManager'
 
@@ -7,21 +7,22 @@ const exposeContextTag: unique symbol = Symbol('exposeContextTag')
 export const internalContextManager = new ResourceManager<InternalContext>()
 
 export class InternalContext {
-  resourceName: string
+  name: string
   uid: string
   defineHelperUid: string
-  stateManager = new ResourceManager<State>()
+  //TODO:实现Action
+  stateManager = new ResourceManager<State<any, StateType> | undefined>()
   constructor (name: string, defineHelperUid: string) {
-    this.resourceName = name
+    this.name = name
     this.defineHelperUid = defineHelperUid
-    this.uid = internalContextManager.add(this)
+    this.uid = internalContextManager.add(name, this)
   }
 }
 
 export type Context = ReturnType<typeof exposeContext>
 
 export const exposeContext = (internalContext: InternalContext) => {
-  const { resourceName: name, uid, defineHelperUid } = internalContext
+  const { name: name, uid, defineHelperUid } = internalContext
 
   return deepFreeze({
     [exposeContextTag]: true,

@@ -21,14 +21,14 @@ export abstract class BaseState<
   InitReturnType,
   Config extends BaseStateConfig<TheStateType, InitReturnType>
 > {
-  resourceName: string
+  logName: string
   type: TheStateType
   value: ValueType | undefined
   config: Config
   context: InternalContext
   constructor (config: Config, context: InternalContext) {
-    const { resourceName } = config
-    this.resourceName = resourceName
+    const { logName } = config
+    this.logName = logName
     this.config = config
     this.context = context
     this.type = this.getType()
@@ -42,7 +42,7 @@ export interface BaseStateConfig<
   TheStateType extends StateType,
   InitReturnType
 > {
-  resourceName: string
+  logName: string
   type: TheStateType
   init: (context: Context) => InitReturnType
 }

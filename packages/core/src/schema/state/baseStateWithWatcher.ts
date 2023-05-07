@@ -17,6 +17,7 @@ export interface StateWithWatcherTypeRequireDeclare<
   TheStateType extends StateType,
   InitReturnType,
   WatchCallbackValueType,
+  // TODO:这个地方是不是可以省略掉
   Config extends BaseStateConfigWithWatcher<
     TheStateType,
     InitReturnType,

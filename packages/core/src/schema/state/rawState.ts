@@ -19,8 +19,8 @@ export class RawState<T> extends BaseState<
   RawStateDeclare<T>['InitReturnType'],
   RawStateDeclare<T>['Config']
 > {
-  getType () {
-    return 'Raw' as RawStateDeclare<T>['TheStateType']
+  getType (): 'Raw' {
+    return 'Raw'
   }
   initState () {
     const { config, context } = this

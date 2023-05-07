@@ -1,20 +1,26 @@
 import { uniqueId } from 'lodash-es'
 
-export interface BaseResource {
-  resourceName: string
+export interface Resource<T> {
+  readonly name: string
   uid: string
+  value: T
 }
 
-export class ResourceManager<T extends Omit<BaseResource, 'uid'>> {
-  private map = new Map<string, T | undefined>()
-  private makeUid (resourceName: string) {
-    const uid = uniqueId(`${resourceName}`)
+export const createResourceUid = (name: string) => {
+  return uniqueId(`${name}`)
+}
+
+export class ResourceManager<T> {
+  public map = new Map<string, Resource<T>>()
+  add (name: string, value: T) {
+    const uid = createResourceUid(name)
+    this.map.set(uid, { uid, name, value })
     return uid
   }
-  add (item: T) {
-    const { resourceName } = item
-    const uid = this.makeUid(resourceName)
-    this.map.set(uid, item)
+  addByUid (uid: string, name: string, value: T) {
+    if (!this.has(uid)) {
+      this.map.set(uid, { uid, name, value })
+    }
     return uid
   }
   has (uid: string) {
@@ -24,6 +30,6 @@ export class ResourceManager<T extends Omit<BaseResource, 'uid'>> {
     if (!this.has(uid)) {
       return
     }
-    return this.map.get(uid)
+    return this.map.get(uid)?.value
   }
 }

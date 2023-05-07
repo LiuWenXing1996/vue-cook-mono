@@ -21,7 +21,7 @@ export const internalDefineHelperManager =
   createResourceManager<InternalDefineHelper>('defineHelper')
 
 export interface DefineConfigBase {
-  resourceName: string
+  logName: string
 }
 
 export type DefineConfigResourceType = Extract<
@@ -47,7 +47,7 @@ const createDefineConfigManager = <C extends DefineConfigBase>(
 ) => {
   const manager = createResourceManager<DeepReadonlyWithUid<C>>(type, parent)
   const define = <T extends C>(config: T) => {
-    const uid = manager.makeUid(config.resourceName)
+    const uid = manager.makeUid(config.logName)
     const configWithUid = deepFreeze({
       ...config,
       uid
