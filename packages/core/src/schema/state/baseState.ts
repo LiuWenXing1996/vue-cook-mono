@@ -1,4 +1,5 @@
 import { Context, InternalContext } from '../../context/internalContext'
+import { BaseDefineConfig } from '../../context/internalHelper'
 import { StateType } from './state'
 
 export interface StateTypeRequireDeclare<
@@ -38,11 +39,8 @@ export abstract class BaseState<
   abstract initState(): ValueType
 }
 
-export interface BaseStateConfig<
-  TheStateType extends StateType,
-  InitReturnType
-> {
-  logName: string
+export interface BaseStateConfig<TheStateType extends StateType, InitReturnType>
+  extends BaseDefineConfig {
   type: TheStateType
   init: (context: Context) => InitReturnType
 }

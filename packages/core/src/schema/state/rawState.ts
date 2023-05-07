@@ -25,8 +25,8 @@ export class RawState<T> extends BaseState<
   initState () {
     const { config, context } = this
     const { init } = config
-    const stateInitFuncRes = init(exposeContext(context))
-    const state = stateInitFuncRes
+    const initFuncRes = init(exposeContext(context))
+    const state = initFuncRes
     return state
   }
 }

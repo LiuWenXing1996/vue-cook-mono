@@ -1,4 +1,4 @@
-import { ShallowRef, UnwrapRef, ref, shallowRef } from 'vue'
+import { ShallowRef, UnwrapRef, shallowRef } from 'vue'
 import {
   BaseStateConfigWithWatcher,
   BaseStateWithWatcher,
@@ -28,8 +28,8 @@ export class ShallowRefState<T> extends BaseStateWithWatcher<
   initState () {
     const { config, context } = this
     const { init } = config
-    const stateInitFuncRes = init(exposeContext(context))
-    const state = shallowRef(stateInitFuncRes)
+    const initFuncRes = init(exposeContext(context))
+    const state = shallowRef(initFuncRes)
     return state
   }
 }

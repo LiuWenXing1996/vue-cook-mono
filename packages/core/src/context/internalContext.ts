@@ -1,3 +1,4 @@
+import { Action } from '../schema/action/action'
 import { State, StateType } from '../schema/state/state'
 import { deepFreeze } from '../utils/deepFreeze'
 import { ResourceManager } from '../utils/resourceManager'
@@ -10,8 +11,8 @@ export class InternalContext {
   name: string
   uid: string
   defineHelperUid: string
-  //TODO:实现Action
   stateManager = new ResourceManager<State<any, StateType> | undefined>()
+  actionManager = new ResourceManager<Action<any> | undefined>()
   constructor (name: string, defineHelperUid: string) {
     this.name = name
     this.defineHelperUid = defineHelperUid
@@ -34,6 +35,6 @@ export const exposeContext = (internalContext: InternalContext) => {
 
 export const createContext = (name: string, defineHelperUid: string) => {
   const internalContext = new InternalContext(name, defineHelperUid)
-  const defineHelper = exposeContext(internalContext)
-  return defineHelper
+  const context = exposeContext(internalContext)
+  return context
 }

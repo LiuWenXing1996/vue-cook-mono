@@ -28,8 +28,8 @@ export class RefState<T> extends BaseStateWithWatcher<
   initState () {
     const { config, context } = this
     const { init } = config
-    const stateInitFuncRes = init(exposeContext(context))
-    const state = ref(stateInitFuncRes)
+    const initFuncRes = init(exposeContext(context))
+    const state = ref(initFuncRes)
     return state
   }
 }

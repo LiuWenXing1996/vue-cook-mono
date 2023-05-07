@@ -1,3 +1,5 @@
+import { ActionConfig } from '../schema/action/action'
+import { createDefineAction } from '../schema/action/createDefineAction'
 import { createDefineState } from '../schema/state/createDefineState'
 import { StateType } from '../schema/state/state'
 import { StateConfig } from '../schema/state/state'
@@ -6,6 +8,10 @@ import { ResourceManager } from '../utils/resourceManager'
 
 const exposeDefineHelperTag: unique symbol = Symbol('exposeDefineHelperTag')
 
+export interface BaseDefineConfig {
+  logName: string
+}
+
 export const internalDefineHelperManager =
   new ResourceManager<InternalDefineHelper>()
 
@@ -13,6 +19,7 @@ export class InternalDefineHelper {
   #uid: string
   #name: string
   stateConfigManager = new ResourceManager<StateConfig<any, StateType>>()
+  actionConfigManager = new ResourceManager<ActionConfig<any>>()
   constructor (name: string) {
     this.#name = name
     this.#uid = internalDefineHelperManager.add(name, this)
@@ -38,7 +45,8 @@ export const exposeDefineHelper = (
   return deepFreeze({
     [exposeDefineHelperTag]: true,
     name,
-    defineState: createDefineState(internalDefineHelper)
+    defineState: createDefineState(internalDefineHelper),
+    defineAction: createDefineAction(internalDefineHelper)
   })
 }
 
@@ -48,12 +56,25 @@ export const createDefineHelper = (name: string) => {
   return defineHelper
 }
 
-const defineHelper = createDefineHelper('d')
+/**
+ * demo
+ */
 
-const useStateA = defineHelper.defineState({
-  type: 'Ref',
-  logName: 'ss',
-  init: () => {
-    return 'undefined'
-  }
-})
+// const defineHelper = createDefineHelper('d')
+
+// const useStateA = defineHelper.defineState({
+//   type: 'Ref',
+//   logName: 'ss',
+//   init: () => {
+//     return 'undefined'
+//   }
+// })
+
+// const useActionA = defineHelper.defineAction({
+//   logName: 'ss',
+//   init: () => {
+//     return (s: string, b: number) => {
+//       return b
+//     }
+//   }
+// })
