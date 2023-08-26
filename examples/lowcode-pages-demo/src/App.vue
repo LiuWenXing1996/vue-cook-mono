@@ -4,7 +4,7 @@ import HelloWorld from './components/HelloWorld.vue'
 import { run } from "@vue-cook/core"
 import { getCurrentInstance } from "vue"
 // import ss from "virtual:vue-cook-lowcode"
-
+await run
 // console.log(ss)
 </script>
 

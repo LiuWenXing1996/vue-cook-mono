@@ -1,5 +1,6 @@
 import { type Plugin } from 'esbuild'
 import { name } from '../../../package.json'
+ // @ts-ignore
 import { getCustomComsole } from '@vue-cook/shared'
 
 const { log } = getCustomComsole(name)

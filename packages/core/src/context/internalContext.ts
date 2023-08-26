@@ -30,7 +30,7 @@ export const exposeContext = (internalContext: InternalContext) => {
     name,
     uid,
     defineHelperUid
-  })
+  }) as any
 }
 
 export const createContext = (name: string, defineHelperUid: string) => {

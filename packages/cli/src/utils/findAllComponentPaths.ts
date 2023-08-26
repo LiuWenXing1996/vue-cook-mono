@@ -1,7 +1,7 @@
 import { basename, resolve } from 'path'
-import isDir from './isDir'
 import { readdir } from 'fs/promises'
 import { flattenDeep } from 'lodash'
+import { isDir } from '.'
 
 const isComponentFile = (path: string) => {
   if (!isDir(path)) {
