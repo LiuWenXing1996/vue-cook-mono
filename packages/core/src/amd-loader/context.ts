@@ -27,28 +27,32 @@ export const getContext = (id: string) => {
 }
 
 export type ICallback = Function | Object
-const innerUrlPrefix = 'innerUrl:'
 export class Context {
   private id: string
-  private config: Omit<IContextConfig, 'injectModules'>
-  requireCounter: number
+  private config: IContextConfig
   moduleMap: Map<string, Module> = new Map()
   private defineOptionsMap: Map<string, DefineOptions> = new Map()
   constructor (config: Partial<IContextConfig>) {
     this.id = uuidv4()
     contextMap.set(this.id, this)
+    const injectModules: Record<string, any> = {
+      ...config.injectModules
+    }
 
     this.config = {
       waitSeconds: config.waitSeconds == null ? 7 : config.waitSeconds,
       paths: config.paths || {},
-      baseUrl: config.baseUrl ? mustEndWithSlash(config.baseUrl) : undefined
+      baseUrl: config.baseUrl ? mustEndWithSlash(config.baseUrl) : '',
+      injectModules: config.injectModules || {},
+      errorCallback: config.errorCallback || (() => {})
     }
-    const injectModules = config.injectModules || {}
-    Object.keys(injectModules).map(name => {
-      this.moduleMap.set(name, injectModules[name])
-    })
 
-    this.requireCounter = 0
+    Object.keys(injectModules).map(name => {
+      const module = this.getModule(name, '')
+      module.init([], () => {
+        return injectModules[name]
+      })
+    })
   }
 
   setDefineOptions (url: string, options: DefineOptions) {
@@ -63,13 +67,14 @@ export class Context {
     return this.id
   }
 
-  nameToUrl (name: string, parentUrl?: string) {
+  private nameToUniqUrl (name: string, parentUrl?: string) {
+    // TODO: require exports module name
     if (this.moduleMap.has(name)) {
-      return innerUrlPrefix + name
+      return name
     }
-    let url = this.config.paths[name] || undefined
-    const inPaths = this.config.paths[name] ? false : true
-    let baseUrl = this.config.baseUrl
+    let url = this.config.paths?.[name] || undefined
+    const inPaths = this.config.paths?.[name] ? false : true
+    let baseUrl = this.config.baseUrl || ''
     if (!inPaths) {
       if (parentUrl) {
         baseUrl = getDirname(parentUrl)
@@ -85,30 +90,76 @@ export class Context {
     return url
   }
 
-  getModule (url: string) {
-    let module = this.moduleMap.get(url)
+  private getModule (uniqUrl: string, parentUrl: string) {
+    if (uniqUrl === 'require') {
+      const module = new Module(this, uniqUrl)
+      module.init([], () => {
+        return (deps: string[], callback: Function, errback?: Function) => {
+          this.getDepValues(deps, parentUrl, callback, errback)
+        }
+      })
+      return module
+    }
+    if (uniqUrl === 'exports') {
+      const module = new Module(this, uniqUrl)
+      const parentModule = this.getModule(parentUrl, '')
+      parentModule.exports = {}
+      module.init([], () => {
+        return parentModule.exports
+      })
+      return module
+    }
+    if (uniqUrl === 'module') {
+      const module = new Module(this, uniqUrl)
+      const parentModule = this.getModule(parentUrl, '')
+      parentModule.exports = {}
+      const _module = {
+        exports: parentModule.exports
+      }
+      module.init([], () => {
+        return _module
+      })
+      return module
+    }
+
+    let module = this.moduleMap.get(uniqUrl)
     if (!module) {
-      module = new Module(this, url)
-      this.moduleMap.set(url, module)
+      module = new Module(this, uniqUrl)
+      this.moduleMap.set(uniqUrl, module)
     }
     return module
   }
 
-  getDepValues (depUrls: string[], callback: Function) {
+  getDepValues (
+    depNames: string[],
+    parentUrl: string,
+    callback: Function,
+    errback?: Function
+  ) {
+    const _errback = () => {
+      this.config.errorCallback()
+      if (errback) {
+        errback()
+      }
+    }
     const depValues: any[] = []
+    const depUrls = depNames.map(depName => {
+      return this.nameToUniqUrl(depName, parentUrl)
+    })
     let depsCount = depUrls.length
     const check = () => {
       if (depsCount <= 0) {
         callback(...depValues)
       }
     }
+    check()
     depUrls.forEach((depUrl, i) => {
-      const module = this.getModule(depUrl)
+      const module = this.getModule(depUrl, parentUrl)
       module.getExports((e: any) => {
         depsCount = depsCount - 1
         depValues[i] = e
         check()
-      })
+      }, _errback)
     })
   }
 }
@@ -117,7 +168,8 @@ export type IContext = Context
 
 export interface IContextConfig {
   waitSeconds: number
-  baseUrl?: string
+  baseUrl: string
   paths: Record<string, string>
   injectModules: Record<string, any>
+  errorCallback: Function
 }

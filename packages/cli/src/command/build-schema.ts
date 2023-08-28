@@ -17,7 +17,8 @@ import type { ICookConfig } from '@vue-cook/core'
 import type { Plugin } from 'vite'
 import * as esbuild from 'esbuild'
 import * as rollup from 'rollup'
-import * as babel from "@babel/standalone"
+import * as babel from '@babel/standalone'
+import * as swc from '@swc/core'
 import { getFielsContent, getFiles } from '../utils'
 
 const { log } = getCustomComsole(name)
@@ -100,6 +101,7 @@ const buildSchema = async (options: IBuildDepsOptions) => {
   })
   const res = await build({
     esbuild,
+    swc,
     rollup,
     babel,
     config,

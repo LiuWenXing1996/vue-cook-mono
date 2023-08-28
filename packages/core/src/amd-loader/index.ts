@@ -9,21 +9,30 @@ import { defineMethodName } from '../bundler'
 import { Context, IContextConfig } from './context'
 import { define } from './define'
 
-export const require = async (deps: string[], config: IContextConfig) => {
+export const require = async (
+  deps: string[],
+  config: Partial<IContextConfig>
+) => {
   const context = new Context({ ...config })
-  const depUrls = deps.map(depName => {
-    return context.nameToUrl(depName)
-  })
-  return new Promise(resolve => {
-    context.getDepValues(depUrls, (...depsValue: any[]) => {
-      resolve(depsValue)
-    })
+  return new Promise((resolve, reject) => {
+    context.getDepValues(
+      deps,
+      '',
+      (...depsValue: any[]) => {
+        resolve(depsValue)
+      },
+      (err: any) => {
+        reject(err)
+      }
+    )
   })
 }
 
 export const registerDefineMethod = () => {
-  if (global) {
-    // @ts-ignore
-    global[defineMethodName] = define
-  }
+  try {
+    if (window) {
+      // @ts-ignore
+      window[defineMethodName] = define
+    }
+  } catch (error) {}
 }

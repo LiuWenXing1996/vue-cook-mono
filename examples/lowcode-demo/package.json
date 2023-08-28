@@ -14,7 +14,6 @@
     "element-plus": "^2.3.7",
     "lodash": "^4.17.21",
     "lodash-es": "^4.17.21",
-    "uuidv4": "^6.2.13",
     "vue": "^3.3.4"
   },
   "devDependencies": {

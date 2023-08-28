@@ -33,6 +33,7 @@ const pickDefineOptions = (
     deps = []
   }
   _deps = deps as string[]
+  // TODO: auto inject require deps
 
   if (!isFunction(callback)) {
     _callback = () => {
@@ -53,8 +54,7 @@ export type DefineOptions = ReturnType<typeof pickDefineOptions>
 
 const internalDefine = (options: DefineOptions) => {
   const script = getCurrentScript()
-  const url = script.src
-  const contextId = script.getAttribute('data-contextId')
+  const contextId = script.getAttribute('data-context-id')
   if (!contextId) {
     return
   }
@@ -62,7 +62,11 @@ const internalDefine = (options: DefineOptions) => {
   if (!context) {
     return
   }
-  context.setDefineOptions(url, options)
+  const moduleUrl = script.getAttribute('data-module-url')
+  if (!moduleUrl) {
+    return
+  }
+  context.setDefineOptions(moduleUrl, options)
 }
 
 function define(name: string, deps: string[], callback: SupportCallback): void

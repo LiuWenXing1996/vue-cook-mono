@@ -12,11 +12,16 @@ import { exit } from 'node:process'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'url'
 import { build } from 'vite'
-import type { Plugin } from 'vite'
+// import type { Plugin } from 'vite'
 import { isArray } from 'lodash'
 import { rollup, RollupOutput } from 'rollup'
-import { outputFile } from 'fs-extra'
+import { outputFile, remove } from 'fs-extra'
 import * as babel from '@babel/core'
+import * as esbuild from 'esbuild'
+import { type Plugin } from 'esbuild'
+import * as swc from '@swc/core'
+import type { ICookConfig } from '@vue-cook/core'
+import { defineMethodName } from '@vue-cook/core'
 
 const { log } = getCustomComsole(name)
 
@@ -40,14 +45,14 @@ export const resolvePkgJson = async (pkgJsonPath: string) => {
   return content
 }
 
-export interface ICookConfig {
-  version: string
-  ignorePaths: string[]
-  entry: string
-  components: string
-  rootPath: string
-  deps: Record<string, { entry?: string }>
-}
+// export interface ICookConfig {
+//   version: string
+//   ignorePaths: string[]
+//   entry: string
+//   components: string
+//   rootPath: string
+//   deps: Record<string, { entry?: string }>
+// }
 
 export const resolveConfig = async (cookConfigPath: string) => {
   const absolutePath = resolve(cookConfigPath)
@@ -59,31 +64,60 @@ export const resolveConfig = async (cookConfigPath: string) => {
   return content
 }
 
-const autoDepPlugin = (options: {
-  depName: string
-  virtualModuleId: string
-  entry?: string
-}): Plugin => {
-  const { depName, virtualModuleId, entry } = options
-  const resolvedVirtualModuleId = '\0' + virtualModuleId
+// const autoDepPlugin = (options: {
+//   depName: string
+//   virtualModuleId: string
+//   entry?: string
+// }): Plugin => {
+//   const { depName, virtualModuleId, entry } = options
+//   const resolvedVirtualModuleId = '\0' + virtualModuleId
 
-  return {
-    name: 'vue-cook-dep', // 必须的，将会在 warning 和 error 中显示
-    resolveId: (id: string) => {
-      if (id === virtualModuleId) {
-        return resolvedVirtualModuleId
-      }
-      return
-    },
-    load: async (id: string) => {
-      if (id === resolvedVirtualModuleId) {
-        const lib = entry || `export {uniq} from "${depName}"`
-        console.log(lib)
-        return lib
-      }
-      return
+//   return {
+//     name: 'vue-cook-dep', // 必须的，将会在 warning 和 error 中显示
+//     resolveId: (id: string) => {
+//       if (id === virtualModuleId) {
+//         return resolvedVirtualModuleId
+//       }
+//       return
+//     },
+//     load: async (id: string) => {
+//       if (id === resolvedVirtualModuleId) {
+//         const lib = entry || `export {uniq} from "${depName}"`
+//         console.log(lib)
+//         return lib
+//       }
+//       return
+//     }
+//   }
+// }
+
+export const VirtualPlugin = (options: Record<string, string> = {}) => {
+  const namespace = 'virtual'
+  const filter = new RegExp(
+    Object.keys(options)
+      .map(name => `^${name}$`)
+      .join('|')
+  )
+  const plugin: Plugin = {
+    name: namespace,
+    setup (build) {
+      build.onResolve({ filter }, args => {
+        // debugger
+        return {
+          path: args.path,
+          namespace
+        }
+      })
+      build.onLoad({ filter: /.*/, namespace }, args => {
+        return {
+          contents: options[args.path],
+          loader: 'js',
+          resolveDir: resolve(__dirname)
+        }
+      })
     }
   }
+  return plugin
 }
 
 const buildDeps = async (options: IBuildDepsOptions) => {
@@ -98,96 +132,117 @@ const buildDeps = async (options: IBuildDepsOptions) => {
   }
   let { dependencies = {} } = pkgJson
   const dependencieList = Object.keys(dependencies)
-  dependencies = { 'lodash': '3.0.0' }
+  // dependencies = { vue: '3.0.0' }
+  const tempDir = resolve(__dirname, './vue-cook-temp')
+  const depEntryList = Object.keys(dependencies).map(depName => {
+    return {
+      name: depName,
+      version: dependencies[depName],
+      path: resolve(tempDir, `./${depName.replaceAll('/', '+')}.ts`),
+      outDir: resolve(__dirname, './dist',`./deps/${depName.replaceAll('/', '+')}`),
+      content:
+        config.deps?.[depName]?.entry ||
+        `
+export * from "${depName}"; 
+export {default} from "${depName}"; 
+`
+    }
+  })
+  await remove(tempDir)
+  await Promise.all(
+    depEntryList.map(async depEntry => {
+      await outputFile(depEntry.path, depEntry.content)
+    })
+  )
   const outputFiles: Record<string, string> = {}
 
   await Promise.all(
-    Object.keys(dependencies).map(async dep => {
-      const virtualModuleId = resolve(
-        __dirname,
-        `./${dep.replaceAll('/', '+')}.ts`
-      )
-      console.log(virtualModuleId)
-      // TODO:构建顺序
-      // TODO:lodash这种包的构建导出其实是有问题的，没有转成真正的esm
-      // TODO:如果只支持应用呢？会不会容易些？
-      /**
-       * vite   ===》 esm
-       *
-       */
-      const viteOutput = await build({
-        configFile: false,
-        root: resolve(__dirname, '.'),
-        plugins: [
-          autoDepPlugin({
-            depName: dep,
-            virtualModuleId,
-            entry: config.deps[dep]?.entry
-          })
-        ],
-        build: {
-          write: false,
-          target: 'es2015',
-          lib: {
-            entry: virtualModuleId,
-            fileName: () => {
-              return 'index.js'
-            },
-            formats: ['cjs'],
-            name: dep
-          },
-          outDir: resolve(__dirname, `./dist/deps/${dep.replaceAll('/', '+')}`),
-          cssCodeSplit: false,
-          rollupOptions: {
-            external: dependencieList.filter(e => e !== dep)
-          },
-          minify: false
-        }
+    depEntryList.map(async depEntry => {
+      // TODO: gen entry file
+      let bundleRes = await esbuild.build({
+        // entryPoints: [resolve(__dirname, `./container.ts`)],
+        entryPoints: [depEntry.path],
+        bundle: true,
+        target: ['es2015'],
+        format: 'esm',
+        write: false,
+        external: dependencieList.filter(e => e !== depEntry.name),
+        sourcemap: true,
+        outdir: depEntry.outDir
       })
-      let viteOutputList = isArray(viteOutput)
-        ? [...viteOutput]
-        : ([viteOutput] as RollupOutput[])
 
-      viteOutputList.map(rollupOutput => {
-        const { output } = rollupOutput
-        output.map(e => {
-          const fileName = `./dist/deps/${dep.replaceAll('/', '+')}/${
-            e.fileName
-          }`
-          // @ts-ignore
-          outputFiles[fileName] = e.code
+      {
+        ;(bundleRes.outputFiles || []).map(e => {
+          outputFiles[e.path] = e.text
         })
-      })
+      }
     })
   )
 
-  console.log(Object.keys(outputFiles))
-  // // babel转译下
-  // await Promise.all(
-  //   Object.keys(outputFiles)
-  //     .filter(e => {
-  //       if (e.endsWith('.js')) {
-  //         return true
-  //       }
-  //       return false
-  //     })
-  //     .map(async key => {
-  //       const bundle = babel.transform(outputFiles[key], {
-  //         babelrc: false,
-  //         configFile: false,
-  //         presets: [['@babel/preset-env']],
-  //         caller: {
-  //           name: 'my-custom-tool',
-  //           supportsStaticESM: true
-  //         }
-  //         // sourceMaps: true,
-  //         // inputSourceMap: JSON.parse(outputFiles[key + '.map'] || '{}')
-  //       })
-  //       outputFiles[key] = bundle?.code || ''
-  //       //@ts-ignore
-  //       // outputFiles[key + '.map'] = JSON.stringify(bundle.map || '')
-  //     })
-  // )
+
+  await Promise.all(
+    Object.keys(outputFiles)
+      .filter(e => {
+        if (e.endsWith('.js')) {
+          return true
+        }
+        return false
+      })
+      .map(async key => {
+        const bundle = await swc.transform(outputFiles[key], {
+          module: {
+            type: 'amd'
+          },
+          sourceMaps: 'inline',
+          inputSourceMap: outputFiles[key + '.map'] || '{}'
+        })
+        outputFiles[key] = bundle.code || ''
+        //@ts-ignore
+        outputFiles[key + '.map'] = JSON.stringify(bundle.map || '')
+      })
+  )
+
+  await Promise.all([
+    ...Object.keys(outputFiles)
+      .filter(e => {
+        if (e.endsWith('.js')) {
+          return true
+        }
+        return false
+      })
+      .map(async key => {
+        const minifyRes = await esbuild.transform(outputFiles[key], {
+          loader: 'js',
+          // minify: true,
+          sourcemap: true,
+          banner: `(function () {
+var define = window['${defineMethodName}']`,
+          footer: '})();'
+        })
+        outputFiles[key] =
+          minifyRes.code + `//# sourceMappingURL=` + 'index.js.map'
+        outputFiles[key + '.map'] = minifyRes.map
+      }),
+    ...Object.keys(outputFiles)
+      .filter(e => {
+        if (e.endsWith('.css')) {
+          return true
+        }
+        return false
+      })
+      .map(async key => {
+        // TODO:css的source map 似乎不太对
+        const minifyRes = await esbuild.transform(outputFiles[key], {
+          loader: 'css',
+          minify: true,
+          sourcemap: true
+        })
+        outputFiles[key] = minifyRes.code
+        outputFiles[key + '.map'] = minifyRes.map
+      })
+  ])
+
+  console.log('outputFiles', Object.keys(outputFiles))
 
   await Promise.all(
     Object.keys(outputFiles || {}).map(async key => {

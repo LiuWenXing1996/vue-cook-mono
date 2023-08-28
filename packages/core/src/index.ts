@@ -2,7 +2,7 @@ import { registerDefineMethod } from './amd-loader'
 registerDefineMethod()
 
 export { run } from './lowcode'
-export { build } from './bundler/index'
+export { build, defineMethodName } from './bundler/index'
 export { runContainer } from './lowcode'
 // export { createContext } from './context/internalContext'
 // export { createDefineHelper } from './context/internalHelper'

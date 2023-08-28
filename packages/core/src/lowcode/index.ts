@@ -1,6 +1,7 @@
 // import { loadScript } from './loadScript'
 import sandbox from './sandbox'
 import { sandboxGlobalInjectMethodName } from '@vue-cook/shared'
+import { require } from '../amd-loader'
 // import { v4 as uuidv4 } from 'uuid'
 
 export interface LowcodeConfig {
@@ -38,7 +39,7 @@ export interface IRunContainerConfig {
 }
 
 export const runContainer = async (config: IRunContainerConfig) => {
-  // const { assets } = config
+  const { assets } = config
   // //@ts-ignore
   // if (!window.System) {
   //   console.log('....')
@@ -48,7 +49,7 @@ export const runContainer = async (config: IRunContainerConfig) => {
   //   await import('systemjs/dist/extras/amd')
   // }
 
-  // const res = await System.import(assets)
-  // // const res = assets
-  // return res
+  const res = (await require([assets], {})) as any
+  // const res = assets
+  return res[0]
 }
