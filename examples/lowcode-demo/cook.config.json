@@ -1,0 +1,16 @@
+{
+    "version": "1.0.0",
+    "components": "./src/components",
+    "rootPath": "./src/",
+    "entry": "./src/index.ts",
+    "ignorePaths": [
+        "node_modules",
+        "dist"
+    ],
+    "outdir": "./dist/schema",
+    "deps": {
+        "element-plus": {
+            "entry": "export * from 'element-plus';import 'element-plus/dist/index.css'"
+        }
+    }
+}

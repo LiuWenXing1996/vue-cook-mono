@@ -1,12 +1,14 @@
 import { context, type Plugin } from 'esbuild'
 import dayjs from 'dayjs'
+// @ts-ignore
 import Vue from 'unplugin-vue/esbuild'
 import path from 'node:path'
 import chokidar from 'chokidar'
 import genVueScriptContent from '../utils/genVueScriptContent'
-import { resoveConfig } from '@vue-cook/shared'
+// import { resoveConfig } from '@vue-cook/shared'
 import { findAllComponentPaths } from '../utils/findAllComponentPaths'
-import { IBuildOptions } from './build'
+import { IBuildOptions } from '../buildContext/createBuildContext'
+// import { IBuildOptions } from './build'
 
 const log = (msg: string) => {
   console.log(`[${dayjs().format('YYYY-MM-DD HH:mm:ss')}]:${msg}`)
@@ -55,6 +57,7 @@ const VirtualPlugin = (options: Record<string, string> = {}) => {
 const dev = async (options: IBuildOptions) => {
   log('dev starting ...')
   const { configPath } = options
+  // @ts-ignore
   const config = resoveConfig(configPath) as any
   if (!config) {
     return
