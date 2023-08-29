@@ -37,7 +37,9 @@ export const getFiles = async (path: string, ignorePaths: string[]) => {
     if (isDir(e)) {
       dirList.push(e)
     } else {
-      fileList.push(e)
+      if (!isIgnorePath(e, ignorePaths)) {
+        fileList.push(e)
+      }
     }
   })
   res.push(...fileList)

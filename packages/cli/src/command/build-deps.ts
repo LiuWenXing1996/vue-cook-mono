@@ -5,8 +5,7 @@ import {
   creatBuildContext,
   IBuildOptions
 } from '../buildContext/createBuildContext'
-// @ts-ignore
-import { getCustomComsole } from '@vue-cook/shared'
+
 import { findAllComponentPaths } from '../utils/findAllComponentPaths'
 import { exit } from 'node:process'
 import { readFile } from 'node:fs/promises'
@@ -22,6 +21,7 @@ import { type Plugin } from 'esbuild'
 import * as swc from '@swc/core'
 import type { ICookConfig } from '@vue-cook/core'
 import { defineMethodName } from '@vue-cook/core'
+import { getCustomComsole } from '../utils/customComsole'
 
 const { log } = getCustomComsole(name)
 
@@ -133,13 +133,13 @@ const buildDeps = async (options: IBuildDepsOptions) => {
   let { dependencies = {} } = pkgJson
   const dependencieList = Object.keys(dependencies)
   // dependencies = { vue: '3.0.0' }
-  const tempDir = resolve(__dirname, './vue-cook-temp')
+  const tempDir = resolve(__dirname, config.tempDir ? config.tempDir : "node_modules/.vue-cook")
   const depEntryList = Object.keys(dependencies).map(depName => {
     return {
       name: depName,
       version: dependencies[depName],
       path: resolve(tempDir, `./${depName.replaceAll('/', '+')}.ts`),
-      outDir: resolve(__dirname, './dist',`./deps/${depName.replaceAll('/', '+')}`),
+      outDir: resolve(__dirname, config.outdir, `./deps/${depName.replaceAll('/', '+')}`),
       content:
         config.deps?.[depName]?.entry ||
         `
@@ -158,7 +158,6 @@ export {default} from "${depName}";
 
   await Promise.all(
     depEntryList.map(async depEntry => {
-      // TODO: gen entry file
       let bundleRes = await esbuild.build({
         // entryPoints: [resolve(__dirname, `./container.ts`)],
         entryPoints: [depEntry.path],
@@ -168,14 +167,24 @@ export {default} from "${depName}";
         write: false,
         external: dependencieList.filter(e => e !== depEntry.name),
         sourcemap: true,
-        outdir: depEntry.outDir
+        outfile: resolve(depEntry.outDir, "./index.js"),
       })
-
+      let hasStyle = false
       {
-        ;(bundleRes.outputFiles || []).map(e => {
+        ; (bundleRes.outputFiles || []).map(e => {
+          if (e.path.endsWith(".css")) {
+            hasStyle = true
+          }
           outputFiles[e.path] = e.text
         })
       }
+
+      const entryJs = `
+${hasStyle ? 'import "./index.css"' : ''}
+export * from "./index";
+export {default} from "./index";
+      `;
+      outputFiles[resolve(depEntry.outDir, "./entry.js")] = entryJs
     })
   )
 
@@ -197,7 +206,6 @@ export {default} from "${depName}";
           inputSourceMap: outputFiles[key + '.map'] || '{}'
         })
         outputFiles[key] = bundle.code || ''
-        //@ts-ignore
         outputFiles[key + '.map'] = JSON.stringify(bundle.map || '')
       })
   )

@@ -1,8 +1,0 @@
-{
-  "extends": "@vue-cook/scripts/tsconfig/tsconfig.dts.common.json",
-  "include": [
-    "./src",
-    "./rollup.config.ts",
-    "./rollup.dts.config.ts",
-  ]
-}

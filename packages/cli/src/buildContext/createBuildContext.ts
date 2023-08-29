@@ -2,11 +2,7 @@ import { context } from 'esbuild'
 // @ts-ignore
 import Vue from 'unplugin-vue/esbuild'
 import path from 'node:path'
-// import {
-//   resoveConfig,
-//   resolvePkgJson,
-//   sandboxGlobalInjectMethodName
-// } from '@vue-cook/shared'
+
 import { WatchPlugin } from './plugins/WatchPlugin'
 import { VirtualPlugin } from './plugins/VirtualPlugin'
 

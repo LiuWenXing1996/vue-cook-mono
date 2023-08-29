@@ -1,2 +1,0 @@
-export const sandboxGlobalInjectMethodName =
-  '__cook_sandbox_global_inject_method_202304090723_'

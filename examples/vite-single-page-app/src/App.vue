@@ -1,17 +1,9 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
-import { run } from "@vue-cook/core"
-import { getCurrentInstance } from "vue"
-// import ss from "virtual:vue-cook-lowcode"
-await run
-// console.log(ss)
 </script>
 
 <template>
-  <Suspense>
-    <Content></Content>
-  </Suspense>
   <header>
     <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
 

@@ -1,12 +1,10 @@
-import path, { resolve } from 'node:path'
+import path, { relative, resolve } from 'node:path'
 import genVueScriptContent from '../utils/genVueScriptContent'
 import { name } from '../../package.json'
 import {
   creatBuildContext,
   IBuildOptions
 } from '../buildContext/createBuildContext'
-// @ts-ignore
-import { getCustomComsole } from '@vue-cook/shared'
 import { findAllComponentPaths } from '../utils/findAllComponentPaths'
 import { exit } from 'node:process'
 import { readFile } from 'node:fs/promises'
@@ -20,6 +18,8 @@ import * as rollup from 'rollup'
 import * as babel from '@babel/standalone'
 import * as swc from '@swc/core'
 import { getFielsContent, getFiles } from '../utils'
+import { getCustomComsole } from '../utils/customComsole'
+import VueCompiler from '@vue/compiler-sfc'
 
 const { log } = getCustomComsole(name)
 
@@ -97,12 +97,14 @@ const buildSchema = async (options: IBuildDepsOptions) => {
   // console.log('fielsContent', fielsContent)
   const modules: Record<string, string> = {}
   fielsContent.map(e => {
-    modules[e.path] = e.content
+    const _path = relative(resolve(__dirname, '.'), e.path)
+    modules[_path] = e.content
   })
   const res = await build({
     esbuild,
     swc,
     rollup,
+    vueCompiler: VueCompiler,
     babel,
     config,
     pkgJson,

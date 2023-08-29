@@ -1,0 +1,17 @@
+{
+    "root": "./lowcode",
+    "componentFileName": "components",
+    "pageFileName": "pages",
+    "entryFileName": "index.ts",
+    "ignorePaths": [
+        "node_modules",
+        "dist",
+        "public/lowcode"
+    ],
+    "outdir": "./public/lowcode",
+    "deps": {
+        "element-plus": {
+            "entry": "export * from 'element-plus';import 'element-plus/dist/index.css'"
+        }
+    }
+}

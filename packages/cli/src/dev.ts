@@ -5,7 +5,6 @@
 // import path from 'node:path'
 // import chokidar from 'chokidar'
 // import genVueScriptContent from './utils/genVueScriptContent'
-// // import { resoveConfig } from '@vue-cook/shared'
 // import { findAllComponentPaths } from './utils/findAllComponentPaths'
 // import { IBuildOptions } from './build'
 

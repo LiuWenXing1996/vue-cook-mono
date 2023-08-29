@@ -1,7 +1,7 @@
 // import { loadScript } from './loadScript'
 import sandbox from './sandbox'
-import { sandboxGlobalInjectMethodName } from '@vue-cook/shared'
 import { require } from '../amd-loader'
+import { IContextConfig } from '../amd-loader/context'
 // import { v4 as uuidv4 } from 'uuid'
 
 export interface LowcodeConfig {
@@ -21,13 +21,13 @@ export const run = async (config: LowcodeConfig) => {
     return
   }
   const res = sandbox(schema, {
-    [sandboxGlobalInjectMethodName]: () => {
-      return {
-        getLib: (name: string) => {
-          return libs[name]
-        }
-      }
-    }
+    // [sandboxGlobalInjectMethodName]: () => {
+    //   return {
+    //     getLib: (name: string) => {
+    //       return libs[name]
+    //     }
+    //   }
+    // }
   })
   runContainerResultMap[uid] = res
   return res
@@ -35,11 +35,11 @@ export const run = async (config: LowcodeConfig) => {
 
 export interface IRunContainerConfig {
   assets: string
-  dynamicSchema?: string
+  contextConfig?: Partial<IContextConfig>
 }
 
 export const runContainer = async (config: IRunContainerConfig) => {
-  const { assets } = config
+  const { assets, contextConfig } = config
   // //@ts-ignore
   // if (!window.System) {
   //   console.log('....')
@@ -49,7 +49,7 @@ export const runContainer = async (config: IRunContainerConfig) => {
   //   await import('systemjs/dist/extras/amd')
   // }
 
-  const res = (await require([assets], {})) as any
+  const res = (await require([assets], contextConfig || {})) as any
   // const res = assets
   return res[0]
 }

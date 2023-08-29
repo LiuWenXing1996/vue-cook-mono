@@ -1,7 +1,6 @@
 import { readFile } from 'fs/promises'
 import { Plugin } from 'vite'
 import path from 'node:path'
-import { parseCookConfig } from '@vue-cook/shared'
 
 export interface IOptions {
   pkgJsonPath: string
@@ -38,7 +37,7 @@ const autoDepsPlugin = (options: IOptions): Plugin => {
     load: async (id: string) => {
       if (id === resolvedVirtualModuleId) {
         const { dependencies = {} } = (await resovePkgJson(pkgJsonPath)) || {}
-        const cookConfig = await resoveConfig(cookConfigPath)
+        const cookConfig = ""
         if (!cookConfig) {
           return ''
         }

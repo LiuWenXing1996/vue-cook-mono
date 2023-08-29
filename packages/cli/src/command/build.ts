@@ -5,11 +5,11 @@ import {
   creatBuildContext,
   IBuildOptions
 } from '../buildContext/createBuildContext'
- // @ts-ignore
-import { getCustomComsole } from '@vue-cook/shared'
+
 import { findAllComponentPaths } from '../utils/findAllComponentPaths'
 import { exit } from 'node:process'
 import { readFile } from 'node:fs/promises'
+import { getCustomComsole } from '../utils/customComsole'
 
 const { log } = getCustomComsole(name)
 
@@ -30,7 +30,6 @@ export const resolveConfig = async (cookConfigPath: string) => {
   } catch (e) {}
   return content
 }
-
 
 const build = async (options: IBuildOptions) => {
   const { configPath } = options

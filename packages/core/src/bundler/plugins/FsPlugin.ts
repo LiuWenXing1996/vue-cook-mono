@@ -1,5 +1,5 @@
 import { type Plugin } from 'esbuild'
-import { isAbsolute, resolve, dirname, extname } from 'path-browserify'
+import { isAbsolute, resolve, dirname, extname, join } from 'path-browserify'
 
 // 基本实现了
 export const FsPlugin = (options: { modules: Record<string, string> }) => {
@@ -17,8 +17,7 @@ export const FsPlugin = (options: { modules: Record<string, string> }) => {
         }
         let newPath = oldPath
         if (!isAbsolute(oldPath)) {
-          // TODO:此处的resolve有问题
-          newPath = resolve(dirname(args.importer), oldPath)
+          newPath = join(dirname(args.importer), oldPath)
         }
         return {
           path: newPath,
