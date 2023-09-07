@@ -1,11 +1,26 @@
-<script setup lang="ts">
-import { runContainer } from '@vue-cook/core'
 
-const res = await runContainer({
-    assets: './dist/schema/index.js'
-})
-console.log("res.a",res.aaaaa)
-console.log(".....")
+<script  lang="ts">
+import { defineComponent } from 'vue';
+
+// const defineComponent = (a: any) => { return a }
+
+export default {
+    name: "",
+    methods: {
+        a(){
+            this.$data.b
+        }
+    },
+    setup(){
+
+    },
+    data: () => {
+        return {
+            b:""
+        }
+    },
+    a: ""
+}
 </script>
 
 <template>

@@ -1,4 +1,4 @@
-import path, { relative, resolve } from 'node:path'
+import path, { join, relative, resolve } from 'node:path'
 import genVueScriptContent from '../utils/genVueScriptContent'
 import { name } from '../../package.json'
 import {
@@ -8,7 +8,7 @@ import {
 import { findAllComponentPaths } from '../utils/findAllComponentPaths'
 import { exit } from 'node:process'
 import { readFile } from 'node:fs/promises'
-import { outputFile } from 'fs-extra'
+import { emptyDir, outputFile } from 'fs-extra'
 import { fileURLToPath } from 'url'
 import { build } from '@vue-cook/core'
 import type { ICookConfig } from '@vue-cook/core'
@@ -101,14 +101,30 @@ const buildSchema = async (options: IBuildDepsOptions) => {
     modules[_path] = e.content
   })
   const res = await build({
+    env: 'node',
+    files: modules,
     esbuild,
+    plugins: [
+      {
+        name: 'logVfs',
+        enforce: 'post',
+        bundleStart: async (options, helper) => {
+          const vfs = helper.getVirtualFileSystem()
+          const files = (await vfs.readAllFiles()) || {}
+          const tempLogFile = resolve(__dirname, './node_modules/.vfs-temp')
+          await emptyDir(tempLogFile)
+          await Promise.all(
+            Object.keys(files).map(async key => {
+              const _path = resolve(tempLogFile, key)
+              await outputFile(_path, files[key] || '')
+            })
+          )
+          console.log('虚拟文件: ' + tempLogFile)
+        }
+      }
+    ],
     swc,
-    rollup,
-    vueCompiler: VueCompiler,
-    babel,
-    config,
-    pkgJson,
-    modules
+    vueCompiler: VueCompiler
   })
 
   await Promise.all(

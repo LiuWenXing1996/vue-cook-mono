@@ -1,13 +1,11 @@
 {
     "root": "./lowcode",
-    "componentFileName": "components",
-    "pageFileName": "pages",
-    "entryFileName": "index.ts",
     "ignorePaths": [
         "node_modules",
         "dist",
         "public/lowcode"
     ],
+    "minify": false,
     "outdir": "./public/lowcode",
     "deps": {
         "element-plus": {

@@ -1,7 +1,9 @@
+import { extname } from 'path-browserify'
 import { loadScript } from '../lowcode/loadScript'
 import { Context } from './context'
 import { TinyEmitter } from 'tiny-emitter'
 import { v4 as uuidv4 } from 'uuid'
+import { loadStyle } from '../lowcode/loadStyle'
 
 export class Module {
   private context: Context
@@ -31,22 +33,38 @@ export class Module {
       this.emitter.once(this.loadedEventName, callback)
     }
     this.loading = true
-    loadScript(this.uniqUrl, {
-      contextId: this.context.getId(),
-      moduleUrl: this.uniqUrl
-    })
-      .then(() => {
-        const deifneOptions = this.context.getDefineOptions(this.uniqUrl)
-        if (!deifneOptions) {
-          return
-        }
-        this.init(deifneOptions.deps, deifneOptions.callback)
-        callback()
-        this.emitter.emit(this.loadedEventName)
+    const _extName = extname(this.uniqUrl)
+    if (_extName === '.css') {
+      loadStyle(this.uniqUrl, {
+        contextId: this.context.getId(),
+        moduleUrl: this.uniqUrl
       })
-      .catch(err => {
-        errback(err)
+        .then(() => {
+          this.init([], () => {})
+          callback()
+          this.emitter.emit(this.loadedEventName)
+        })
+        .catch(err => {
+          errback(err)
+        })
+    } else {
+      loadScript(this.uniqUrl, {
+        contextId: this.context.getId(),
+        moduleUrl: this.uniqUrl
       })
+        .then(() => {
+          const deifneOptions = this.context.getDefineOptions(this.uniqUrl)
+          if (!deifneOptions) {
+            return
+          }
+          this.init(deifneOptions.deps, deifneOptions.callback)
+          callback()
+          this.emitter.emit(this.loadedEventName)
+        })
+        .catch(err => {
+          errback(err)
+        })
+    }
   }
   getExports (callback: Function, errback: Function) {
     if (this.exported) {

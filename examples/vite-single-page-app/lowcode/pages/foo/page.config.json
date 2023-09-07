@@ -1,0 +1,24 @@
+{
+    "name": "TestButton",
+    "template": "./template.html",
+    "styles": {
+        "./style.css": {
+            "scoped": false
+        }
+    },
+    "functions": "./functions.ts",
+    "states": {
+        "c": {
+            "type": "ref",
+            "value": {
+                "ss": "sss"
+            }
+        },
+        "d": {
+            "type": "ref",
+            "value": "sss"
+        }
+    },
+    "export": true,
+    "path": "/aa"
+}

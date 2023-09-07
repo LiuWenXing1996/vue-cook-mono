@@ -1,12 +1,15 @@
-import type * as ESBuild from 'esbuild'
-import type * as Rollup from 'rollup'
-import type * as Babel from '@babel/standalone'
-import { FsPlugin } from './plugins/FsPlugin'
+import type * as esbuild from 'esbuild'
 import type * as swc from '@swc/core'
 import { pascalCase } from 'pascal-case'
 import { join, relative, isAbsolute } from 'path-browserify'
-import { Vue } from './plugins/vue'
-import type * as Compiler from '@vue/compiler-sfc'
+import type * as vueCompiler from '@vue/compiler-sfc'
+import { IVirtulFileSystem, VirtulFileSystem } from './utils/fs'
+import * as pathUtils from './utils/path'
+import { genDefaultOptions } from './plugins/genDefaultOptions'
+import { cloneDeep } from 'lodash'
+import { virtualFs } from './plugins/virtualFs'
+import { vue } from './plugins/vue'
+import { genEntryTs } from './plugins/genEntryTs'
 
 const isSubPath = (parent: string, dir: string) => {
   const relativePath = relative(parent, dir)
@@ -17,15 +20,69 @@ const isSubPath = (parent: string, dir: string) => {
 
 export interface IPkgJson {
   dependencies: Record<string, string>
+  cookConfigJson?: string
+}
+
+export interface IPluginHelper {
+  getPackageJson: () => IPkgJson
+  getCookConfig: () => ICookConfig
+  getVirtualFileSystem: () => IVirtulFileSystem
+  getPathUtils: () => typeof pathUtils
+  getBuildOptions: () => IBuildOptions
+}
+
+export interface IMinifyOptions {
+  css: esbuild.TransformOptions
+  js: esbuild.TransformOptions
+}
+
+type DeepLevel2Partial<T> = T extends object
+  ? {
+      [P in keyof T]?: Partial<T[P]>
+    }
+  : T
+
+export interface IMinifyOptions {
+  css: esbuild.TransformOptions
+  js: esbuild.TransformOptions
+}
+
+export interface IPlugin {
+  name: string
+  enforce?: 'pre' | 'post'
+  bundleStart?: (
+    options: esbuild.BuildOptions,
+    helper: IPluginHelper
+  ) =>
+    | Partial<esbuild.BuildOptions | void>
+    | Promise<Partial<esbuild.BuildOptions | void>>
+  transformStart?: (
+    options: esbuild.BuildOptions,
+    helper: IPluginHelper
+  ) => Partial<swc.Options | void> | Promise<Partial<swc.Options | void>>
+  minifyStart?: (
+    options: IMinifyOptions,
+    helper: IPluginHelper
+  ) =>
+    | DeepLevel2Partial<IMinifyOptions>
+    | void
+    | Promise<DeepLevel2Partial<IMinifyOptions> | void>
 }
 
 export interface ICookConfig {
   root: string
-  componentFileName: string
-  pageFileName: string
-  entryFileName: string
+  entryTsName?: string
+  component?: {
+    configJsonName?: string
+    entryTsName?: string
+  }
+  page?: {
+    configJsonName?: string
+    entryTsName?: string
+  }
   ignorePaths: string[]
   outdir: string
+  minify?: boolean
   tempDir?: string
   deps?: Record<
     string,
@@ -36,132 +93,183 @@ export interface ICookConfig {
 }
 
 export interface IBuildOptions {
-  esbuild: typeof ESBuild
-  rollup: typeof Rollup
-  babel: typeof Babel
+  env: 'node' | 'browser'
+  files: Record<string, string>
+  plugins?: IPlugin[]
+  esbuild: typeof esbuild
   swc: typeof swc
-  vueCompiler: typeof Compiler
-  config: ICookConfig
-  pkgJson: IPkgJson
-  modules: Record<string, string>
+  vueCompiler: typeof vueCompiler
 }
 
 export const defineMethodName = '__vueCookAmdDefine__'
 
-export const build = async (options: IBuildOptions) => {
-  const { esbuild, rollup, config, pkgJson, modules, babel, swc, vueCompiler } =
-    options
-  if (!config) {
-    return
+const runPluginBundleStart = async (
+  plugin: IPlugin,
+  helper: IPluginHelper,
+  currentOptions: ICurrentOptions
+) => {
+  const { name } = plugin
+  try {
+    const _options = await plugin.bundleStart?.(
+      { ...currentOptions.bundle },
+      helper
+    )
+    currentOptions.bundle = {
+      ...currentOptions.bundle,
+      ..._options
+    }
+  } catch (error) {
+    console.log(name, error)
   }
+}
+
+const runPluginTransformStart = async (
+  plugin: IPlugin,
+  helper: IPluginHelper,
+  currentOptions: ICurrentOptions
+) => {
+  const { name } = plugin
+  try {
+    const _options = await plugin.transformStart?.(
+      { ...currentOptions.transform },
+      helper
+    )
+    currentOptions.transform = {
+      ...currentOptions.transform,
+      ..._options
+    }
+  } catch (error) {
+    console.log(name, error)
+  }
+}
+
+const runPluginMinifyStart = async (
+  plugin: IPlugin,
+  helper: IPluginHelper,
+  currentOptions: ICurrentOptions
+) => {
+  const { name } = plugin
+  try {
+    const _options = await plugin.minifyStart?.(
+      { ...currentOptions.minify },
+      helper
+    )
+    currentOptions.minify = {
+      ...currentOptions.minify,
+      ..._options
+    }
+  } catch (error) {
+    console.log(name, error)
+  }
+}
+
+export interface ICurrentOptions {
+  bundle: esbuild.BuildOptions
+  transform: esbuild.BuildOptions
+  minify: IMinifyOptions
+}
+
+export const build = async (options: IBuildOptions) => {
+  let { esbuild, files, swc, plugins } = options
+  plugins = plugins || []
+  const vfs = new VirtulFileSystem(files)
+  const pkgJson = await vfs.readJson<IPkgJson>('package.json')
   if (!pkgJson) {
     return
   }
-  let { root } = config
-  const { dependencies = {} } = pkgJson
-  const entryTsPath = join(root, config.entryFileName)
-  const componentsPath = join(root, config.componentFileName)
-  const components: Record<
-    string,
-    {
-      path: string
+  const configJsonPath = pkgJson.cookConfigJson || 'cook.config.json'
+  const config = await vfs.readJson<ICookConfig>(configJsonPath)
+  if (!config) {
+    return
+  }
+  const prePlugins: IPlugin[] = []
+  const postPlugins: IPlugin[] = []
+  const midPlugins: IPlugin[] = []
+  plugins.forEach(p => {
+    if (p.enforce === 'pre') {
+      prePlugins.push(p)
+      return
     }
-  > = {}
-  const pagesPath = join(root, config.pageFileName)
-  const pages: Record<
-    string,
-    {
-      path: string
+    if (p.enforce === 'post') {
+      postPlugins.push(p)
+      return
     }
-  > = {}
-  Object.keys(modules).map(modulePath => {
-    if (modulePath.startsWith(componentsPath)) {
-      const subPath = modulePath.slice(componentsPath.length)
-      const name = subPath.split('/')[1]
-      const normalizeName = pascalCase(name)
-      if (!components[normalizeName]) {
-        const componentEntryPath = join(componentsPath, name, 'index.ts')
-        const realtivePath = relative(entryTsPath + '/../', componentEntryPath)
-        components[normalizeName] = {
-          path: './' + realtivePath
-        }
+    midPlugins.push(p)
+  })
+
+  plugins = [
+    genDefaultOptions(),
+    ...prePlugins,
+    genEntryTs(),
+    ...midPlugins,
+    vue(),
+    ...postPlugins,
+    virtualFs()
+  ]
+
+  const helper: IPluginHelper = {
+    getPackageJson: () => {
+      return cloneDeep(pkgJson)
+    },
+    getCookConfig: () => {
+      return cloneDeep(config)
+    },
+    getVirtualFileSystem: () => {
+      return vfs
+    },
+    getPathUtils: () => {
+      return { ...pathUtils }
+    },
+    getBuildOptions: () => {
+      return {
+        ...options
       }
     }
-    if (modulePath.startsWith(pagesPath)) {
-      const subPath = modulePath.slice(pagesPath.length)
-      const name = subPath.split('/')[1]
-      const normalizeName = pascalCase(name)
-      if (!components[normalizeName]) {
-        const pageEntryPath = join(pagesPath, name, 'index.ts')
-        const realtivePath = relative(entryTsPath + '/../', pageEntryPath)
-        pages[normalizeName] = {
-          path: './' + realtivePath
-        }
-      }
+  }
+
+  const currentOptions: ICurrentOptions = {
+    bundle: {},
+    transform: {},
+    minify: {
+      css: {},
+      js: {}
     }
-  })
-
-  const entryTs = `
-${Object.keys(components)
-  .map(componentName => {
-    const component = components[componentName]
-    return `import Component${componentName} from '${component.path}';`
-  })
-  .join('\n')}
-
-${Object.keys(pages)
-  .map(pageName => {
-    const page = pages[pageName]
-    return `import Page${pageName} from '${page.path}';`
-  })
-  .join('\n')}
-
-const components = {
-${Object.keys(components)
-  .map(componentName => {
-    return `  ${componentName}:Component${componentName}`
-  })
-  .join(',\n')}
-}
-
-const pages = {
-${Object.keys(pages)
-  .map(pageName => {
-    return `  ${pageName}:Page${pageName}`
-  })
-  .join(',\n')}
-}
-
-export {
-  components,
-  pages
-}
-  `
-
-  console.log('entryTs', entryTs)
-  modules[entryTsPath] = entryTs
-
-  let bundleRes = await esbuild.build({
-    entryPoints: [entryTsPath],
-    bundle: true,
-    target: ['es2015'],
-    format: 'esm',
-    write: false,
-    external: Object.keys(dependencies),
-    outdir: join(config.outdir, './schema'),
-    sourcemap: true,
-    plugins: [Vue({ modules, compiler: vueCompiler }), FsPlugin({ modules })]
-  })
-
+  }
+  for (let i = 0; i < plugins.length; i++) {
+    const plugin = plugins[i]
+    await runPluginBundleStart(plugin, helper, currentOptions)
+  }
+  const bundleRes = await esbuild.build(currentOptions.bundle)
   const outputFiles: Record<string, string> = {}
-
   {
     ;(bundleRes.outputFiles || []).map(e => {
       outputFiles[e.path] = e.text
     })
   }
+  let hasStyle = false
+  {
+    ;(bundleRes.outputFiles || []).map(e => {
+      if (e.path.endsWith('.css')) {
+        hasStyle = true
+      }
+      outputFiles[e.path] = e.text
+    })
+  }
+  const entryJs = `
+${hasStyle ? 'import "./index.css"' : ''}
+export * from "./index";
+export {default} from "./index";
+        `
+  const outDir = currentOptions.bundle.outdir
+  if (!outDir) {
+    throw new Error('必须指定bundle.outdir')
+  }
+  outputFiles[pathUtils.resolve(outDir, './entry.js')] = entryJs
 
-  // swc转译下
+  for (let i = 0; i < plugins.length; i++) {
+    const plugin = plugins[i]
+    await runPluginTransformStart(plugin, helper, currentOptions)
+  }
   await Promise.all(
     Object.keys(outputFiles)
       .filter(e => {
@@ -171,20 +279,21 @@ export {
         return false
       })
       .map(async key => {
-        const bundle = await swc.transform(outputFiles[key], {
-          module: {
-            type: 'amd'
-          },
-          sourceMaps: 'inline',
-          inputSourceMap: outputFiles[key + '.map'] || '{}'
-        })
+        const bundle = await swc.transform(
+          outputFiles[key],
+          currentOptions.transform
+        )
         outputFiles[key] = bundle.code || ''
         //@ts-ignore
         outputFiles[key + '.map'] = JSON.stringify(bundle.map || '')
       })
   )
-  // TODO：接入less
+  // TODO：接入less,不一定，esbuild已经支持css嵌套语法了，less的语法其实没有必要
   // TODO: 构建结果含有隐私私有路径的问题
+  for (let i = 0; i < plugins.length; i++) {
+    const plugin = plugins[i]
+    await runPluginMinifyStart(plugin, helper, currentOptions)
+  }
 
   await Promise.all([
     ...Object.keys(outputFiles)
@@ -195,14 +304,10 @@ export {
         return false
       })
       .map(async key => {
-        const minifyRes = await esbuild.transform(outputFiles[key], {
-          loader: 'js',
-          // minify: true,
-          sourcemap: true,
-          banner: `(function () {
-var define = window['${defineMethodName}']`,
-          footer: '})();'
-        })
+        const minifyRes = await esbuild.transform(
+          outputFiles[key],
+          currentOptions.minify.js
+        )
         outputFiles[key] =
           minifyRes.code + `//# sourceMappingURL=` + 'index.js.map'
         outputFiles[key + '.map'] = minifyRes.map
@@ -215,11 +320,11 @@ var define = window['${defineMethodName}']`,
         return false
       })
       .map(async key => {
-        const minifyRes = await esbuild.transform(outputFiles[key], {
-          loader: 'css',
-          minify: true,
-          sourcemap: true
-        })
+        const minifyRes = await esbuild.transform(
+          outputFiles[key],
+          currentOptions.minify.css
+        )
+        // TODO:css的sourcemap有问题
         outputFiles[key] = minifyRes.code
         outputFiles[key + '.map'] = minifyRes.map
       })

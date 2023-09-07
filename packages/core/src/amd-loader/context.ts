@@ -1,6 +1,7 @@
 import { Module } from './module'
 import { DefineOptions } from './define'
 import { v4 as uuidv4 } from 'uuid'
+import { extname, normalize } from 'path-browserify'
 
 const getDirname = (path: string) => {
   const newPath = path.substring(0, path.lastIndexOf('/')) || undefined
@@ -68,12 +69,15 @@ export class Context {
   }
 
   private nameToUniqUrl (name: string, parentUrl?: string) {
+    if (['require', 'exports', 'module'].includes(name)) {
+      return name
+    }
     // TODO: require exports module name
     if (this.moduleMap.has(name)) {
       return name
     }
     let url = this.config.paths?.[name] || undefined
-    const inPaths = this.config.paths?.[name] ? false : true
+    const inPaths = this.config.paths?.[name] ? true : false
     let baseUrl = this.config.baseUrl || ''
     if (!inPaths) {
       if (parentUrl) {
@@ -83,10 +87,15 @@ export class Context {
     if (!url) {
       url = name
     }
-    // TODO:补充js后缀
+
     if (!isHttpUrl(url)) {
       url = baseUrl + url
     }
+    const _extName = extname(url)
+    if (!_extName) {
+      url = url + '.js'
+    }
+    url = normalize(url)
     return url
   }
 
