@@ -9,7 +9,7 @@ export const genDefaultOptions = (): IPlugin => {
       const { join } = helper.getPathUtils()
       let { root } = config
       const { dependencies = {} } = pkgJson
-      const entryTsPath = join(root, config.entryTsName || 'index.ts')
+      const entryTsPath = join(root, config.export?.entryName || 'index.ts')
       return {
         entryPoints: [entryTsPath],
         bundle: true,

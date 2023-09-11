@@ -1,6 +1,10 @@
 {
     "name": "TestButton",
-    "template": "./template.html",
+    "template": [
+        "<div>fsfsdf</div>",
+        "   <div class=\"a\">{{states.c}}</div>",
+        "<button @click=\"functions.a(states)\">fsfsdfs</button>"
+    ],
     "styles": {
         "./style.css": {
             "scoped": false
@@ -10,9 +14,9 @@
     "states": {
         "c": {
             "type": "ref",
-            "value": {
-                "ss": "sss"
-            }
+            "value": [
+                "{}"
+            ]
         },
         "d": {
             "type": "ref",

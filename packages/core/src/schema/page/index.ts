@@ -4,12 +4,12 @@ export interface IPageConfig extends IComponentConfig {
   path: string
 }
 
-export const transformPage = (options: {
-  config: IPageConfig
-  templateContent: string
-  stylesContent: Record<string, string>
-}) => {
-  return transformComponent(options)
+export const check = (config: IPageConfig) => {
+  return true
+}
+
+export const transformPage = (config: IPageConfig) => {
+  return transformComponent(config)
 }
 
 export const transformPageEntryTs = (options: {

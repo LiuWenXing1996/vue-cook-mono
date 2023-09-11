@@ -1,3 +1,5 @@
+import { parse } from 'yaml'
+
 export class VirtulFileSystem {
   #files: Map<string, string>
   constructor (files: Record<string, string>) {
@@ -12,12 +14,8 @@ export class VirtulFileSystem {
 
   async readJson<T> (path: string) {
     let jsonObj: T | undefined = undefined
-    try {
-      const content = this.#files.get(path)
-      if (content) {
-        jsonObj = JSON.parse(content) as T
-      }
-    } catch (error) {}
+    const content = this.#files.get(path)
+    jsonObj = JSON.parse(content || '') as T
     return jsonObj
   }
   async outputFile (path: string, content: string) {

@@ -31,16 +31,19 @@ export const virtualFs = (): IPlugin => {
             }
           })
           build.onLoad({ filter: /.*/, namespace }, async args => {
-            const realPath = args.path
+            let realPath = args.path
             let contents = await vfs.readFile(realPath)
             let _extname = extname(realPath)
+            // TODO:自动识别index.ts
             if (!contents) {
               if (!_extname) {
-                const tryExtname = ['.ts', '.js']
+                const tryExtname = ['.ts', '.js', '/index.ts', '/index.js']
                 for (let i = 0; i < tryExtname.length; i++) {
                   _extname = tryExtname[i]
-                  contents = await vfs.readFile(realPath + _extname)
+                  let _realPath = realPath + _extname
+                  contents = await vfs.readFile(_realPath)
                   if (contents) {
+                    realPath = _realPath
                     break
                   }
                 }
@@ -48,7 +51,7 @@ export const virtualFs = (): IPlugin => {
             }
 
             // TODO：此处loader处理过于粗暴，需要优化
-            const loader = _extname.slice('.'.length) as any
+            const loader = extname(realPath).slice('.'.length) as any
             return {
               contents,
               resolveDir: dirname(realPath),

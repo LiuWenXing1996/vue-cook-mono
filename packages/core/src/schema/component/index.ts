@@ -1,24 +1,39 @@
-import stringifyObject from 'stringify-object'
 import { trimExtname } from '../../bundler/utils/path'
 
-export interface IStyleConfigJson {
-  lang?: 'css' | 'less'
+export interface IStyleConfig {
+  content: string
+  lang?: string
+  module?: boolean
   scoped?: boolean
 }
 
-export interface IStateConfigJson {
-  type:
-    | 'raw'
-    | 'ref'
-    | 'shallowRef'
-    | 'reactive'
-    | 'shallowReactive'
-    | 'computed'
-    | 'writableComputed'
-  value?: any
-  getter?: string
-  setter?: string
+const BaseStateTypes = [
+  'raw',
+  'ref',
+  'shallowRef',
+  'reactive',
+  'shallowReactive'
+]
+export interface IBaseStateConfig {
+  type: 'raw' | 'ref' | 'shallowRef' | 'reactive' | 'shallowReactive'
+  value: string[]
 }
+
+export interface IComputedStateConfig {
+  type: 'computed'
+  getter: string[]
+}
+
+export interface IWritableComputedStateConfig {
+  type: 'writableComputed'
+  getter: string[]
+  setter: string[]
+}
+
+export type IStateConfig =
+  | IBaseStateConfig
+  | IComputedStateConfig
+  | IWritableComputedStateConfig
 
 export type IWatcherConfig = IWatchConfig | IWatchEffectConfig
 export type IWatcherFlushConfig = 'pre' | 'post' | 'sync'
@@ -44,18 +59,23 @@ export interface IWatchEffectConfig {
   }
 }
 
+export interface IScriptConfig {
+  path: string
+  alias: string
+}
+
 export interface IComponentConfig {
   name: string
   export?: boolean
   exportName?: string
-  template?: string
-  functions?: string
-  styles?: Record<string, IStyleConfigJson>
-  states?: Record<string, IStateConfigJson>
+  template?: string[]
+  scripts?: IScriptConfig[]
+  styles?: IStyleConfig[]
+  states?: Record<string, IStateConfig>
   watchers?: IWatcherConfig[]
 }
 
-export const StateTypeMethodMap: Record<IStateConfigJson['type'], string> = {
+export const StateTypeMethodMap: Record<IStateConfig['type'], string> = {
   raw: '',
   ref: 'ref',
   shallowRef: 'shallowRef',
@@ -65,16 +85,20 @@ export const StateTypeMethodMap: Record<IStateConfigJson['type'], string> = {
   writableComputed: 'computed'
 }
 
-export const transformComponent = (options: {
-  config: IComponentConfig
-  templateContent: string
-  stylesContent: Record<string, string>
-}) => {
-  const { templateContent, config, stylesContent } = options
-  let { styles = {}, states = {}, watchers = [], functions } = config
-  if (functions) {
-    functions = trimExtname(functions, ['.ts', '.js'])
-  }
+// TODO:s实现component的转换与校验
+export const check = (config: IComponentConfig) => {
+  // TODO:使用zod来做校验实现
+  return true
+}
+
+export const transformComponent = (config: IComponentConfig) => {
+  let {
+    styles = [],
+    states = {},
+    watchers = [],
+    scripts = [],
+    template
+  } = config
   const vueApis: string[] = []
   Object.keys(states).map(stateName => {
     const stateConfig = states[stateName]
@@ -99,65 +123,83 @@ export const transformComponent = (options: {
 
   let content = `
 <template>
-    ${templateContent}
-</template>
+    ${template?.join('\n')}
+</template>`
 
-<script setup lang="ts">
-import { ${vueApis.join(', ')}} from "vue"
-${functions ? `import * as functions from "${functions}"` : ''}
-const states = shallowRef({
-    ${Object.keys(states)
-      .map(stateName => {
-        const stateConfig = states[stateName]
-        const method = StateTypeMethodMap[stateConfig.type] || ''
-        let varContent = `${stringifyObject(stateConfig.value, {
-          indent: '  ',
-          singleQuotes: false
-        })}`
-        if (method) {
-          varContent = `${method}(${varContent})`
-        }
-        return `  ${stateName}:${varContent}`
-      })
-      .join(',\n')} 
-})
-${watchers
-  .map(watchConfig => {
-    let content = ''
-    if (watchConfig.type === 'watch') {
-      let options = JSON.stringify(watchConfig.options)
-      content = `watch(${watchConfig.source},${watchConfig.callback}`
-      if (options) {
-        content += `,${options}`
-      }
-      content += `)`
-    }
-    if (watchConfig.type === 'watchEffect') {
-      let options = JSON.stringify(watchConfig.options)
-      content = `watchEffect(${watchConfig.effect}`
-      if (options) {
-        content += `,${options}`
-      }
-      content += `)`
-    }
-    return content
-  })
-  .filter(e => e)
-  .join(',\n')}
-</script>
+  //   let content = `
+  // <template>
+  //     ${template?.join('\n')}
+  // </template>
 
-${Object.keys(styles)
-  .map(stylePath => {
-    const config = styles[stylePath]
-    return `<style ${config.scoped ? 'scoped ' : ''}${
-      config.lang ? config.lang + ' ' : ''
-    }>
-${stylesContent?.[stylePath]}
-</style>`
-  })
-  .join('\n')}
+  // <script setup lang="ts">
+  // import { ${vueApis.join(', ')}} from "vue"
+  // ${scripts
+  //   .map(s => {
+  //     const path = trimExtname(s.path, ['.ts', '.js'])
+  //     return `import * as ${s.alias} from "${path}"`
+  //   })
+  //   .join('\n')}
+  // const states = shallowRef({
+  //     ${Object.keys(states)
+  //       .map(stateName => {
+  //         const stateConfig = states[stateName]
+  //         const method = StateTypeMethodMap[stateConfig.type] || ''
+  //         let varContent = ''
+  //         if (BaseStateTypes.includes(stateConfig.type)) {
+  //           varContent = `${(stateConfig as IBaseStateConfig).value}`
+  //         }
+  //         if (stateConfig.type === 'computed') {
+  //           varContent = `${stateConfig.getter}`
+  //         }
+  //         if (stateConfig.type === 'writableComputed') {
+  //           varContent = `{
+  //   get:${stateConfig.getter},
+  //   set:${stateConfig.setter}
+  // }`
+  //         }
+  //         if (method) {
+  //           varContent = `${method}(${varContent})`
+  //         }
+  //         return `  ${stateName}:${varContent}`
+  //       })
+  //       .join(',\n')}
+  // })
+  // ${watchers
+  //   .map(watchConfig => {
+  //     let content = ''
+  //     if (watchConfig.type === 'watch') {
+  //       let options = JSON.stringify(watchConfig.options)
+  //       content = `watch(${watchConfig.source},${watchConfig.callback}`
+  //       if (options) {
+  //         content += `,${options}`
+  //       }
+  //       content += `)`
+  //     }
+  //     if (watchConfig.type === 'watchEffect') {
+  //       let options = JSON.stringify(watchConfig.options)
+  //       content = `watchEffect(${watchConfig.effect}`
+  //       if (options) {
+  //         content += `,${options}`
+  //       }
+  //       content += `)`
+  //     }
+  //     return content
+  //   })
+  //   .filter(e => e)
+  //   .join(',\n')}
+  // </script>
 
-`
+  // ${styles
+  //   .map(style => {
+  //     return `<style ${style.scoped ? 'scoped ' : ''}${
+  //       style.module ? 'module ' : ''
+  //     }${style.lang ? `lang=${style.lang}` : ''}>
+  //     ${style.content}
+  // </style>`
+  //   })
+  //   .join('\n')}
+
+  // `
   return content
 }
 

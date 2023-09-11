@@ -9,7 +9,11 @@ import { genDefaultOptions } from './plugins/genDefaultOptions'
 import { cloneDeep } from 'lodash'
 import { virtualFs } from './plugins/virtualFs'
 import { vue } from './plugins/vue'
-import { genEntryTs } from './plugins/genEntryTs'
+// import { genEntryTs } from './plugins/genEntryTs'
+import { exportSchema } from './plugins/exportSchema'
+import { vueComponentSchema } from './plugins/vueComponentSchema'
+import { vuePageSchema } from './plugins/vuePageSchema'
+import { schemaToCode } from './plugins/schemaToCode'
 
 const isSubPath = (parent: string, dir: string) => {
   const relativePath = relative(parent, dir)
@@ -29,6 +33,7 @@ export interface IPluginHelper {
   getVirtualFileSystem: () => IVirtulFileSystem
   getPathUtils: () => typeof pathUtils
   getBuildOptions: () => IBuildOptions
+  getPlugins: () => IPlugin[]
 }
 
 export interface IMinifyOptions {
@@ -50,6 +55,7 @@ export interface IMinifyOptions {
 export interface IPlugin {
   name: string
   enforce?: 'pre' | 'post'
+  api?: Record<string, any>
   bundleStart?: (
     options: esbuild.BuildOptions,
     helper: IPluginHelper
@@ -71,14 +77,17 @@ export interface IPlugin {
 
 export interface ICookConfig {
   root: string
-  entryTsName?: string
+  export?: {
+    configName?: string
+    entryName?: string
+  }
   component?: {
-    configJsonName?: string
-    entryTsName?: string
+    configName?: string
+    entryName?: string
   }
   page?: {
-    configJsonName?: string
-    entryTsName?: string
+    configName?: string
+    entryName?: string
   }
   ignorePaths: string[]
   outdir: string
@@ -103,6 +112,7 @@ export interface IBuildOptions {
 
 export const defineMethodName = '__vueCookAmdDefine__'
 
+// TODO：hook run 逻辑合并
 const runPluginBundleStart = async (
   plugin: IPlugin,
   helper: IPluginHelper,
@@ -119,6 +129,7 @@ const runPluginBundleStart = async (
       ..._options
     }
   } catch (error) {
+    // TODO：插件失败应该直接报错
     console.log(name, error)
   }
 }
@@ -139,6 +150,7 @@ const runPluginTransformStart = async (
       ..._options
     }
   } catch (error) {
+    // TODO：插件失败应该直接报错
     console.log(name, error)
   }
 }
@@ -159,6 +171,7 @@ const runPluginMinifyStart = async (
       ..._options
     }
   } catch (error) {
+    // TODO：插件失败应该直接报错
     console.log(name, error)
   }
 }
@@ -200,7 +213,10 @@ export const build = async (options: IBuildOptions) => {
   plugins = [
     genDefaultOptions(),
     ...prePlugins,
-    genEntryTs(),
+    exportSchema(),
+    vueComponentSchema(),
+    vuePageSchema(),
+    schemaToCode(),
     ...midPlugins,
     vue(),
     ...postPlugins,
@@ -224,6 +240,9 @@ export const build = async (options: IBuildOptions) => {
       return {
         ...options
       }
+    },
+    getPlugins: () => {
+      return [...(plugins || [])]
     }
   }
 

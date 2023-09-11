@@ -1,0 +1,12 @@
+[
+    {
+        "path": "./pages/foo",
+        "name": "Foo",
+        "category": "Page"
+    },
+    {
+        "path": "./components/sss",
+        "name": "Sss",
+        "category": "Component"
+    }
+]
