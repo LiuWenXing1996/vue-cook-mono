@@ -1,9 +1,9 @@
 import type * as esbuild from 'esbuild'
 import type * as swc from '@swc/core'
-import { pascalCase } from 'pascal-case'
 import { join, relative, isAbsolute } from 'path-browserify'
 import type * as vueCompiler from '@vue/compiler-sfc'
-import { IVirtulFileSystem, VirtulFileSystem } from './utils/fs'
+import { VirtulFileSystem } from './utils/fs'
+import type { IVirtulFileSystem } from './utils/fs'
 import * as pathUtils from './utils/path'
 import { genDefaultOptions } from './plugins/genDefaultOptions'
 import { cloneDeep } from 'lodash'
@@ -17,9 +17,7 @@ import { schemaToCode } from './plugins/schemaToCode'
 
 const isSubPath = (parent: string, dir: string) => {
   const relativePath = relative(parent, dir)
-  return (
-    relativePath && !relativePath.startsWith('..') && !isAbsolute(relativePath)
-  )
+  return relativePath && !relativePath.startsWith('..') && !isAbsolute(relativePath)
 }
 
 export interface IPkgJson {
@@ -59,9 +57,7 @@ export interface IPlugin {
   bundleStart?: (
     options: esbuild.BuildOptions,
     helper: IPluginHelper
-  ) =>
-    | Partial<esbuild.BuildOptions | void>
-    | Promise<Partial<esbuild.BuildOptions | void>>
+  ) => Partial<esbuild.BuildOptions | void> | Promise<Partial<esbuild.BuildOptions | void>>
   transformStart?: (
     options: esbuild.BuildOptions,
     helper: IPluginHelper
@@ -69,10 +65,7 @@ export interface IPlugin {
   minifyStart?: (
     options: IMinifyOptions,
     helper: IPluginHelper
-  ) =>
-    | DeepLevel2Partial<IMinifyOptions>
-    | void
-    | Promise<DeepLevel2Partial<IMinifyOptions> | void>
+  ) => DeepLevel2Partial<IMinifyOptions> | void | Promise<DeepLevel2Partial<IMinifyOptions> | void>
 }
 
 export interface ICookConfig {
@@ -120,10 +113,7 @@ const runPluginBundleStart = async (
 ) => {
   const { name } = plugin
   try {
-    const _options = await plugin.bundleStart?.(
-      { ...currentOptions.bundle },
-      helper
-    )
+    const _options = await plugin.bundleStart?.({ ...currentOptions.bundle }, helper)
     currentOptions.bundle = {
       ...currentOptions.bundle,
       ..._options
@@ -141,10 +131,7 @@ const runPluginTransformStart = async (
 ) => {
   const { name } = plugin
   try {
-    const _options = await plugin.transformStart?.(
-      { ...currentOptions.transform },
-      helper
-    )
+    const _options = await plugin.transformStart?.({ ...currentOptions.transform }, helper)
     currentOptions.transform = {
       ...currentOptions.transform,
       ..._options
@@ -162,10 +149,7 @@ const runPluginMinifyStart = async (
 ) => {
   const { name } = plugin
   try {
-    const _options = await plugin.minifyStart?.(
-      { ...currentOptions.minify },
-      helper
-    )
+    const _options = await plugin.minifyStart?.({ ...currentOptions.minify }, helper)
     currentOptions.minify = {
       ...currentOptions.minify,
       ..._options
@@ -198,7 +182,7 @@ export const build = async (options: IBuildOptions) => {
   const prePlugins: IPlugin[] = []
   const postPlugins: IPlugin[] = []
   const midPlugins: IPlugin[] = []
-  plugins.forEach(p => {
+  plugins.forEach((p) => {
     if (p.enforce === 'pre') {
       prePlugins.push(p)
       return
@@ -261,13 +245,13 @@ export const build = async (options: IBuildOptions) => {
   const bundleRes = await esbuild.build(currentOptions.bundle)
   const outputFiles: Record<string, string> = {}
   {
-    ;(bundleRes.outputFiles || []).map(e => {
+    ;(bundleRes.outputFiles || []).map((e) => {
       outputFiles[e.path] = e.text
     })
   }
   let hasStyle = false
   {
-    ;(bundleRes.outputFiles || []).map(e => {
+    ;(bundleRes.outputFiles || []).map((e) => {
       if (e.path.endsWith('.css')) {
         hasStyle = true
       }
@@ -291,17 +275,14 @@ export {default} from "./index";
   }
   await Promise.all(
     Object.keys(outputFiles)
-      .filter(e => {
+      .filter((e) => {
         if (e.endsWith('.js')) {
           return true
         }
         return false
       })
-      .map(async key => {
-        const bundle = await swc.transform(
-          outputFiles[key],
-          currentOptions.transform
-        )
+      .map(async (key) => {
+        const bundle = await swc.transform(outputFiles[key], currentOptions.transform)
         outputFiles[key] = bundle.code || ''
         //@ts-ignore
         outputFiles[key + '.map'] = JSON.stringify(bundle.map || '')
@@ -316,33 +297,26 @@ export {default} from "./index";
 
   await Promise.all([
     ...Object.keys(outputFiles)
-      .filter(e => {
+      .filter((e) => {
         if (e.endsWith('.js')) {
           return true
         }
         return false
       })
-      .map(async key => {
-        const minifyRes = await esbuild.transform(
-          outputFiles[key],
-          currentOptions.minify.js
-        )
-        outputFiles[key] =
-          minifyRes.code + `//# sourceMappingURL=` + 'index.js.map'
+      .map(async (key) => {
+        const minifyRes = await esbuild.transform(outputFiles[key], currentOptions.minify.js)
+        outputFiles[key] = minifyRes.code + `//# sourceMappingURL=` + 'index.js.map'
         outputFiles[key + '.map'] = minifyRes.map
       }),
     ...Object.keys(outputFiles)
-      .filter(e => {
+      .filter((e) => {
         if (e.endsWith('.css')) {
           return true
         }
         return false
       })
-      .map(async key => {
-        const minifyRes = await esbuild.transform(
-          outputFiles[key],
-          currentOptions.minify.css
-        )
+      .map(async (key) => {
+        const minifyRes = await esbuild.transform(outputFiles[key], currentOptions.minify.css)
         // TODO:css的sourcemap有问题
         outputFiles[key] = minifyRes.code
         outputFiles[key + '.map'] = minifyRes.map

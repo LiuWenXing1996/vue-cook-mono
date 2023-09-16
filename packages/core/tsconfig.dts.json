@@ -1,8 +1,20 @@
 {
-  "extends": "@vue-cook/scripts/tsconfig/tsconfig.dts.common.json",
+  "extends": "./tsconfig.json",
   "include": [
-    "./src",
-    "./rollup.config.ts",
-    "./rollup.dts.config.ts",
-  ]
+    "env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue"
+  ],
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "noEmitOnError": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  },
 }

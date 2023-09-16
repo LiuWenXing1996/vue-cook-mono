@@ -2,7 +2,6 @@ import { extname } from 'path-browserify'
 import { loadScript } from '../lowcode/loadScript'
 import { Context } from './context'
 import { TinyEmitter } from 'tiny-emitter'
-import { v4 as uuidv4 } from 'uuid'
 import { loadStyle } from '../lowcode/loadStyle'
 
 export class Module {

@@ -1,21 +1,11 @@
-import path, { join, relative, resolve } from 'node:path'
-import genVueScriptContent from '../utils/genVueScriptContent'
+import  { join, relative, resolve } from 'node:path'
 import { name } from '../../package.json'
-import {
-  creatBuildContext,
-  IBuildOptions
-} from '../buildContext/createBuildContext'
-import { findAllComponentPaths } from '../utils/findAllComponentPaths'
-import { exit } from 'node:process'
 import { readFile } from 'node:fs/promises'
 import { emptyDir, outputFile } from 'fs-extra'
-import { fileURLToPath } from 'url'
 import { build } from '@vue-cook/core'
 import type { ICookConfig } from '@vue-cook/core'
 import type { Plugin } from 'vite'
 import * as esbuild from 'esbuild'
-import * as rollup from 'rollup'
-import * as babel from '@babel/standalone'
 import * as swc from '@swc/core'
 import { getFielsContent, getFiles } from '../utils'
 import { getCustomComsole } from '../utils/customComsole'

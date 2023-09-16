@@ -1,24 +1,11 @@
-import path, { resolve } from 'node:path'
-import genVueScriptContent from '../utils/genVueScriptContent'
+import { resolve } from 'node:path'
 import { name } from '../../package.json'
-import {
-  creatBuildContext,
-  IBuildOptions
-} from '../buildContext/createBuildContext'
-
-import { findAllComponentPaths } from '../utils/findAllComponentPaths'
-import { exit } from 'node:process'
 import { readFile } from 'node:fs/promises'
-import { fileURLToPath } from 'url'
-import { build } from 'vite'
-// import type { Plugin } from 'vite'
-import { isArray } from 'lodash'
-import { rollup, RollupOutput } from 'rollup'
 import { outputFile, remove } from 'fs-extra'
-import * as babel from '@babel/core'
 import * as esbuild from 'esbuild'
 import { type Plugin } from 'esbuild'
 import * as swc from '@swc/core'
+import {replace} from "lodash"
 import type { ICookConfig } from '@vue-cook/core'
 import { defineMethodName } from '@vue-cook/core'
 import { getCustomComsole } from '../utils/customComsole'
@@ -95,20 +82,20 @@ export const VirtualPlugin = (options: Record<string, string> = {}) => {
   const namespace = 'virtual'
   const filter = new RegExp(
     Object.keys(options)
-      .map(name => `^${name}$`)
+      .map((name) => `^${name}$`)
       .join('|')
   )
   const plugin: Plugin = {
     name: namespace,
-    setup (build) {
-      build.onResolve({ filter }, args => {
+    setup(build) {
+      build.onResolve({ filter }, (args) => {
         // debugger
         return {
           path: args.path,
           namespace
         }
       })
-      build.onLoad({ filter: /.*/, namespace }, args => {
+      build.onLoad({ filter: /.*/, namespace }, (args) => {
         return {
           contents: options[args.path],
           loader: 'js',
@@ -133,8 +120,8 @@ const buildDeps = async (options: IBuildDepsOptions) => {
   let { dependencies = {} } = pkgJson
   const dependencieList = Object.keys(dependencies)
   // dependencies = { vue: '3.0.0' }
-  const tempDir = resolve(__dirname, config.tempDir ? config.tempDir : "node_modules/.vue-cook")
-  const depEntryList = Object.keys(dependencies).map(depName => {
+  const tempDir = resolve(__dirname, config.tempDir ? config.tempDir : 'node_modules/.vue-cook')
+  const depEntryList = Object.keys(dependencies).map((depName) => {
     return {
       name: depName,
       version: dependencies[depName],
@@ -150,14 +137,14 @@ export {default} from "${depName}";
   })
   await remove(tempDir)
   await Promise.all(
-    depEntryList.map(async depEntry => {
+    depEntryList.map(async (depEntry) => {
       await outputFile(depEntry.path, depEntry.content)
     })
   )
   const outputFiles: Record<string, string> = {}
 
   await Promise.all(
-    depEntryList.map(async depEntry => {
+    depEntryList.map(async (depEntry) => {
       let bundleRes = await esbuild.build({
         // entryPoints: [resolve(__dirname, `./container.ts`)],
         entryPoints: [depEntry.path],
@@ -165,14 +152,14 @@ export {default} from "${depName}";
         target: ['es2015'],
         format: 'esm',
         write: false,
-        external: dependencieList.filter(e => e !== depEntry.name),
+        external: dependencieList.filter((e) => e !== depEntry.name),
         sourcemap: true,
-        outfile: resolve(depEntry.outDir, "./index.js"),
+        outfile: resolve(depEntry.outDir, './index.js')
       })
       let hasStyle = false
       {
-        ; (bundleRes.outputFiles || []).map(e => {
-          if (e.path.endsWith(".css")) {
+        ;(bundleRes.outputFiles || []).map((e) => {
+          if (e.path.endsWith('.css')) {
             hasStyle = true
           }
           outputFiles[e.path] = e.text
@@ -183,21 +170,20 @@ export {default} from "${depName}";
 ${hasStyle ? 'import "./index.css"' : ''}
 export * from "./index";
 export {default} from "./index";
-      `;
-      outputFiles[resolve(depEntry.outDir, "./entry.js")] = entryJs
+      `
+      outputFiles[resolve(depEntry.outDir, './entry.js')] = entryJs
     })
   )
 
-
   await Promise.all(
     Object.keys(outputFiles)
-      .filter(e => {
+      .filter((e) => {
         if (e.endsWith('.js')) {
           return true
         }
         return false
       })
-      .map(async key => {
+      .map(async (key) => {
         const bundle = await swc.transform(outputFiles[key], {
           module: {
             type: 'amd'
@@ -212,13 +198,13 @@ export {default} from "./index";
 
   await Promise.all([
     ...Object.keys(outputFiles)
-      .filter(e => {
+      .filter((e) => {
         if (e.endsWith('.js')) {
           return true
         }
         return false
       })
-      .map(async key => {
+      .map(async (key) => {
         const minifyRes = await esbuild.transform(outputFiles[key], {
           loader: 'js',
           // minify: true,
@@ -227,18 +213,17 @@ export {default} from "./index";
 var define = window['${defineMethodName}']`,
           footer: '})();'
         })
-        outputFiles[key] =
-          minifyRes.code + `//# sourceMappingURL=` + 'index.js.map'
+        outputFiles[key] = minifyRes.code + `//# sourceMappingURL=` + 'index.js.map'
         outputFiles[key + '.map'] = minifyRes.map
       }),
     ...Object.keys(outputFiles)
-      .filter(e => {
+      .filter((e) => {
         if (e.endsWith('.css')) {
           return true
         }
         return false
       })
-      .map(async key => {
+      .map(async (key) => {
         // TODO:css的source map 似乎不太对
         const minifyRes = await esbuild.transform(outputFiles[key], {
           loader: 'css',
@@ -253,7 +238,7 @@ var define = window['${defineMethodName}']`,
   console.log('outputFiles', Object.keys(outputFiles))
 
   await Promise.all(
-    Object.keys(outputFiles || {}).map(async key => {
+    Object.keys(outputFiles || {}).map(async (key) => {
       await outputFile(key, outputFiles?.[key] || '')
     })
   )

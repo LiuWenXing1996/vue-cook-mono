@@ -26,14 +26,14 @@ export const vueComponentSchema = (): IPlugin => {
         schemaToCodePluginApi.registerSchemaParser({
           name: 'vueComponent',
           configName:
-            cookConfig.component?.configName || 'component.config.json',
+            cookConfig.component?.configName || 'component.config.yaml',
           check: async filePath => {
-            const config = await vfs.readJson<IComponentConfig>(filePath)
+            const config = await vfs.readYaml<IComponentConfig>(filePath)
             check(config)
             return true
           },
           transfer: async filePath => {
-            const config = await vfs.readJson<IComponentConfig>(filePath)
+            const config = await vfs.readYaml<IComponentConfig>(filePath)
             const vueFile = {
               path: '',
               content: ''

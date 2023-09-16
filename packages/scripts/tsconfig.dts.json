@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig/tsconfig.dts.common.json",
-  "include": [
-    "./src",
-    "./rollup.config.ts",
-    "./rollup.dts.config.ts",
-  ]
-}

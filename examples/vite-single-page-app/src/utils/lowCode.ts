@@ -32,11 +32,11 @@ export function addLowcodePages (router: Router) {
   router.beforeEach(async (to, from) => {
     if (!redirectTag) {
       const res = await getLowCodeRes()
-      let { pages } = res || {}
-      pages = pages || {}
-      console.log('pages', pages)
-      Object.keys(pages).map(pageName => {
-        const page = pages[pageName]
+      let { Pages } = res || {}
+      Pages = Pages || {}
+      console.log('pages', Pages)
+      Object.keys(Pages).map(pageName => {
+        const page = Pages[pageName]
         router.addRoute({
           path: page.path,
           component: page

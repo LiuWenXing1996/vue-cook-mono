@@ -1,8 +1,14 @@
 {
-  "extends": "@vue-cook/scripts/tsconfig/tsconfig.common.json",
-  "include": [
-    "./src",
-    "./rollup.config.ts",
-    "./rollup.dts.config.ts",
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.vitest.json"
+    }
   ]
 }

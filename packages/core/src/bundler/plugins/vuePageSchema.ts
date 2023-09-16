@@ -25,15 +25,14 @@ export const vuePageSchema = (): IPlugin => {
           schemaToCodePlugin?.api as ISchemaToCodeApi
         schemaToCodePluginApi.registerSchemaParser({
           name: 'vuePage',
-          configName:
-            cookConfig.page?.configName || 'page.config.json',
+          configName: cookConfig.page?.configName || 'page.config.yaml',
           check: async filePath => {
-            const config = await vfs.readJson<IPageConfig>(filePath)
+            const config = await vfs.readYaml<IPageConfig>(filePath)
             check(config)
             return true
           },
           transfer: async filePath => {
-            const config = await vfs.readJson<IPageConfig>(filePath)
+            const config = await vfs.readYaml<IPageConfig>(filePath)
             const vueFile = {
               path: '',
               content: ''

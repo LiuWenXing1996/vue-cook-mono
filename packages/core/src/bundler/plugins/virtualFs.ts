@@ -1,18 +1,17 @@
-import { type Plugin as EsbuildPlugin } from 'esbuild'
-import { IPlugin } from '..'
+import type { Plugin as EsbuildPlugin } from 'esbuild'
+import type { IPlugin } from '..'
 
 export const virtualFs = (): IPlugin => {
   const namespace = 'virtualFs'
   return {
     name: namespace,
     bundleStart: (options, helper) => {
-      const { isAbsolute, join, rootName, extname, dirname, relative } =
-        helper.getPathUtils()
+      const { isAbsolute, join, rootName, extname, dirname, relative } = helper.getPathUtils()
       const vfs = helper.getVirtualFileSystem()
       const vfsPlugin: EsbuildPlugin = {
         name: namespace,
-        setup (build) {
-          build.onResolve({ filter: /.*/ }, args => {
+        setup(build) {
+          build.onResolve({ filter: /.*/ }, (args) => {
             const oldPath = args.path
             if (build.initialOptions.external?.includes(oldPath)) {
               return {
@@ -30,7 +29,7 @@ export const virtualFs = (): IPlugin => {
               namespace
             }
           })
-          build.onLoad({ filter: /.*/, namespace }, async args => {
+          build.onLoad({ filter: /.*/, namespace }, async (args) => {
             let realPath = args.path
             let contents = await vfs.readFile(realPath)
             let _extname = extname(realPath)
