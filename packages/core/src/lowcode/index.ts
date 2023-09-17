@@ -1,7 +1,7 @@
 // import { loadScript } from './loadScript'
 import sandbox from './sandbox'
 import { require } from '../amd-loader'
-import { IContextConfig } from '../amd-loader/context'
+import type { IContextConfig } from '../amd-loader/context'
 // import { v4 as uuidv4 } from 'uuid'
 
 export interface LowcodeConfig {

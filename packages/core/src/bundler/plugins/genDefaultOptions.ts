@@ -1,4 +1,4 @@
-import { IPlugin, defineMethodName } from '..'
+import { type IPlugin, defineMethodName } from '..'
 
 export const genDefaultOptions = (): IPlugin => {
   return {

@@ -6,7 +6,7 @@
  */
 
 import { defineMethodName } from '../bundler'
-import { Context, IContextConfig } from './context'
+import { Context, type IContextConfig } from './context'
 import { define } from './define'
 
 export const require = async (

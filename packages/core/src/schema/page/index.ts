@@ -1,4 +1,5 @@
-import { IComponentConfig, transformComponent } from '../component'
+import { transformComponent } from '../component'
+import type { IComponentConfig } from '../component'
 
 export interface IPageConfig extends IComponentConfig {
   path: string
@@ -12,10 +13,7 @@ export const transformPage = (config: IPageConfig) => {
   return transformComponent(config)
 }
 
-export const transformPageEntryTs = (options: {
-  config: IPageConfig
-  indexVuePath: string
-}) => {
+export const transformPageEntryTs = (options: { config: IPageConfig; indexVuePath: string }) => {
   const { config, indexVuePath } = options
   let content = `
 import Component from "${indexVuePath}"

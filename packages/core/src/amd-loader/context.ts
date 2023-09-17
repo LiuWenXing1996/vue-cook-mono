@@ -1,5 +1,5 @@
 import { Module } from './module'
-import { DefineOptions } from './define'
+import { type DefineOptions } from './define'
 import { v4 as uuidv4 } from 'uuid'
 import { extname, normalize } from 'path-browserify'
 
@@ -33,7 +33,7 @@ export class Context {
   private config: IContextConfig
   moduleMap: Map<string, Module> = new Map()
   private defineOptionsMap: Map<string, DefineOptions> = new Map()
-  constructor (config: Partial<IContextConfig>) {
+  constructor(config: Partial<IContextConfig>) {
     this.id = uuidv4()
     contextMap.set(this.id, this)
     const injectModules: Record<string, any> = {
@@ -48,7 +48,7 @@ export class Context {
       errorCallback: config.errorCallback || (() => {})
     }
 
-    Object.keys(injectModules).map(name => {
+    Object.keys(injectModules).map((name) => {
       const module = this.getModule(name, '')
       module.init([], () => {
         return injectModules[name]
@@ -56,19 +56,19 @@ export class Context {
     })
   }
 
-  setDefineOptions (url: string, options: DefineOptions) {
+  setDefineOptions(url: string, options: DefineOptions) {
     this.defineOptionsMap.set(url, options)
   }
 
-  getDefineOptions (url: string) {
+  getDefineOptions(url: string) {
     return this.defineOptionsMap.get(url)
   }
 
-  getId () {
+  getId() {
     return this.id
   }
 
-  private nameToUniqUrl (name: string, parentUrl?: string) {
+  private nameToUniqUrl(name: string, parentUrl?: string) {
     if (['require', 'exports', 'module'].includes(name)) {
       return name
     }
@@ -99,7 +99,7 @@ export class Context {
     return url
   }
 
-  private getModule (uniqUrl: string, parentUrl: string) {
+  private getModule(uniqUrl: string, parentUrl: string) {
     if (uniqUrl === 'require') {
       const module = new Module(this, uniqUrl)
       module.init([], () => {
@@ -139,12 +139,7 @@ export class Context {
     return module
   }
 
-  getDepValues (
-    depNames: string[],
-    parentUrl: string,
-    callback: Function,
-    errback?: Function
-  ) {
+  getDepValues(depNames: string[], parentUrl: string, callback: Function, errback?: Function) {
     const _errback = () => {
       this.config.errorCallback()
       if (errback) {
@@ -152,7 +147,7 @@ export class Context {
       }
     }
     const depValues: any[] = []
-    const depUrls = depNames.map(depName => {
+    const depUrls = depNames.map((depName) => {
       return this.nameToUniqUrl(depName, parentUrl)
     })
     let depsCount = depUrls.length

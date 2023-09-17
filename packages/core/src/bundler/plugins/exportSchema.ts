@@ -1,8 +1,7 @@
-import { pascalCase } from 'pascal-case'
-import { IPlugin, defineMethodName } from '..'
+import { type IPlugin, defineMethodName } from '..'
 import { name as schemaToCodeName } from './schemaToCode'
 import type { ISchemaToCodeApi } from './schemaToCode'
-import { IExportConfig, check, transfer } from '../../schema/export'
+import { type IExportConfig, check, transfer } from '../../schema/export'
 
 export const exportSchema = (): IPlugin => {
   return {

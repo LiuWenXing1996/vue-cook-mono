@@ -1,4 +1,4 @@
-import { IPlugin } from '..'
+import { type IPlugin } from '..'
 
 export interface ISchemaParser {
   name: string

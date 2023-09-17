@@ -12,9 +12,14 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/fs-extra": "^11.0.2",
+    "@types/inquirer": "^9.0.3",
     "@types/node": "^18.14.2",
     "commander": "^10.0.0",
-    "concurrently": "^8.0.1",
-    "tsx": "^3.12.6"
+    "concurrently": "^8.2.1",
+    "fs-extra": "^11.1.1",
+    "inquirer": "^9.2.11",
+    "tsx": "^3.12.6",
+    "wait-on": "^7.0.1"
   }
 }

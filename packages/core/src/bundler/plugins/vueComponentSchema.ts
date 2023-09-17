@@ -1,9 +1,9 @@
-import { IPlugin, defineMethodName } from '..'
+import { type IPlugin, defineMethodName } from '..'
 import { name as schemaToCodeName } from './schemaToCode'
 import type { ISchemaToCodeApi } from './schemaToCode'
 
 import {
-  IComponentConfig,
+  type IComponentConfig,
   check,
   transformComponent,
   transformComponentEntryTs
@@ -17,22 +17,18 @@ export const vueComponentSchema = (): IPlugin => {
       const { join, relative } = helper.getPathUtils()
       const vfs = helper.getVirtualFileSystem()
       const plugins = helper.getPlugins()
-      const schemaToCodePlugin = plugins?.find?.(
-        e => e.name === schemaToCodeName
-      )
+      const schemaToCodePlugin = plugins?.find?.((e) => e.name === schemaToCodeName)
       if (schemaToCodePlugin?.api) {
-        const schemaToCodePluginApi =
-          schemaToCodePlugin?.api as ISchemaToCodeApi
+        const schemaToCodePluginApi = schemaToCodePlugin?.api as ISchemaToCodeApi
         schemaToCodePluginApi.registerSchemaParser({
           name: 'vueComponent',
-          configName:
-            cookConfig.component?.configName || 'component.config.yaml',
-          check: async filePath => {
+          configName: cookConfig.component?.configName || 'component.config.yaml',
+          check: async (filePath) => {
             const config = await vfs.readYaml<IComponentConfig>(filePath)
             check(config)
             return true
           },
-          transfer: async filePath => {
+          transfer: async (filePath) => {
             const config = await vfs.readYaml<IComponentConfig>(filePath)
             const vueFile = {
               path: '',
@@ -46,13 +42,8 @@ export const vueComponentSchema = (): IPlugin => {
               path: '',
               content: ''
             }
-            entryTsFile.path = join(
-              filePath,
-              '../',
-              cookConfig?.component?.entryName || 'index.ts'
-            )
-            const realtiveVuePath =
-              './' + relative(entryTsFile.path + '/../', vueFile.path)
+            entryTsFile.path = join(filePath, '../', cookConfig?.component?.entryName || 'index.ts')
+            const realtiveVuePath = './' + relative(entryTsFile.path + '/../', vueFile.path)
             entryTsFile.content = transformComponentEntryTs({
               config,
               indexVuePath: realtiveVuePath

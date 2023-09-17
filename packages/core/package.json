@@ -45,6 +45,7 @@
     "@types/lodash": "^4.14.192",
     "@types/node": "^18.17.15",
     "@types/path-browserify": "^1.0.0",
+    "@types/uuid": "^9.0.2",
     "@vitejs/plugin-vue": "^4.3.4",
     "@vitejs/plugin-vue-jsx": "^3.0.2",
     "@vue/compiler-sfc": "^3.3.4",
