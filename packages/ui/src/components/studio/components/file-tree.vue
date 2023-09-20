@@ -13,7 +13,6 @@ const modules = ref<Record<string, any>>(volume.toJSON())
 
 fs.watch("/", {}, () => {
     console.log("fs-change:")
-    debugger
     modules.value = volume.toJSON()
 })
 

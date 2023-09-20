@@ -4,6 +4,7 @@
             <n-menu :options="menuOptions" :collapsed="true" :collapsed-width="64" :collapsed-icon-size="22"
                 v-model:value="selectedKey" />
         </n-layout-sider>
+        
         <n-layout>
             <div class="left-content">
                 <component :is="selectedContent"></component>
@@ -17,9 +18,11 @@ import type { Component } from "vue"
 import { NLayout, NLayoutSider, NMenu, NIcon } from "naive-ui"
 import type { MenuOption } from "naive-ui"
 import FileTree from "./file-tree.vue"
+import RunPane from "./run-pane.vue"
 import {
     DocumentsOutline,
-    SearchOutline
+    SearchOutline,
+    PlayOutline
 } from '@vicons/ionicons5'
 
 const selectedKey = ref('resource-manager')
@@ -45,7 +48,13 @@ const menuOptions: (MenuOption & {
             label: '搜索',
             key: 'search',
             icon: renderIcon(SearchOutline),
-            content: SearchOutline
+            content: () => h('div', "搜索")
+        },
+        {
+            label: '运行',
+            key: 'run',
+            icon: renderIcon(PlayOutline),
+            content: RunPane
         }
     ]
 </script>

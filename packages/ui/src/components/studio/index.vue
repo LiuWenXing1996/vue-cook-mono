@@ -31,32 +31,21 @@ import CenterPane from "./components/center-pane.vue"
 import { NConfigProvider, zhCN, dateZhCN } from "naive-ui"
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
-import { provide, ref, reactive } from "vue"
+import { provide, ref, reactive, toRefs } from "vue"
 import { createFsFromVolume, Volume } from 'memfs';
 import type { IStudioState } from "./types"
 import { createStudioState } from "./utils"
+import TestA from "./components/TestA.vue"
 
-const studioState = createStudioState({
-  './src/index.js': `
-import React from 'react';
-import {render} from 'react-dom';
-import {App} from './components/app';
-
-const el = document.createElement('div');
-document.body.appendChild(el);
-render(el, React.createElement(App, {}));
-`,
-
-  './README.md': `
-# Hello World
-
-This is some super cool project.
-`,
-
-  '.node_modules/EMPTY': '',
+const props = defineProps({
+  state: {
+    type: Object as () => IStudioState,
+    required: true
+  }
 })
 
-provide('studioState', studioState)
+const { state } = toRefs(props)
+provide('studioState', state.value)
 
 </script>
 <style lang="less">
@@ -66,6 +55,10 @@ provide('studioState', studioState)
 
   .n-layout {
     height: 100%;
+  }
+
+  .splitpanes__pane {
+    background-color: transparent !important;
   }
 
 }

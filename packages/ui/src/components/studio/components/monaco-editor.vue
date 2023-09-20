@@ -22,7 +22,7 @@ onMounted(() => {
             if (editorContainerRef.value) {
                 editor = monaco.editor.create(editorContainerRef.value, {
                     value: value.value,
-                    language: "yaml"
+                    language: language.value
                 });
                 editor.onDidChangeModelContent(() => {
                     const value = editor?.getValue();

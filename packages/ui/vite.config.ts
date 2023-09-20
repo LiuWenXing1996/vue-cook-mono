@@ -41,6 +41,9 @@ export default defineConfig({
     vue(),
     vueJsx()
   ],
+  define: {
+    __VUE_PROD_DEVTOOLS__: true
+  },
   publicDir: false,
   resolve: {
     alias: {
@@ -49,6 +52,7 @@ export default defineConfig({
   },
   build: {
     minify: false,
+    sourcemap: true,
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       formats: ['cjs', 'es'],

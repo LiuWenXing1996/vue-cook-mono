@@ -47,6 +47,7 @@ export { default as makeDefaultLogicConfig } from './utils/makeDefaultLogicConfi
 export { default as makeDefaultPanelConfig } from './utils/makeDefaultPanelConfig'
 export { default as parseLogicConfig } from './utils/parseLogicConfig'
 export { default as removeComponentConfig } from './utils/removeComponentConfig'
+export { createStudioState } from './components/studio/utils/index'
 // types
 export type { default as IComponentConfig } from './types/IComponentConfig'
 export type { default as IComponentMaker } from './types/IComponentMaker'

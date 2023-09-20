@@ -67,14 +67,16 @@ const handleClose = (name: string) => {
             </div>
         </template>
         <template v-else>
-            <n-tabs size="small" v-model:value="currentUid" closable @close="handleClose"
+            <n-tabs size="small" type="card" v-model:value="currentUid" closable @close="handleClose"
                 :style="{ height: '100%', display: 'flex', flexDirection: ' column' }"
                 :pane-style="{ flexGrow: 1, padding: 0, overflow: 'hidden' }">
                 <n-tab-pane :name="l.uid" v-for="l in panelList" display-directive="show">
-                    <!-- <template #tab>
+                    <template #tab>
                         <div>{{ l.title }}</div>
-                    </template> -->
-                    <component :is="l.content"></component>
+                    </template>
+                    <keep-alive>
+                        <component :is="l.content()"></component>
+                    </keep-alive>
                 </n-tab-pane>
             </n-tabs>
         </template>
@@ -85,7 +87,6 @@ const handleClose = (name: string) => {
     height: 100%;
     display: flex;
     flex-direction: column;
-    // TODO:样式有问题
 
     .title {
         display: flex;
