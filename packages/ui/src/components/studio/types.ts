@@ -1,7 +1,5 @@
-import type { IFs } from 'memfs'
-import type { vol } from 'memfs'
 import type { VNodeChild } from 'vue'
-import { type IPath } from '@vue-cook/core'
+import { type IPath, type IVirtulFileSystem } from '@vue-cook/core'
 
 export interface IPanelConfig {
   uid: string
@@ -10,9 +8,8 @@ export interface IPanelConfig {
 }
 
 export interface IStudioState {
-  fs: IFs
+  vfs: IVirtulFileSystem
   path: IPath
-  volume: typeof vol
   currentEditFiles: {
     activeFilePath?: string
     files: string[]

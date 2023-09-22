@@ -4,6 +4,8 @@ import * as path from '@/bundler/utils/path'
 
 export { run } from './lowcode'
 export { build, defineMethodName } from './bundler/index'
+export { createVfs } from "./bundler/utils/fs"
+export type { IVirtulFileSystem } from "./bundler/utils/fs"
 export { runContainer } from './lowcode'
 // export { createContext } from './context/internalContext'
 // export { createDefineHelper } from './context/internalHelper'

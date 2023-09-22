@@ -2,7 +2,6 @@ import type * as esbuild from 'esbuild'
 import type * as swc from '@swc/core'
 import { join, relative, isAbsolute } from 'path-browserify'
 import type * as vueCompiler from '@vue/compiler-sfc'
-import { VirtulFileSystem } from './utils/fs'
 import type { IVirtulFileSystem } from './utils/fs'
 import * as pathUtils from './utils/path'
 import { genDefaultOptions } from './plugins/genDefaultOptions'
@@ -41,8 +40,8 @@ export interface IMinifyOptions {
 
 type DeepLevel2Partial<T> = T extends object
   ? {
-      [P in keyof T]?: Partial<T[P]>
-    }
+    [P in keyof T]?: Partial<T[P]>
+  }
   : T
 
 export interface IMinifyOptions {
@@ -96,7 +95,7 @@ export interface ICookConfig {
 
 export interface IBuildOptions {
   env: 'node' | 'browser'
-  files: Record<string, string>
+  vfs: IVirtulFileSystem
   plugins?: IPlugin[]
   esbuild: typeof esbuild
   swc: typeof swc
@@ -167,9 +166,8 @@ export interface ICurrentOptions {
 }
 
 export const build = async (options: IBuildOptions) => {
-  let { esbuild, files, swc, plugins } = options
+  let { esbuild, vfs, swc, plugins } = options
   plugins = plugins || []
-  const vfs = new VirtulFileSystem(files)
   const pkgJson = await vfs.readJson<IPkgJson>('package.json')
   if (!pkgJson) {
     return
@@ -245,13 +243,13 @@ export const build = async (options: IBuildOptions) => {
   const bundleRes = await esbuild.build(currentOptions.bundle)
   const outputFiles: Record<string, string> = {}
   {
-    ;(bundleRes.outputFiles || []).map((e) => {
+    ; (bundleRes.outputFiles || []).map((e) => {
       outputFiles[e.path] = e.text
     })
   }
   let hasStyle = false
   {
-    ;(bundleRes.outputFiles || []).map((e) => {
+    ; (bundleRes.outputFiles || []).map((e) => {
       if (e.path.endsWith('.css')) {
         hasStyle = true
       }

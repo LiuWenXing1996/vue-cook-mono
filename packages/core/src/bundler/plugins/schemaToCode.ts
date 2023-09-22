@@ -37,7 +37,7 @@ export const schemaToCode = (): IPlugin => {
       schemaParserList.map(e => {
         schemaParseMap.set(e.configName, { ...e })
       })
-      const allFiles = await vfs.readAllFiles()
+      const allFiles = await vfs.listFiles()
       for (const filePath in allFiles) {
         if (Object.prototype.hasOwnProperty.call(allFiles, filePath)) {
           const _baseName = basename(filePath)

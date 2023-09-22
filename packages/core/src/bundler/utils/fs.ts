@@ -1,4 +1,9 @@
 import { parse } from 'yaml'
+import { Volume, createFsFromVolume, type IFs } from 'memfs'
+import type { vol } from 'memfs'
+import { join } from "./path"
+
+export type FsPromisesApi = IFs['promises']
 
 const YAML = {
   parse
@@ -39,4 +44,73 @@ export class VirtulFileSystem {
   }
 }
 
-export type IVirtulFileSystem = VirtulFileSystem
+export const createVfs = (): IVirtulFileSystem => {
+  const vol = new Volume()
+  const fs = createFsFromVolume(vol)
+  const { readFile } = fs.promises
+
+  const readYaml = async <T>(path: string): Promise<T> => {
+    let obj: T | undefined = undefined
+    const content = await readFile(path, 'utf-8') as string
+    obj = YAML.parse(content || '') as T
+    return obj
+  }
+
+  const readJson = async<T>(path: string): Promise<T> => {
+    let jsonObj: T | undefined = undefined
+    const content = await readFile(path, 'utf-8') as string
+    jsonObj = JSON.parse(content || '') as T
+    return jsonObj
+  }
+
+  const listFiles = async (dir?: string) => {
+    const files: string[] = [];
+    dir = dir || '/'
+    const getFiles = async (currentDir: string) => {
+      const fileList = await vfs.readdir(currentDir) as string[];
+      for (const file of fileList) {
+        const name = join(currentDir, file);
+        if ((await vfs.stat(name)).isDirectory()) {
+          await getFiles(name);
+        } else {
+          files.push(name);
+        }
+      }
+    }
+    return files;
+  }
+
+  const exists = async (path: string) => {
+    try {
+      await fs.promises.stat(path);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  const vfs: IVirtulFileSystem = {
+    ...fs.promises,
+    readYaml,
+    readJson,
+    listFiles,
+    exists,
+    getFs: () => {
+      return fs
+    },
+    getVoulme: () => {
+      return vol
+    }
+  }
+
+  return vfs
+}
+
+export interface IVirtulFileSystem extends FsPromisesApi {
+  readYaml: <T>(path: string) => Promise<T>,
+  readJson: <T>(path: string) => Promise<T>,
+  listFiles: (dir?: string) => Promise<string[]>,
+  exists: (path: string) => Promise<boolean>,
+  getFs: () => IFs,
+  getVoulme: () => typeof vol
+}

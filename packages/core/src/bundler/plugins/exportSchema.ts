@@ -32,7 +32,7 @@ export const exportSchema = (): IPlugin => {
               cookConfig?.export?.entryName || 'index.ts'
             )
             const content = transfer(config, entryTsPath)
-            await vfs.outputFile(entryTsPath, content)
+            await vfs.writeFile(entryTsPath, content)
           }
         })
       }

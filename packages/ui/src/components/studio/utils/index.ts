@@ -1,7 +1,7 @@
 import { markRaw, reactive } from 'vue'
 import type { IStudioState } from '../types'
 import { Volume, createFsFromVolume } from 'memfs'
-import { path } from '@vue-cook/core'
+import { path, createVfs } from '@vue-cook/core'
 
 export const getExtName = (name: string) => {
   const allPathPoints = name.split('.')
@@ -18,13 +18,10 @@ export const getLanguage = (extName: string) => {
   return map[extName] || extName
 }
 
-export const createStudioState = (dataJson: Record<string, string>): IStudioState => {
-  const vol = new Volume()
-  vol.fromJSON(dataJson)
-  const fs = createFsFromVolume(vol)
+export const createStudioState = (): IStudioState => {
+  const vfs = createVfs()
   const state: IStudioState = {
-    fs: markRaw(fs),
-    volume: markRaw(vol),
+    vfs: markRaw(vfs),
     path: markRaw({ ...path }),
     currentEditFiles: {
       files: []

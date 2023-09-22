@@ -3,17 +3,19 @@
 import { NTabs, NTabPane, NEmpty } from "naive-ui";
 import { inject, ref, toRefs, watch, computed, type VNodeChild, h } from "vue";
 import type { IPanelConfig, IStudioState } from "../types";
+import { computedAsync } from '@vueuse/core'
 import FileEditor from "./file-editor.vue"
 
 const studioState = inject<IStudioState>('studioState') as IStudioState
-const { fs } = studioState
+const { vfs } = studioState
 const { currentEditFiles } = toRefs(studioState)
 
 const files = computed(() => currentEditFiles?.value?.files || [])
-const panelList = computed(() => {
+const panelList = computedAsync(async () => {
     console.log(files)
-    return files.value.map(f => {
-        const value = fs.readFileSync(f, { encoding: "utf-8" })
+
+    return await Promise.all(files.value.map(async f => {
+        const value = await vfs.readFile(f, { encoding: "utf-8" })
         const panelConfig: IPanelConfig = {
             uid: f,
             title: f,
@@ -23,7 +25,7 @@ const panelList = computed(() => {
             })
         }
         return panelConfig
-    })
+    }))
 })
 
 const currentUid = ref<string>()
