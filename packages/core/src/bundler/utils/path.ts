@@ -13,14 +13,14 @@ import {
 
 const fixProcessUndefined = () => {
   try {
-    if (!window['process']) {
+    if (!global['process']) {
       // @ts-ignore
-      window['process'] = {}
+      global['process'] = {}
     }
 
-    if (!window['process'].cwd) {
+    if (!global['process'].cwd) {
       // @ts-ignore
-      window['process'].cwd = () => {
+      global['process'].cwd = () => {
         return '/'
       }
     }

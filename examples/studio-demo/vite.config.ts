@@ -14,6 +14,9 @@ export default defineConfig({
     }
   },
   server: {
+    headers: {
+      'service-worker-allowed': '/'
+    },
     proxy: {
       '/api': 'http://localhost:3000'
     }

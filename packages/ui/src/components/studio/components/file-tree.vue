@@ -12,9 +12,9 @@ const fs = vfs.getFs()
 const vol = vfs.getVoulme()
 const modules = ref<Record<string, any>>(vol.toJSON())
 fs.watch("/", {}, () => {
-    console.log("fs-change:")
+    // console.log("fs-change:")
     modules.value = vol.toJSON()
-    console.log("fs-vol1:", vol.toTree())
+    // console.log("fs-vol1:", vol.toTree())
 })
 
 const selectedKeys = ref<string[]>([])

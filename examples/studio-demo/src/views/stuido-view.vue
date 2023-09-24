@@ -3,7 +3,10 @@ import { Studio, createStudioState } from '@vue-cook/ui'
 import { request } from "@/utils/index"
 import JSZip from "jszip";
 import '@vue-cook/ui/dist/style.css'
-const studioState = createStudioState()
+import browserServerJsUrl from "@vue-cook/browser-server/dist/index.js?url"
+const studioState = createStudioState({
+  browserServerJsUrl
+})
 const { vfs, path } = studioState
 request({ url: "/api/getZip", responseType: "arraybuffer" }).then(async res => {
   // debugger
@@ -27,7 +30,7 @@ request({ url: "/api/getZip", responseType: "arraybuffer" }).then(async res => {
         // .then(content => );
       }
     }
-    console.log("sssfsfdf", vfs.getVoulme().toTree())
+    // console.log("sssfsfdf", vfs.getVoulme().toTree())
   } catch (error) {
     console.error('save zip files encountered error!', error.message);
     return error;

@@ -31,16 +31,20 @@ export const virtualFs = (): IPlugin => {
           })
           build.onLoad({ filter: /.*/, namespace }, async (args) => {
             let realPath = args.path
-            let contents = await vfs.readFile(realPath)
-            let _extname = extname(realPath)
-            // TODO:自动识别index.ts
+            let contents = undefined
+            try {
+              contents = await vfs.readFile(realPath)
+            } catch (error) {}
             if (!contents) {
+              let _extname = extname(realPath)
               if (!_extname) {
                 const tryExtname = ['.ts', '.js', '/index.ts', '/index.js']
                 for (let i = 0; i < tryExtname.length; i++) {
                   _extname = tryExtname[i]
                   let _realPath = realPath + _extname
-                  contents = await vfs.readFile(_realPath)
+                  try {
+                    contents = await vfs.readFile(_realPath)
+                  } catch (error) {}
                   if (contents) {
                     realPath = _realPath
                     break

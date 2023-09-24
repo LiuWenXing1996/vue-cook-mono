@@ -31,7 +31,7 @@ export const vuePageSchema = (): IPlugin => {
             }
             vueFile.path = join(filePath, '../', 'index.vue')
             vueFile.content = transformPage(config)
-            await vfs.writeFile(vueFile.path, vueFile.content)
+            await vfs.outputFile(vueFile.path, vueFile.content)
 
             const entryTsFile = {
               path: '',
@@ -43,7 +43,7 @@ export const vuePageSchema = (): IPlugin => {
               config,
               indexVuePath: realtiveVuePath
             })
-            await vfs.writeFile(entryTsFile.path, entryTsFile.content)
+            await vfs.outputFile(entryTsFile.path, entryTsFile.content)
           }
         })
       }

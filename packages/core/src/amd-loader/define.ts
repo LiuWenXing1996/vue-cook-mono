@@ -1,4 +1,5 @@
-import { isArray, isFunction } from 'lodash'
+import isFunction from 'lodash/isFunction'
+import isArray from 'lodash/isArray'
 import { getContext } from './context'
 
 const getCurrentScript = () => {
@@ -26,6 +27,7 @@ const pickDefineOptions = (
     deps = name
     name = undefined
   }
+  // @ts-ignore
   _name = name
 
   if (!isArray(deps)) {

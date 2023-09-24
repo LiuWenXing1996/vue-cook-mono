@@ -16,10 +16,10 @@ export const name = 'schemaToCode'
 export const schemaToCode = (): IPlugin => {
   const schemaParserList: ISchemaParser[] = []
   const registerSchemaParser = (parser: ISchemaParser) => {
-    if (schemaParserList.find(e => e.name === parser.name)) {
+    if (schemaParserList.find((e) => e.name === parser.name)) {
       throw new Error(`${parser.name} 已存在`)
     }
-    if (schemaParserList.find(e => e.configName === parser.configName)) {
+    if (schemaParserList.find((e) => e.configName === parser.configName)) {
       throw new Error(`${parser.configName} 已存在`)
     }
     schemaParserList.push(parser)
@@ -34,20 +34,30 @@ export const schemaToCode = (): IPlugin => {
       const { basename } = helper.getPathUtils()
       const vfs = helper.getVirtualFileSystem()
       const schemaParseMap = new Map<string, ISchemaParser>()
-      schemaParserList.map(e => {
+      schemaParserList.map((e) => {
         schemaParseMap.set(e.configName, { ...e })
       })
       const allFiles = await vfs.listFiles()
-      for (const filePath in allFiles) {
-        if (Object.prototype.hasOwnProperty.call(allFiles, filePath)) {
+      await Promise.all(
+        allFiles.map(async (filePath) => {
           const _baseName = basename(filePath)
           const parser = schemaParseMap.get(_baseName)
           if (parser) {
             await parser.check(filePath)
             await parser.transfer(filePath)
           }
-        }
-      }
+        })
+      )
+      // for (const filePath in allFiles) {
+      //   if (Object.prototype.hasOwnProperty.call(allFiles, filePath)) {
+      //     const _baseName = basename(filePath)
+      //     const parser = schemaParseMap.get(_baseName)
+      //     if (parser) {
+      //       await parser.check(filePath)
+      //       await parser.transfer(filePath)
+      //     }
+      //   }
+      // }
     }
   }
 }

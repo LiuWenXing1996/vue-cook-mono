@@ -63,7 +63,7 @@ export const vue = (): IPlugin => {
 
           build.onLoad({ filter: /\.vue$/, namespace }, async (args) => {
             const filepath = args.path
-            const content = ((await vfs.readFile(filepath)) || '') as string
+            const content = ((await vfs.readFile(filepath, 'utf-8')) || '') as string
             const sfc = compiler.parse(content)
 
             let contents = ``
@@ -119,7 +119,7 @@ export const vue = (): IPlugin => {
 
           build.onLoad({ filter: /\?vue&type=template/, namespace }, async (args) => {
             const filepath = removeQuery(args.path)
-            const source = ((await vfs.readFile(filepath)) || '') as string
+            const source = ((await vfs.readFile(filepath, 'utf-8')) || '') as string
             const { descriptor } = compiler.parse(source)
             if (descriptor.template) {
               const hasScoped = descriptor.styles.some((s) => s.scoped)
@@ -155,7 +155,7 @@ export const vue = (): IPlugin => {
 
           build.onLoad({ filter: /\?vue&type=script/, namespace }, async (args) => {
             const filepath = removeQuery(args.path)
-            const source = ((await vfs.readFile(filepath)) || '') as string
+            const source = ((await vfs.readFile(filepath, 'utf-8')) || '') as string
 
             const { descriptor } = compiler.parse(source, {
               filename: filepath
@@ -175,7 +175,7 @@ export const vue = (): IPlugin => {
 
           build.onLoad({ filter: /\?vue&type=style/, namespace }, async (args) => {
             const filepath = removeQuery(args.path)
-            const source = ((await vfs.readFile(filepath)) || '') as string
+            const source = ((await vfs.readFile(filepath, 'utf-8')) || '') as string
             const { descriptor } = compiler.parse(source)
             if (descriptor.styles.length > 0) {
               const id = genId(filepath)

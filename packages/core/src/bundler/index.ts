@@ -40,8 +40,8 @@ export interface IMinifyOptions {
 
 type DeepLevel2Partial<T> = T extends object
   ? {
-    [P in keyof T]?: Partial<T[P]>
-  }
+      [P in keyof T]?: Partial<T[P]>
+    }
   : T
 
 export interface IMinifyOptions {
@@ -92,13 +92,15 @@ export interface ICookConfig {
     }
   >
 }
+export type IEsbuild = typeof esbuild
+export type ISwc = typeof swc
 
 export interface IBuildOptions {
   env: 'node' | 'browser'
   vfs: IVirtulFileSystem
   plugins?: IPlugin[]
-  esbuild: typeof esbuild
-  swc: typeof swc
+  esbuild: IEsbuild
+  swc: ISwc
   vueCompiler: typeof vueCompiler
 }
 
@@ -166,6 +168,7 @@ export interface ICurrentOptions {
 }
 
 export const build = async (options: IBuildOptions) => {
+  console.log('build start')
   let { esbuild, vfs, swc, plugins } = options
   plugins = plugins || []
   const pkgJson = await vfs.readJson<IPkgJson>('package.json')
@@ -243,13 +246,14 @@ export const build = async (options: IBuildOptions) => {
   const bundleRes = await esbuild.build(currentOptions.bundle)
   const outputFiles: Record<string, string> = {}
   {
-    ; (bundleRes.outputFiles || []).map((e) => {
+    ;(bundleRes.outputFiles || []).map((e) => {
+      // TODO:这个地方需要考虑到非js文件的情况
       outputFiles[e.path] = e.text
     })
   }
   let hasStyle = false
   {
-    ; (bundleRes.outputFiles || []).map((e) => {
+    ;(bundleRes.outputFiles || []).map((e) => {
       if (e.path.endsWith('.css')) {
         hasStyle = true
       }
@@ -321,5 +325,42 @@ export {default} from "./index";
       })
   ])
 
+  await Promise.all([
+    ...Object.keys(outputFiles).map(async (key) => {
+      await vfs.outputFile(key, outputFiles[key])
+    })
+  ])
+
   return outputFiles
+}
+
+export type IBuildContext = Awaited<ReturnType<typeof createBuildContext>>
+
+export const createBuildContext = async (options: IBuildOptions) => {
+  const { esbuild, vfs, swc, plugins = [] } = options
+
+  const dispose = () => {
+    watcher.close()
+  }
+  // TODO：为啥没有build呢？
+  const watcher = vfs.getFs().watch(
+    '/',
+    {
+      recursive: true
+    },
+    async () => {
+      // await build(options)
+    }
+  )
+
+  // 那就没有自定触发这个逻辑？
+  // 可以把逻辑拆开
+  const _rebuild = async () => {
+    await build(options)
+  }
+
+  return {
+    rebuild: _rebuild,
+    dispose
+  }
 }
