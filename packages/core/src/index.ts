@@ -1,5 +1,5 @@
-import { registerDefineMethod } from './amd-loader'
-registerDefineMethod()
+// import { registerDefineMethod } from './amd-loader'
+// // registerDefineMethod()
 import * as path from '@/bundler/utils/path'
 export { run } from './lowcode'
 export { build, defineMethodName } from './bundler/index'

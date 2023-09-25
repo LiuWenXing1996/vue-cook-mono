@@ -17,7 +17,6 @@ import type {
 // vite-node-polyfill?
 import { MessageType } from '@vue-cook/core'
 import { path } from '@vue-cook/core'
-
 let client: Client | undefined = undefined
 
 self.addEventListener('message', (event) => {
