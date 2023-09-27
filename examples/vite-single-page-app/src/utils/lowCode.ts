@@ -9,7 +9,7 @@ let getPromise: Promise<any>
 export const getLowCodeRes = async () => {
   if (!getPromise) {
     getPromise = runContainer({
-      assets: '/lowcode/schema/entry.js',
+      assets: '/page/lowcode/schema/entry.js',
       contextConfig: {
         injectModules: {
           vue: vue,

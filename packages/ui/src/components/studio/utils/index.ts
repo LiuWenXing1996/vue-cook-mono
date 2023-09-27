@@ -27,10 +27,13 @@ export const getLanguage = (extName: string) => {
   return map[extName] || extName
 }
 
-export const createStudioState = (config: { browserServerJsUrl: string }): IStudioState => {
-  const { browserServerJsUrl } = config
+export const createStudioState = (config: {
+  browserServerJsUrl: string
+  scope: string
+}): IStudioState => {
+  const { browserServerJsUrl, scope } = config
   const vfs = createVfs()
-  installBrowserServer(browserServerJsUrl, { vfs })
+  installBrowserServer(browserServerJsUrl, { vfs, scope })
 
   const state: IStudioState = {
     vfs: markRaw(vfs),

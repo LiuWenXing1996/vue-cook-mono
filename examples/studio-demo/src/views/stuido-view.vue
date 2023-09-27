@@ -5,8 +5,14 @@ import JSZip from "jszip";
 import '@vue-cook/ui/dist/style.css'
 import browserServerJsUrl from "@vue-cook/browser-server/dist/index.js?url"
 const studioState = createStudioState({
-  browserServerJsUrl
+  browserServerJsUrl,
+  scope: "/3"
 })
+// const studioState2 = createStudioState({
+//   browserServerJsUrl: browserServerJsUrl2,
+//   scope: "/2"
+// })
+// console.log(studioState2)
 const { vfs, path } = studioState
 request({ url: "/api/getZip", responseType: "arraybuffer" }).then(async res => {
   // debugger
@@ -36,9 +42,13 @@ request({ url: "/api/getZip", responseType: "arraybuffer" }).then(async res => {
     return error;
   }
 })
-
+const testSw = async () => {
+  const a = await request({ method: "get", url: "/__vfs__file__/getSwData" })
+  console.log(a)
+}
 </script>
 
 <template>
+  <button @click="testSw">测试sw</button>
   <Studio :state="studioState" />
 </template>

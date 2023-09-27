@@ -18,6 +18,13 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+  @Get('getSwData')
+  getSwData(): any {
+    return {
+      data: 'getSwData',
+      isSuccess: true,
+    };
+  }
   @Get('file')
   getFile(): StreamableFile {
     const file = createReadStream(join(process.cwd(), 'package.json'));

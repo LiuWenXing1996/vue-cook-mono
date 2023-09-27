@@ -17,7 +17,7 @@
 
       </Pane>
       <Pane class="right-pane" min-size="15" size="20">
-        right
+        <PagePlayer path="http://localhost:3000/page/aa"></PagePlayer>
         <!-- <panel-list :list="state.layout.right"></panel-list> -->
       </Pane>
     </Splitpanes>
@@ -26,6 +26,7 @@
 <script setup lang="ts">
 import LeftPane from "./components/left-pane.vue"
 import CenterPane from "./components/center-pane.vue"
+import PagePlayer from "./components/page-player.vue"
 // import ICookEditorState from '@/types/ICookEditorState';
 // import PanelList from "./PanelList.vue"
 import { NConfigProvider, zhCN, dateZhCN } from "naive-ui"

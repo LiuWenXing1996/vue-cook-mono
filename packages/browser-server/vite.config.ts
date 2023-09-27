@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import { resolve } from 'node:path'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
@@ -23,6 +24,7 @@ export const generateExternal = () => {
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  plugins: [nodePolyfills()],
   publicDir: false,
   resolve: {
     alias: [

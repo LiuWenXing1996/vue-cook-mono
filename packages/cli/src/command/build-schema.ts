@@ -1,8 +1,8 @@
-import  { join, relative, resolve } from 'node:path'
+import { join, relative, resolve } from 'node:path'
 import { name } from '../../package.json'
 import { readFile } from 'node:fs/promises'
 import { emptyDir, outputFile } from 'fs-extra'
-import { build } from '@vue-cook/core'
+import { build, createVfs } from '@vue-cook/core'
 import type { ICookConfig } from '@vue-cook/core'
 import type { Plugin } from 'vite'
 import * as esbuild from 'esbuild'
@@ -86,13 +86,19 @@ const buildSchema = async (options: IBuildDepsOptions) => {
   const fielsContent = await getFielsContent(files)
   // console.log('fielsContent', fielsContent)
   const modules: Record<string, string> = {}
-  fielsContent.map(e => {
+  fielsContent.map((e) => {
     const _path = relative(resolve(__dirname, '.'), e.path)
     modules[_path] = e.content
   })
+  const vfs = createVfs()
+  await Promise.all(
+    Object.keys(modules).map(async (filePath) => {
+      await vfs.outputFile(filePath, modules[filePath])
+    })
+  )
   const res = await build({
     env: 'node',
-    files: modules,
+    vfs,
     esbuild,
     plugins: [
       {
@@ -100,13 +106,14 @@ const buildSchema = async (options: IBuildDepsOptions) => {
         enforce: 'post',
         bundleStart: async (options, helper) => {
           const vfs = helper.getVirtualFileSystem()
-          const files = (await vfs.readAllFiles()) || {}
+          const files = (await vfs.listFiles()) || []
           const tempLogFile = resolve(__dirname, './node_modules/.vfs-temp')
           await emptyDir(tempLogFile)
           await Promise.all(
-            Object.keys(files).map(async key => {
+            files.map(async (key) => {
               const _path = resolve(tempLogFile, key)
-              await outputFile(_path, files[key] || '')
+              const content = await vfs.readFile(key)
+              await outputFile(_path, content || '')
             })
           )
           console.log('虚拟文件: ' + tempLogFile)
@@ -118,7 +125,7 @@ const buildSchema = async (options: IBuildDepsOptions) => {
   })
 
   await Promise.all(
-    Object.keys(res || {}).map(async key => {
+    Object.keys(res || {}).map(async (key) => {
       await outputFile(key, res?.[key] || '')
     })
   )

@@ -1,8 +1,8 @@
-/// <reference lib="WebWorker" />
+// <reference lib="WebWorker" />
 declare var self: ServiceWorkerGlobalScope
 declare var clients: Clients
 export {}
-import "process"
+import 'process'
 import { Wayne, FileSystem, type IFs } from './server'
 import * as mime from 'mime'
 import type {
@@ -14,12 +14,17 @@ import type {
 // TODO:vue-cook似乎还是分开成文件夹，不然server好像还是会打包进一些node的文件
 // TODO：另外如果一些其他包也这么引入了，他们岂不是也会打包进一些node资源
 // 有没有好的解决方案呢？
+// bundler和loader拆分出去是一个更好的方案
+// 否则所有引core包的都要装一个import { nodePolyfills } from 'vite-plugin-node-polyfills'
+// 这个是不是会引出另外一个问题，在用esbuild打包依赖的时候也会出现一些包的node问题？
+// esbuild中有对应的解决方案吗？
 // vite-node-polyfill?
 import { MessageType } from '@vue-cook/core'
 import { path } from '@vue-cook/core'
 let client: Client | undefined = undefined
-
+console.log('sw runs')
 self.addEventListener('message', (event) => {
+  console.log('sw message sss')
   const data = (event.data || {}) as IMessageRecived
   if (data.type == MessageType) {
     if (data.action === 'link-for-sw') {
@@ -76,13 +81,37 @@ const fs: IFs = {
     return await callClientFsMethod('readdir', rest)
   }
 }
-const app = new Wayne()
 
-app.use(FileSystem({ path, fs, mime, prefix: '__fs__' }))
+self.addEventListener('fetch', (event) => {
+  // console.log("event.request.url", event.request.url)
+  const url = new URL(event.request.url)
+  if (!url.pathname.startsWith('/__vfs__file__')) {
+    return
+  }
 
-app.use((err: any, _req: any, res: any, _next: any) => {
-  const sep = '-'.repeat(80)
-  res.text([sep, ':: Wayne', sep, `Error: ${err.message}`, err.stack].join('\n'))
+  // event.respondWith(new Response('Hello World!'))
+  // event.respondWith(new Response('Hello World!'))
+  // const promise =
+  event.respondWith(
+    (async () => {
+      // const res = new Response("blob", { status: 200 })
+      // resolve(res)
+      try {
+        // const filePath = url.pathname.substring("/__vfs__file__".length)
+        // const ext = path.extname(filePath)
+        // const type = mime.getType(ext)
+        // const content = await fs.readFile(filePath)
+        // const blob = new Blob([content], {
+        //   type
+        // })
+        return new Response('blob')
+      } catch (error) {
+        console.log('2ssss')
+        return new Response('ssss')
+
+      }
+    })()
+  )
 })
 
 // take control of uncontrolled clients on first load
@@ -90,4 +119,13 @@ app.use((err: any, _req: any, res: any, _next: any) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim())
 })
-// TODO:还差build sw 和 index
+
+self.addEventListener("error", (event) => {
+  console.log("error",event)
+})
+
+self.addEventListener('install', (event) => {
+  console.log("skipWaiting")
+  // 每次安装后都使用最新的版本
+  self.skipWaiting()
+})

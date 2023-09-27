@@ -1,4 +1,6 @@
+import { dirname } from 'path-browserify'
 import type { IVirtulFileSystem } from '..'
+import { v4 as uuidv4 } from 'uuid'
 export const MessageType = '__cook__browser__server__'
 export interface IMessageSend<T = any> {
   type: typeof MessageType
@@ -16,6 +18,13 @@ export interface ICallFsMethodReturns {
   error?: any
 }
 
+const mustEndWithSlash = (value: string) => {
+  if (value.endsWith('/')) {
+    return value
+  }
+  return value + '/'
+}
+
 export type IMessageRecived<T = any> = Partial<IMessageSend<T>>
 
 export const installBrowserServer = async (
@@ -26,8 +35,11 @@ export const installBrowserServer = async (
 ) => {
   const { vfs } = options
   if ('serviceWorker' in navigator) {
-    const scope = location.pathname.replace(/\/[^\/]+$/, '/')
-    const a = await navigator.serviceWorker.register(swJsUrl, { scope })
+    const swJsUrlInstance = new URL(swJsUrl, location.href)
+    const scope = mustEndWithSlash(dirname(swJsUrlInstance.toString()))
+    const oldRe = await navigator.serviceWorker.getRegistration(scope)
+    await oldRe?.unregister()
+    await navigator.serviceWorker.register(swJsUrl, { scope })
     const linkMessage: IMessageSend = {
       type: MessageType,
       action: 'link-for-sw'
