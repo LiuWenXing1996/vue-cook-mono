@@ -7,18 +7,13 @@
       <Pane class="center-bottom-pane" min-size="15" size="60">
         <Splitpanes horizontal>
           <Pane class="center-pane" min-size="15">
-            <CenterPane></CenterPane>
+            <center-pane></center-pane>
           </Pane>
           <Pane class="bottom-pane" min-size="15" size="20">
             bottom
             <!-- <panel-list :list=" state.layout.bottom"></panel-list> -->
           </Pane>
         </Splitpanes>
-
-      </Pane>
-      <Pane class="right-pane" min-size="15" size="20">
-        <PagePlayer path="http://localhost:3000/page/aa"></PagePlayer>
-        <!-- <panel-list :list="state.layout.right"></panel-list> -->
       </Pane>
     </Splitpanes>
   </n-config-provider>

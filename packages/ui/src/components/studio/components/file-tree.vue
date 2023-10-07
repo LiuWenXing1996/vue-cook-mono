@@ -2,23 +2,28 @@
 import { NTree, NIcon } from "naive-ui"
 import { h, ref, toRefs, type VNodeChild, inject, computed } from 'vue';
 import { Folder } from '@vicons/ionicons5'
+import { createFsUtils } from "@vue-cook/core"
 import { listToTree, type IItem } from "../utils/listToTree"
 import type { IStudioState } from "../types";
+import FileEditor from "./file-editor.vue"
+import PageEditor from "./page-editor.vue"
+import { useInjectSudioState } from "@/hooks/useInjectStudioState";
 
-const studioState = inject<IStudioState>('studioState') as IStudioState
-
-const { vfs } = studioState
+const { panelListRef, currentPanelIdRef, buildContextRef, vfsRef } = useInjectSudioState()
+const vfs = vfsRef.value
 const fs = vfs.getFs()
-const vol = vfs.getVoulme()
-const modules = ref<Record<string, any>>(vol.toJSON())
-fs.watch("/", {}, () => {
-    // console.log("fs-change:")
-    modules.value = vol.toJSON()
-    // console.log("fs-vol1:", vol.toTree())
+const buildContext = buildContextRef.value
+const modulesRef = ref<string[]>([])
+
+vfs.listFiles().then(res => {
+    modulesRef.value = res
 })
-
-const selectedKeys = ref<string[]>([])
-
+fs.watch("/", {}, () => {
+    vfs.listFiles().then(res => {
+        modulesRef.value = res
+    })
+})
+const selectedKeysRef = ref<string[]>([])
 const getAllPaths = (filePath: string) => {
     const allPathPoints = filePath.split('/');
     let allPaths: string[] = []
@@ -27,7 +32,6 @@ const getAllPaths = (filePath: string) => {
     })
     return allPaths
 }
-
 const isDir = (path: string) => {
     if (!fs.existsSync(path)) {
         return false
@@ -39,14 +43,12 @@ const isDir = (path: string) => {
     return false
 }
 
-
-
 const data = computed(() => {
     const treeFlattedData: Record<string, IItem<string> & {
         key: string,
         prefix: () => VNodeChild
     }> = {}
-    Object.keys(modules.value).forEach(key => {
+    modulesRef.value.forEach(key => {
         const allPaths = getAllPaths(key)
         const length = allPaths.length
         allPaths.map((e, i) => {
@@ -75,25 +77,29 @@ const data = computed(() => {
     return treeData
 })
 
+const nodeClick = (keys: string[]) => {
+    selectedKeysRef.value = keys
+    const willEditKey = selectedKeysRef.value[0]
+    if (isDir(willEditKey)) {
+        return
+    }
+    const filePanel = panelListRef.value.find(e => e.uid === willEditKey)
+    if (!filePanel) {
+        let PanelComponent = () => h(FileEditor, { name: willEditKey })
+        if (buildContext.findSchemaParser(willEditKey)) {
+            PanelComponent = () => h(PageEditor, { filePath: willEditKey })
+        }
+        panelListRef.value.push({
+            uid: willEditKey,
+            title: willEditKey,
+            content: PanelComponent
+        })
+    }
+    currentPanelIdRef.value = willEditKey
+}
+
 </script>
 
 <template>
-    <n-tree block-line expand-on-click :data="data" :selected-keys="selectedKeys" @update:selected-keys="(keys: string[]) => {
-        selectedKeys = keys
-        const willEditKey = selectedKeys[0]
-        const file = studioState.currentEditFiles.files.find(e => e === willEditKey)
-        if (isDir(willEditKey)) {
-            return
-        }
-        if (!file) {
-            studioState.currentEditFiles = {
-                ...studioState.currentEditFiles,
-                files: [...studioState.currentEditFiles.files, willEditKey]
-            }
-        }
-        studioState.currentEditFiles = {
-            ...studioState.currentEditFiles,
-            activeFilePath: willEditKey
-        }
-    }" />
+    <n-tree block-line expand-on-click :data="data" :selected-keys="selectedKeysRef" @update:selected-keys="nodeClick" />
 </template>

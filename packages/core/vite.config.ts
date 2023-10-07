@@ -25,12 +25,13 @@ export const getPackageDependencies = () => {
 
 export const generateExternal = () => {
   const { dependencies, peerDependencies, devDependencies } = getPackageDependencies()
-
+  console.log("packages",['@vue', ...peerDependencies, ...devDependencies, ...dependencies])
   return (id: string) => {
     const packages: string[] = ['@vue', ...peerDependencies, ...devDependencies, ...dependencies]
     return [...new Set(packages)].some((pkg) => id === pkg || id.startsWith(`${pkg}/`))
   }
 }
+// console.log('generateExternal', generateExternal())
 
 // https://vitejs.dev/config/
 export default defineConfig({

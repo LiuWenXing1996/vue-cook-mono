@@ -2,6 +2,7 @@ import { program } from 'commander'
 import { version, description } from '../package.json'
 import buildDeps from './command/build-deps'
 import buildSchema from './command/build-schema'
+import buildAuto from './command/build-auto'
 
 export const read = () => {
   program.name('vue-cook-cli').description(description).version(version)
@@ -12,7 +13,7 @@ export const read = () => {
     .option('-c,--config <string>', 'cook.config.json配置文件路径')
     .option('-p,--pkgJson <string>', 'package.json文件路径')
     .option('-d,--dirname <string>', 'dirname路径')
-    .action(options => {
+    .action((options) => {
       const { config = '', pkgJson = '', dirname = '' } = options
       buildDeps({
         configPath: config,
@@ -27,12 +28,25 @@ export const read = () => {
     .option('-c,--config <string>', 'cook.config.json配置文件路径')
     .option('-p,--pkgJson <string>', 'package.json文件路径')
     .option('-d,--dirname <string>', 'dirname路径')
-    .action(options => {
+    .action((options) => {
       const { config = '', pkgJson = '', dirname = '' } = options
       buildSchema({
         configPath: config,
         pkgJsonPath: pkgJson,
         __dirname: dirname
+      })
+    })
+
+  program
+    .command('build-auto')
+    .description('构建命令')
+    .option('-c,--config <string>', 'cook.config.json配置文件路径')
+    .option('-p,--pkgJson <string>', 'package.json文件路径')
+    .option('-d,--dirname <string>', 'dirname路径')
+    .action((options) => {
+      const { config = '', pkgJson = '', dirname = '' } = options
+      buildAuto({
+        configPath: config
       })
     })
 

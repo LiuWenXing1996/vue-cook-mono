@@ -5,10 +5,9 @@ import { join } from 'path';
 import * as path from 'path';
 import { Controller, Get, StreamableFile, Res, Header } from '@nestjs/common';
 import type { Response } from 'express';
-import * as JSZip from 'jszip';
+import JSZip from 'jszip';
 import { Readable } from 'node:stream';
 import * as shelljs from 'shelljs';
-import * as fg from 'fast-glob';
 
 @Controller('api')
 export class AppController {
@@ -54,9 +53,10 @@ export class AppController {
     const zip = new JSZip();
     var currPath = __dirname; //文件的绝对路径 当前当前js所在的绝对路径
     var targetDir = path.join(currPath, '../../vite-single-page-app');
-    const ls = await fg(['**/*'], {
+    const { globby } = await import('globby');
+    const ls = await globby(['**/*'], {
       cwd: targetDir,
-      ignore: ['**/node_modules'],
+      gitignore: true,
     });
     console.log('ls', ls);
     ls.forEach((f) => {

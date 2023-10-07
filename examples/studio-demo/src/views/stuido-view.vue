@@ -1,25 +1,18 @@
 <script setup lang="ts">
-import { Studio, createStudioState } from '@vue-cook/ui'
+import { Studio, createStudioState, type IStudioState } from '@vue-cook/ui'
+import { path } from '@vue-cook/core'
+import { createVfs } from '@vue-cook/schema-bundler'
 import { request } from "@/utils/index"
 import JSZip from "jszip";
 import '@vue-cook/ui/dist/style.css'
-import browserServerJsUrl from "@vue-cook/browser-server/dist/index.js?url"
-const studioState = createStudioState({
-  browserServerJsUrl,
-  scope: "/3"
-})
-// const studioState2 = createStudioState({
-//   browserServerJsUrl: browserServerJsUrl2,
-//   scope: "/2"
-// })
-// console.log(studioState2)
-const { vfs, path } = studioState
-request({ url: "/api/getZip", responseType: "arraybuffer" }).then(async res => {
-  // debugger
-  const zip = new JSZip();
-  const zipData = await zip.loadAsync(res?.data);
-  console.log(zipData)
+import { onMounted, ref } from 'vue';
+const studioStateRef = ref<IStudioState>()
+onMounted(async () => {
+  const vfs = createVfs()
 
+  const zipFile = await request({ url: "/api/getZip", responseType: "arraybuffer" }) as any
+  const zip = new JSZip();
+  const zipData = await zip.loadAsync(zipFile?.data);
   const files = zipData.files
   try {
     for (const filename of Object.keys(files)) {
@@ -36,19 +29,15 @@ request({ url: "/api/getZip", responseType: "arraybuffer" }).then(async res => {
         // .then(content => );
       }
     }
-    // console.log("sssfsfdf", vfs.getVoulme().toTree())
-  } catch (error) {
+    const studioState = await createStudioState({ vfs })
+    studioStateRef.value = studioState
+  } catch (error: any) {
     console.error('save zip files encountered error!', error.message);
     return error;
   }
 })
-const testSw = async () => {
-  const a = await request({ method: "get", url: "/__vfs__file__/getSwData" })
-  console.log(a)
-}
 </script>
 
 <template>
-  <button @click="testSw">测试sw</button>
-  <Studio :state="studioState" />
+  <Studio v-if="studioStateRef" :state="studioStateRef" />
 </template>

@@ -25,12 +25,13 @@ export const getPackageDependencies = () => {
 
 export const generateExternal = () => {
   const { dependencies, peerDependencies, devDependencies } = getPackageDependencies()
-  const nodeBuildinLibs = [
+  const nodeBuildinLibs: any = [
     'node:util',
     'node:buffer',
     'node:stream',
     'node:net',
     'node:url',
+    'node:process',
     'node:fs',
     'node:path',
     'perf_hooks'
@@ -62,6 +63,7 @@ export default defineConfig({
   },
   build: {
     minify: false,
+    sourcemap: true,
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       formats: ['cjs', 'es'],

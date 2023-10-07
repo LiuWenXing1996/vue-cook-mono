@@ -1,15 +1,21 @@
 {
-    "root": "./lowcode",
+    "root": "./src",
     "ignorePaths": [
         "node_modules",
         "dist",
         "public/lowcode"
     ],
     "minify": false,
-    "outdir": "./public/lowcode",
-    "deps": {
-        "element-plus": {
-            "entry": "export * from 'element-plus';import 'element-plus/dist/index.css'"
+    "sourcemap": true,
+    "outdir": "./dist",
+    "deps": [
+        {
+            "name": "vue",
+            "external": "Vue"
+        },
+        {
+            "name": "vue-router",
+            "external": "VueRouter"
         }
-    }
+    ]
 }

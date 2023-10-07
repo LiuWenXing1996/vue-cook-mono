@@ -1,6 +1,6 @@
 import { groupBy } from 'lodash'
 import { z } from 'zod'
-import { relative, trimExtname } from '../bundler/utils/path'
+import { trimExtname } from '../utils/path'
 import { pascalCase } from 'pascal-case'
 
 export interface IExportItemConfig {
@@ -47,12 +47,12 @@ export const check = (config: IExportConfig) => {
 
 export const transfer = (config: IExportConfig, targetPath: string) => {
   config = config || []
-  const categorys = groupBy(config, e => e.category)
+  const categorys = groupBy(config, (e) => e.category)
   let content = `${Object.keys(categorys)
-    .map(categoryName => {
+    .map((categoryName) => {
       const items = categorys[categoryName]
       return items
-        .map(item => {
+        .map((item) => {
           const realtivePath = trimExtname(item.path, ['.ts', '.js'])
           return `import ${categoryName}${item.name} from '${realtivePath}';`
         })
@@ -60,11 +60,11 @@ export const transfer = (config: IExportConfig, targetPath: string) => {
     })
     .join('\n')}
     ${Object.keys(categorys)
-      .map(categoryName => {
+      .map((categoryName) => {
         const items = categorys[categoryName]
         return `const ${categoryName}s = {
 ${items
-  .map(item => {
+  .map((item) => {
     return `  ${item.name}:${categoryName}${item.name}`
   })
   .join(',\n')}
@@ -73,7 +73,7 @@ ${items
       .join('\n')}
 export {
   ${Object.keys(categorys)
-    .map(categoryName => {
+    .map((categoryName) => {
       return `  ${categoryName}s`
     })
     .join(',\n')}

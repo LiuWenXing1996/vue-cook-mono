@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check build-only",
-    "build:deps": "vue-cook build-deps -c ./cook.config.json -p ./package.json -d ./",
-    "build:schema": "vue-cook build-schema -c ./cook.config.json -p ./package.json -d ./",
+    "build:deps": "vue-cook build-deps -c ./cook.config.json -p ./package.json ",
+    "build:schema": "vue-cook build-schema -c ./cook.config.json -p ./package.json",
+    "build:auto": "vue-cook build-auto -c ./cook.config.json -p ./package.json",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false"

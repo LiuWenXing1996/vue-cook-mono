@@ -33,6 +33,7 @@
     "tiny-emitter": "^2.1.0",
     "uuid": "^9.0.0",
     "vue": "^3.3.4",
+    "vue-router": "^4.2.4",
     "yaml": "^2.3.2",
     "zod": "^3.21.4"
   },
@@ -63,6 +64,7 @@
     "prettier": "^3.0.3",
     "tsc-alias": "^1.8.8",
     "typescript": "~5.1.6",
+    "utility-types": "^3.10.0",
     "vite": "^4.4.9",
     "vite-plugin-dts": "^3.5.3",
     "vitest": "^0.34.4",

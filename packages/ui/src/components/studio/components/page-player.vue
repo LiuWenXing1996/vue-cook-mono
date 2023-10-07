@@ -4,11 +4,18 @@
     </div>
 </template>
 <script setup lang="ts">
+import { ref, watch } from 'vue';
+
 defineProps({
     path: {
         type: String,
         required: true
     },
+})
+const iframeRef = ref<HTMLIFrameElement>()
+console.log("iframeRef", iframeRef?.value?.contentWindow)
+watch(iframeRef, () => {
+    console.log("sddddd", iframeRef?.value?.contentWindow)
 })
 </script>
 <style lang="less">

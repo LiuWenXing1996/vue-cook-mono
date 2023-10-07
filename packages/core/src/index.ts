@@ -1,23 +1,43 @@
-// import { registerDefineMethod } from './amd-loader'
-// // registerDefineMethod()
-import * as path from '@/bundler/utils/path'
-export { run } from './lowcode'
-export { build, defineMethodName } from './bundler/index'
-export { createVfs } from './bundler/utils/fs'
-export { createBuildContext } from './bundler/index'
-export type { IEsbuild, ISwc, IBuildContext } from './bundler/index'
-export type { IVirtulFileSystem } from './bundler/utils/fs'
-export { runContainer } from './lowcode'
-// export { createContext } from './context/internalContext'
-// export { createDefineHelper } from './context/internalHelper'
-export type { ICookConfig } from './bundler/index'
+import * as path from './utils/path'
+
 export type IPath = typeof path
-export { require } from './amd-loader'
 export { path }
-export { installBrowserServer, MessageType } from './utils/installBrowserServer'
-export type {
-  ICallFsMethodData,
-  ICallFsMethodReturns,
-  IMessageRecived,
-  IMessageSend
-} from './utils/installBrowserServer'
+export { createFsUtils, type IFsPromisesApi, type IFsUtils } from './utils/fs'
+export {
+  type ICookConfig,
+  fillConfig,
+  getCookConfigRelativePath,
+  type IPkgJson,
+  type IDeepRequiredCookConfig
+} from './utils/cookConfig'
+export {
+  createLowcodeContext,
+  exportDeps,
+  getLowcodeContext,
+  ElementDataLowcodeContextIdKey,
+  ElementDataCoreLibOnceGetterIdIdKey,
+  type ISchemaData
+} from './lowcode'
+
+export { emitEditorWindowSchemaChange, SchemaChanegeDataType } from './lowcode/schemaChange'
+
+export { createVueRenderContext, autoRunVueApp } from './lowcode/vueRender'
+export {
+  type IExportConfig as IExportSchemaConfig,
+  check as exportSchemaCheck,
+  transfer as exportSchemaTransfer
+} from './schema/export'
+
+export {
+  type IPageConfig as IPageSchemaConfig,
+  check as pageSchemaCheck,
+  transformPage as pageSchemaTransfer,
+  transformPageEntryTs
+} from './schema/page'
+
+export {
+  type IComponentConfig as IComponentSchemaConfig,
+  check as componentSchemaCheck,
+  transformComponent as componentSchemaTransfer,
+  transformComponentEntryTs
+} from './schema/component'

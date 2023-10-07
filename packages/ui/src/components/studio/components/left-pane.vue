@@ -7,7 +7,9 @@
         
         <n-layout>
             <div class="left-content">
-                <component :is="selectedContent"></component>
+                <keep-alive>
+                    <component :is="selectedContent"></component>
+                </keep-alive>
             </div>
         </n-layout>
     </n-layout>

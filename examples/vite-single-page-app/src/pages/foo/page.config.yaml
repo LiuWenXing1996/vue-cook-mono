@@ -1,0 +1,70 @@
+name: TestButton
+template: |
+  <div class="ref">ref:{{states.ref}}</div>
+  <div>raw:{{states.raw}}</div>
+  <button @click="methods.change">更改值ssss</button>
+scripts:
+  - path: ./functions.ts
+    alias: functions
+components:
+  - path: ../../components/sss
+    destructuringName: ddd
+    alias: fshkfhsk
+styles:
+  - content: |
+      .ref{
+        color:red
+      }
+    scoped: true
+states:
+  - name: ref
+    type: ref
+    value: |
+      {
+        a: "aa",
+        b: {
+          c: "cccc",
+          d: {
+            e: "eeee"
+          }
+        }
+      }
+  - name: raw
+    type: raw
+    value: |
+      {
+        a: "aa",
+        b: {
+          c: "cccc",
+          d: {
+            e: "eeee"
+          }
+        }
+      }
+methods:
+  - name: change
+    content: |
+      () => {
+        states.ref.b.c = "refaaaa"
+        states.raw.a = "rawssss"
+        states.raw.b.c = "rawssss"
+        functions.a(states)
+        console.log(states)
+      }
+watchers:
+  - name: watchStatesRef
+    type: watch
+    source: states.ref
+    callback: |
+      (newValue,oldValue)=>{
+        console.log('watchStatesRef',newValue)
+      }
+  - name: watchStatesRaw
+    type: watch
+    source: states.raw
+    callback: |
+      (newValue,oldValue)=>{
+        console.log('watchStatesRaw',newValue)
+      }
+export: true
+path: "/aa"

@@ -1,6 +1,5 @@
 //TODO:增加黑色主题和主题色定义功能
 //TODO：单元测试
-
 // components
 export { default as CookEditor } from './components/cook-editor/index.vue'
 export { default as CookPlayer } from './components/cook-player/index.vue'
@@ -8,6 +7,7 @@ export { default as ComponentDragger } from './components/component-dragger/inde
 export { default as LogicDragger } from './components/logic-dragger/index.vue'
 export { default as ResourceMaker } from './components/resource-maker/index.vue'
 export { default as Studio } from './components/studio/index.vue'
+export { type IStudioState } from './components//studio/types'
 // panel makers
 export { default as PageComponentTreeMaker } from '@/built-in-resources/panels/page-component-tree'
 export { default as PageEditorMaker } from '@/built-in-resources/panels/page-editor'

@@ -13,7 +13,8 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@vue-cook/browser-server": "workspace:^0.0.1",
+    "@vue-cook/core": "workspace:^0.0.1",
+    "@vue-cook/schema-bundler": "workspace:^0.0.1",
     "@vue-cook/ui": "workspace:^0.0.1",
     "axios": "^1.5.0",
     "element-plus": "^2.3.14",

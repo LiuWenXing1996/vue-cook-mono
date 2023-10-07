@@ -1,15 +1,14 @@
-import { markRaw, reactive } from 'vue'
+import { markRaw, reactive, ref } from 'vue'
 import type { IStudioState } from '../types'
-import {
-  path,
-  createVfs,
-  createBuildContext as _createBuildContext,
-  type IVirtulFileSystem,
-  installBrowserServer
-} from '@vue-cook/core'
+import { path } from '@vue-cook/core'
 import { initEsbuild } from './esbuild'
 import { initSwc } from './swc'
-import * as VueCompiler from '@vue/compiler-sfc'
+import {
+  createVfs,
+  createLowcodeBuildContext,
+  type IVirtulFileSystem,
+  type ILowcodeContextConfig
+} from '@vue-cook/schema-bundler'
 
 export const getExtName = (name: string) => {
   const allPathPoints = name.split('.')
@@ -27,17 +26,34 @@ export const getLanguage = (extName: string) => {
   return map[extName] || extName
 }
 
-export const createStudioState = (config: {
-  browserServerJsUrl: string
-  scope: string
-}): IStudioState => {
-  const { browserServerJsUrl, scope } = config
-  const vfs = createVfs()
-  installBrowserServer(browserServerJsUrl, { vfs, scope })
+export const createStudioState = async (config: {
+  vfs: IVirtulFileSystem
+}): Promise<IStudioState> => {
+  const { vfs } = config
+  const buildContext = await createBuildContext({
+    vfs,
+    onBuildEnd: (res) => {
+      console.log("....")
+      const { outputFiles = {} } = res
+      const outputFileArray = Object.values(outputFiles)
+      const js = (outputFileArray.find((e) => e.type == 'js')?.content || '') as string
+      const css = (outputFileArray.find((e) => e.type == 'css')?.content || '') as string
+      stateRef.schemaData = {
+        timestamp: res.timestamp,
+        schema: {
+          js: js,
+          css: css
+        }
+      }
+    }
+  })
 
   const state: IStudioState = {
     vfs: markRaw(vfs),
+    buildContext: markRaw(buildContext),
     path: markRaw({ ...path }),
+    panelList: [],
+    currentPanelId: '',
     currentEditFiles: {
       files: []
     }
@@ -46,14 +62,18 @@ export const createStudioState = (config: {
   return stateRef
 }
 
-export const createBuildContext = async (options: { vfs: IVirtulFileSystem }) => {
+export const createBuildContext = async (options: {
+  vfs: IVirtulFileSystem
+  onBuildEnd?: ILowcodeContextConfig['onBuildEnd']
+}) => {
   const esbuild = await initEsbuild()
   const swc = await initSwc()
-  return _createBuildContext({
+  return createLowcodeBuildContext({
     vfs: options.vfs,
     env: 'browser',
     esbuild,
     swc,
-    vueCompiler: VueCompiler
+    watch:true,
+    onBuildEnd: options.onBuildEnd
   })
 }

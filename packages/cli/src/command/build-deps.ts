@@ -1,16 +1,19 @@
 import { resolve } from 'node:path'
-import { name } from '../../package.json'
-import { readFile } from 'node:fs/promises'
-import { outputFile, remove } from 'fs-extra'
-import * as esbuild from 'esbuild'
-import { type Plugin } from 'esbuild'
-import * as swc from '@swc/core'
-import {replace} from "lodash"
-import type { ICookConfig } from '@vue-cook/core'
-import { defineMethodName } from '@vue-cook/core'
-import { getCustomComsole } from '../utils/customComsole'
+import { remove } from 'fs-extra'
+import { build } from 'vite'
+import {
+  createFsUtils,
+  path,
+  ElementDataCoreLibOnceGetterIdIdKey,
+  ElementDataLowcodeContextIdKey,
+  type ICookConfig,
+  fillConfig
+} from '@vue-cook/core'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import { getOutDir, getTempDir, resolveConfig, resolvePkgJson } from '@/utils'
+import fsPromises from 'node:fs/promises'
 
-const { log } = getCustomComsole(name)
+const { outputFile } = createFsUtils(fsPromises)
 
 export interface IBuildDepsOptions {
   configPath: string
@@ -18,120 +21,36 @@ export interface IBuildDepsOptions {
   __dirname: string
 }
 
-export interface IPkgJson {
-  dependencies: Record<string, string>
-}
-
-export const resolvePkgJson = async (pkgJsonPath: string) => {
-  const absolutePath = resolve(pkgJsonPath)
-  let content: IPkgJson | undefined = undefined
-  try {
-    const contentString = await readFile(absolutePath, 'utf-8')
-    content = JSON.parse(contentString) as IPkgJson
-  } catch (e) {}
-  return content
-}
-
-// export interface ICookConfig {
-//   version: string
-//   ignorePaths: string[]
-//   entry: string
-//   components: string
-//   rootPath: string
-//   deps: Record<string, { entry?: string }>
-// }
-
-export const resolveConfig = async (cookConfigPath: string) => {
-  const absolutePath = resolve(cookConfigPath)
-  let content: ICookConfig | undefined = undefined
-  try {
-    const contentString = await readFile(absolutePath, 'utf-8')
-    content = JSON.parse(contentString) as ICookConfig
-  } catch (e) {}
-  return content
-}
-
-// const autoDepPlugin = (options: {
-//   depName: string
-//   virtualModuleId: string
-//   entry?: string
-// }): Plugin => {
-//   const { depName, virtualModuleId, entry } = options
-//   const resolvedVirtualModuleId = '\0' + virtualModuleId
-
-//   return {
-//     name: 'vue-cook-dep', // 必须的，将会在 warning 和 error 中显示
-//     resolveId: (id: string) => {
-//       if (id === virtualModuleId) {
-//         return resolvedVirtualModuleId
-//       }
-//       return
-//     },
-//     load: async (id: string) => {
-//       if (id === resolvedVirtualModuleId) {
-//         const lib = entry || `export {uniq} from "${depName}"`
-//         console.log(lib)
-//         return lib
-//       }
-//       return
-//     }
-//   }
-// }
-
-export const VirtualPlugin = (options: Record<string, string> = {}) => {
-  const namespace = 'virtual'
-  const filter = new RegExp(
-    Object.keys(options)
-      .map((name) => `^${name}$`)
-      .join('|')
-  )
-  const plugin: Plugin = {
-    name: namespace,
-    setup(build) {
-      build.onResolve({ filter }, (args) => {
-        // debugger
-        return {
-          path: args.path,
-          namespace
-        }
-      })
-      build.onLoad({ filter: /.*/, namespace }, (args) => {
-        return {
-          contents: options[args.path],
-          loader: 'js',
-          resolveDir: resolve(__dirname)
-        }
-      })
-    }
-  }
-  return plugin
+const pkgNameNormalize = (name: string) => {
+  return name.replaceAll('/', '+')
 }
 
 const buildDeps = async (options: IBuildDepsOptions) => {
-  const { configPath, pkgJsonPath, __dirname } = options
-  const config = await resolveConfig(configPath)
-  if (!config) {
+  const { configPath, pkgJsonPath } = options
+  const _cookConfig = await resolveConfig(configPath)
+  if (!_cookConfig) {
     return
   }
+  const cookConfig = fillConfig(_cookConfig)
   const pkgJson = await resolvePkgJson(pkgJsonPath)
   if (!pkgJson) {
-    return ''
+    return
   }
   let { dependencies = {} } = pkgJson
-  const dependencieList = Object.keys(dependencies)
-  // dependencies = { vue: '3.0.0' }
-  const tempDir = resolve(__dirname, config.tempDir ? config.tempDir : 'node_modules/.vue-cook')
+  // dependencies = { "@vue-cook/core": '3.0.0' }
+  const a = getOutDir(cookConfig)
+  console.log(a)
+  const outDir = resolve(getOutDir(cookConfig), './deps')
+  const tempDir = resolve(getTempDir(cookConfig), './deps')
   const depEntryList = Object.keys(dependencies).map((depName) => {
     return {
       name: depName,
       version: dependencies[depName],
-      path: resolve(tempDir, `./${depName.replaceAll('/', '+')}.ts`),
-      outDir: resolve(__dirname, config.outdir, `./deps/${depName.replaceAll('/', '+')}`),
+      path: resolve(tempDir, './libs', `./${pkgNameNormalize(depName)}.ts`),
       content:
-        config.deps?.[depName]?.entry ||
+        cookConfig.deps.find((e) => e.name === depName)?.entry ||
         `
 export * from "${depName}"; 
-export {default} from "${depName}"; 
 `
     }
   })
@@ -141,107 +60,90 @@ export {default} from "${depName}";
       await outputFile(depEntry.path, depEntry.content)
     })
   )
-  const outputFiles: Record<string, string> = {}
+  console.log('buildDeps')
 
-  await Promise.all(
-    depEntryList.map(async (depEntry) => {
-      let bundleRes = await esbuild.build({
-        // entryPoints: [resolve(__dirname, `./container.ts`)],
-        entryPoints: [depEntry.path],
-        bundle: true,
-        target: ['es2015'],
-        format: 'esm',
-        write: false,
-        external: dependencieList.filter((e) => e !== depEntry.name),
-        sourcemap: true,
-        outfile: resolve(depEntry.outDir, './index.js')
-      })
-      let hasStyle = false
-      {
-        ;(bundleRes.outputFiles || []).map((e) => {
-          if (e.path.endsWith('.css')) {
-            hasStyle = true
+  const depsEntryJs = {
+    path: '',
+    content: ''
+  }
+  depsEntryJs.path = resolve(tempDir, `./deps-entry.ts`)
+  depsEntryJs.content = `
+import { exportDeps } from "@vue-cook/core"
+
+${depEntryList
+  .map((dep, index) => {
+    let realtivePath = './' + path.relative(path.dirname(depsEntryJs.path), dep.path)
+    realtivePath = path.trimExtname(realtivePath, ['.ts', '.js'])
+    return `import * as Lib${index} from "${realtivePath}"`
+  })
+  .join('\n')}
+
+const libs = {
+${depEntryList
+  .map((dep, index) => {
+    return `  ["${dep.name}"]:Lib${index}`
+  })
+  .join(',\n')}
+}
+
+exportDeps(libs)
+`
+  await outputFile(depsEntryJs.path, depsEntryJs.content)
+
+  await build({
+    publicDir: false,
+    plugins: [nodePolyfills()],
+    build: {
+      minify: false,
+      outDir: outDir,
+      sourcemap: cookConfig.sourcemap,
+      lib: {
+        entry: depsEntryJs.path,
+        name: 'deps',
+        formats: ['iife'],
+        fileName: () => {
+          return 'index.js'
+        }
+      },
+      rollupOptions: {
+        external: cookConfig.deps.map((e) => e.name).concat('@vue-cook/core'),
+        output: {
+          banner: `(function(){
+${cookConfig.deps
+  .filter((e) => e.external)
+  .map((e) => {
+    return `var ${e.external}`
+  })
+  .join(';\n')}
+var VueCookCore;
+(function(){
+  var script = document.currentScript
+  var contextUid = script.dataset.${ElementDataLowcodeContextIdKey}
+  var coreLibGetterUid = script.dataset.${ElementDataCoreLibOnceGetterIdIdKey}
+  VueCookCore = window[coreLibGetterUid]()
+  var context = VueCookCore.getLowcodeContext(contextUid)
+  var externalLibs = context.getExternalLibs()
+  ${cookConfig.deps
+    .filter((e) => e.external)
+    .map((e) => {
+      return `  ${e.external} = externalLibs["${e.name}"]`
+    })
+    .join(';\n')}
+}());
+
+`,
+          footer: `
+}())`,
+          globals: (name) => {
+            if (name === '@vue-cook/core') {
+              return 'VueCookCore'
+            }
+            return cookConfig.deps.find((e) => e.name === name)?.external || ''
           }
-          outputFiles[e.path] = e.text
-        })
+        }
       }
-
-      const entryJs = `
-${hasStyle ? 'import "./index.css"' : ''}
-export * from "./index";
-export {default} from "./index";
-      `
-      outputFiles[resolve(depEntry.outDir, './entry.js')] = entryJs
-    })
-  )
-
-  await Promise.all(
-    Object.keys(outputFiles)
-      .filter((e) => {
-        if (e.endsWith('.js')) {
-          return true
-        }
-        return false
-      })
-      .map(async (key) => {
-        const bundle = await swc.transform(outputFiles[key], {
-          module: {
-            type: 'amd'
-          },
-          sourceMaps: 'inline',
-          inputSourceMap: outputFiles[key + '.map'] || '{}'
-        })
-        outputFiles[key] = bundle.code || ''
-        outputFiles[key + '.map'] = JSON.stringify(bundle.map || '')
-      })
-  )
-
-  await Promise.all([
-    ...Object.keys(outputFiles)
-      .filter((e) => {
-        if (e.endsWith('.js')) {
-          return true
-        }
-        return false
-      })
-      .map(async (key) => {
-        const minifyRes = await esbuild.transform(outputFiles[key], {
-          loader: 'js',
-          // minify: true,
-          sourcemap: true,
-          banner: `(function () {
-var define = window['${defineMethodName}']`,
-          footer: '})();'
-        })
-        outputFiles[key] = minifyRes.code + `//# sourceMappingURL=` + 'index.js.map'
-        outputFiles[key + '.map'] = minifyRes.map
-      }),
-    ...Object.keys(outputFiles)
-      .filter((e) => {
-        if (e.endsWith('.css')) {
-          return true
-        }
-        return false
-      })
-      .map(async (key) => {
-        // TODO:css的source map 似乎不太对
-        const minifyRes = await esbuild.transform(outputFiles[key], {
-          loader: 'css',
-          minify: true,
-          sourcemap: true
-        })
-        outputFiles[key] = minifyRes.code
-        outputFiles[key + '.map'] = minifyRes.map
-      })
-  ])
-
-  console.log('outputFiles', Object.keys(outputFiles))
-
-  await Promise.all(
-    Object.keys(outputFiles || {}).map(async (key) => {
-      await outputFile(key, outputFiles?.[key] || '')
-    })
-  )
+    }
+  })
 
   return true
 }
