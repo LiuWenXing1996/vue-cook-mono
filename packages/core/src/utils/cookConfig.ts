@@ -11,7 +11,7 @@ export interface ICookConfig {
   deps?: {
     name: string
     entry?: string
-    external?: string
+    injectName?: string// 是不是必须的？
   }[]
 }
 

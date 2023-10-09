@@ -9,8 +9,7 @@ export interface IPkg {
 }
 
 export const findAllPkgs = async () => {
-  // const workspaceDirs = ["./packages", "./examples"];
-  const workspaceDirs = ["./packages"];
+  const workspaceDirs = ["./packages", "./examples"];
   const absolutePaths = workspaceDirs.map((e) => path.resolve(e));
   const pkgDirs: string[] = [];
   await Promise.all(
@@ -38,11 +37,20 @@ export const findAllPkgs = async () => {
     })
   );
 
-  const prePkgNames = ["@vue-cook/core", "@vue-cook/ui", "@vue-cook/cli"];
+  const prePkgNames = [
+    "@vue-cook/core",
+    "@vue-cook/schema-bundler",
+    "@vue-cook/ui",
+    "@vue-cook/cli",
+    "vite-single-page-app",
+    "server-demo",
+    "studio-demo",
+  ];
   const prePkgs = prePkgNames
     .map((e) => pkgs.find((t) => t.name === e))
     .filter((e) => e) as IPkg[];
   const postPkgs = pkgs.filter((t) => !prePkgNames.includes(t.name));
   const pkgsSorted: IPkg[] = [...prePkgs, ...postPkgs];
+  console.log(pkgsSorted.map((e) => e.name));
   return pkgsSorted;
 };

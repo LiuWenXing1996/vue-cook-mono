@@ -3,7 +3,7 @@ import { flattenDeep, some } from 'lodash'
 import { readFile, readdir } from 'node:fs/promises'
 import { relative, resolve } from 'node:path'
 import { minimatch } from 'minimatch'
-import type { ICookConfig } from '@vue-cook/core'
+import type { ICookConfig, IDeepRequiredCookConfig } from '@vue-cook/core'
 
 export const isDir = (path: string) => {
   if (!existsSync(path)) {
@@ -16,12 +16,12 @@ export const isDir = (path: string) => {
   return false
 }
 
-export const getOutDir = (config: ICookConfig) => {
-  return resolve(process.cwd(), config.outdir ? config.outdir : './dist')
+export const getOutDir = (config: IDeepRequiredCookConfig) => {
+  return resolve(process.cwd(), config.outdir)
 }
 
-export const getTempDir = (config: ICookConfig) => {
-  return resolve(process.cwd(), config.tempDir ? config.tempDir : 'node_modules/.vue-cook')
+export const getTempDir = (config: IDeepRequiredCookConfig) => {
+  return resolve(process.cwd(), config.tempDir)
 }
 
 export const resolveConfig = async (cookConfigPath: string) => {
@@ -48,6 +48,30 @@ export const resolvePkgJson = async (pkgJsonPath: string) => {
   return content
 }
 
+export const pkgNameNormalize = (name: string) => {
+  return name.replaceAll('/', '+')
+}
+
+export const genDepEntryList = (options: {
+  tempDir: string
+  dependencies: Record<string, string>
+  deps: IDeepRequiredCookConfig['deps']
+}) => {
+  const { tempDir, dependencies, deps } = options
+  const depEntryList = Object.keys(dependencies).map((depName) => {
+    return {
+      name: depName,
+      version: dependencies[depName],
+      path: resolve(tempDir, './libs', `./${pkgNameNormalize(depName)}.ts`),
+      content:
+        deps.find((e) => e.name === depName)?.entry ||
+        `
+export * from "${depName}"; 
+`
+    }
+  })
+  return depEntryList
+}
 
 export const isIgnorePath = (path: string, ignorePaths: string[]) => {
   return some(ignorePaths, (e) => {

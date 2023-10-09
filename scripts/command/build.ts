@@ -4,11 +4,7 @@ import { resolve } from "path";
 import { clean } from "./clean";
 
 export const build = async () => {
-  const isClean = await clean();
-  if (!isClean) {
-    console.log("构建之前需要先执行一遍清除操作");
-    return;
-  }
+  await clean();
   const allPkgs = await findAllPkgs();
   const commands = allPkgs.map((e, index) => {
     let command = "";

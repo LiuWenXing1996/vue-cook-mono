@@ -22,12 +22,12 @@ export const concurrentlyAsync = async (
   });
 };
 
-export const toLongCommond = (
-  commands: {
-    command: string;
-    name: string;
-  }[]
-) => {
+export interface ICommand {
+  command: string;
+  name: string;
+}
+
+export const toLongCommond = (commands: ICommand[]) => {
   const longCommand = `concurrently -c 'auto' --kill-others -p '[{name}]' -n ${commands
     .map((e) => {
       return `'${e.name}'`;

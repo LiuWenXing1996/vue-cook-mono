@@ -345,6 +345,7 @@ export const createBuildContext = async (config: IBuildContextConfig) => {
         recursive: true
       },
       async () => {
+        console.log('ddddd')
         if (!isBuilding) {
           await rebuild()
         }

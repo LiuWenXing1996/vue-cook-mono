@@ -2,7 +2,7 @@ name: TestButton
 template: |
   <div class="ref">ref:{{states.ref}}</div>
   <div>raw:{{states.raw}}</div>
-  <button @click="methods.change">更改值ssss</button>
+  <button @click="methods.change">更改值ssssss</button>
 scripts:
   - path: ./functions.ts
     alias: functions

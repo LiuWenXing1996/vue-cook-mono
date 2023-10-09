@@ -1,8 +1,6 @@
 import { resolve } from "node:path";
 import { findAllPkgs } from "../utils/findAllpackages";
-import fsExtra from "fs-extra";
-import inquirer from "inquirer";
-const { remove } = fsExtra;
+import trash from "trash";
 
 export const clean = async () => {
   const allPkgs = await findAllPkgs();
@@ -12,24 +10,9 @@ export const clean = async () => {
     const distResolvePath = resolve(pkg.path, "./dist");
     pathsWillRemove.push(distResolvePath);
   }
-  console.log(pathsWillRemove);
-  const { canDel } = await inquirer.prompt([
-    {
-      name: "canDel",
-      type: "confirm",
-      default: false,
-      message: "将会删除上述文件？",
-    },
-  ]);
-  if (canDel) {
-    for (let i = 0; i < pathsWillRemove.length; i++) {
-      const pathWillRemove = pathsWillRemove[i];
-      console.log(`正在删除: ${pathWillRemove}`);
-      await remove(pathWillRemove);
-      console.log(`删除完成: ${pathWillRemove}`);
-    }
-    return true;
-  } else {
-    return false;
+  for (let i = 0; i < pathsWillRemove.length; i++) {
+    const pathWillRemove = pathsWillRemove[i];
+    await trash(pathWillRemove);
+    console.log(`move to trash: ${pathWillRemove}`);
   }
 };
