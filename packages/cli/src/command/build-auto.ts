@@ -40,7 +40,7 @@ const genAbsoulteUrl = (url: string) => {
 autoRunVueApp({
   vue:Vue,
   vueRouter:VueRouter,
-  depsEntryList: [genAbsoulteUrl('../deps/index.js'), genAbsoulteUrl('../deps/index.css')],
+  depsEntryList: [genAbsoulteUrl('../deps/index.js'), genAbsoulteUrl('../deps/style.css')],
   schemaEntryList: [genAbsoulteUrl('../schema/index.js'), genAbsoulteUrl('../schema/index.css')],
   mountedEl:"#app"
 }).then((res)=>{console.log("res",res)})

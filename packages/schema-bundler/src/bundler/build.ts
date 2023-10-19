@@ -148,13 +148,11 @@ export const build = async (config: IBuildConfig) => {
   for (const p of plugins) {
     if (p.enforce === 'pre') {
       prePlugins.push(p)
-      return
-    }
-    if (p.enforce === 'post') {
+    } else if (p.enforce === 'post') {
       postPlugins.push(p)
-      return
+    } else {
+      midPlugins.push(p)
     }
-    midPlugins.push(p)
   }
 
   plugins = [genDefaultOptions(), ...prePlugins, ...midPlugins, ...postPlugins, virtualFs()]

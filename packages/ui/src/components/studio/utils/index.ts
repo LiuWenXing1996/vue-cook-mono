@@ -33,7 +33,7 @@ export const createStudioState = async (config: {
   const buildContext = await createBuildContext({
     vfs,
     onBuildEnd: (res) => {
-      console.log("....")
+      console.log('....')
       const { outputFiles = {} } = res
       const outputFileArray = Object.values(outputFiles)
       const js = (outputFileArray.find((e) => e.type == 'js')?.content || '') as string
@@ -50,6 +50,7 @@ export const createStudioState = async (config: {
 
   const state: IStudioState = {
     vfs: markRaw(vfs),
+    schemaData: undefined,
     buildContext: markRaw(buildContext),
     path: markRaw({ ...path }),
     panelList: [],
@@ -73,7 +74,7 @@ export const createBuildContext = async (options: {
     env: 'browser',
     esbuild,
     swc,
-    watch:true,
+    watch: true,
     onBuildEnd: options.onBuildEnd
   })
 }

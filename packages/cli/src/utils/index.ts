@@ -1,9 +1,20 @@
 import { existsSync, lstatSync } from 'fs-extra'
 import { flattenDeep, some } from 'lodash'
 import { readFile, readdir } from 'node:fs/promises'
-import { relative, resolve } from 'node:path'
+import { dirname, relative, resolve } from 'node:path'
 import { minimatch } from 'minimatch'
-import type { ICookConfig, IDeepRequiredCookConfig } from '@vue-cook/core'
+import {
+  createFsUtils,
+  fillConfig,
+  type ICookConfig,
+  type ICookMeta,
+  type IDeepRequiredCookConfig,
+  type IPkgJson,
+  type IDepMeta
+} from '@vue-cook/core'
+import fsPromises from 'node:fs/promises'
+
+const { outputFile, readJson, tryReadJson } = createFsUtils(fsPromises)
 
 export const isDir = (path: string) => {
   if (!existsSync(path)) {
@@ -24,18 +35,17 @@ export const getTempDir = (config: IDeepRequiredCookConfig) => {
   return resolve(process.cwd(), config.tempDir)
 }
 
-export const resolveConfig = async (cookConfigPath: string) => {
+export const resolveConfig = async (
+  cookConfigPath: string
+): Promise<IDeepRequiredCookConfig | undefined> => {
   const absolutePath = resolve(cookConfigPath)
-  let content: ICookConfig | undefined = undefined
+  let content: IDeepRequiredCookConfig | undefined = undefined
   try {
     const contentString = await readFile(absolutePath, 'utf-8')
-    content = JSON.parse(contentString) as ICookConfig
+    content = JSON.parse(contentString) as IDeepRequiredCookConfig
+    content = fillConfig(content)
   } catch (e) {}
   return content
-}
-
-export interface IPkgJson {
-  dependencies: Record<string, string>
 }
 
 export const resolvePkgJson = async (pkgJsonPath: string) => {
@@ -128,4 +138,40 @@ export const getFielsContent = async (pathList: string[]) => {
     })
   )
   return fielsContent
+}
+
+export function getModulePath(packageName: string, useCwd: boolean = true): string {
+  const packageJson = `${packageName}/package.json`
+  const paths = useCwd ? [resolve(process.cwd(), './node_modules')] : undefined
+  const packageJsonPath = require.resolve(packageJson, { paths })
+  const packagePath = dirname(packageJsonPath)
+
+  return packagePath
+}
+
+export const collectDepMetaList = async (
+  cookConfig: ICookConfig,
+  packageJson: IPkgJson
+): Promise<IDepMeta[]> => {
+  let { dependencies = {} } = packageJson
+  const metaList = await Promise.all(
+    Object.keys(dependencies).map(async (depName) => {
+      const modulePath = getModulePath(depName)
+      const packageJsonPath = resolve(modulePath, './package.json')
+      const pkgJson = await readJson<IPkgJson>(packageJsonPath)
+      let metaFilePath = resolve(modulePath, pkgJson.cookMetaFile || './cook.meta.json')
+      const cookMeta = await tryReadJson<ICookMeta>(metaFilePath)
+      const overrideCookMeta = cookConfig.overrideCookMetas.find((e) => e.name === depName)
+      return {
+        name: pkgJson.name as string,
+        version: pkgJson.version,
+        packageJson: pkgJson,
+        cookMeta: {
+          ...cookMeta,
+          ...overrideCookMeta
+        }
+      }
+    })
+  )
+  return metaList
 }

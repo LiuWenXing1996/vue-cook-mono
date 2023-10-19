@@ -19,11 +19,31 @@ export const createFsUtils = (fs: IFsPromisesApi) => {
     return jsonObj
   }
 
+  const tryReadJson = async <T>(path: string): Promise<undefined | T> => {
+    let jsonObj: T | undefined = undefined
+    try {
+      jsonObj = await readJson<T>(path)
+    } catch (error) {
+      console.log("tryReadJson error:", path)
+    }
+    return jsonObj
+  }
+
   const readYaml = async <T>(path: string): Promise<T> => {
     let obj: T | undefined = undefined
     const content = (await readFile(path, 'utf-8')) as string
     obj = YAML.parse(content || '') as T
     return obj
+  }
+
+  const tryReadYaml = async <T>(path: string): Promise<T | undefined> => {
+    let jsonObj: T | undefined = undefined
+    try {
+      jsonObj = await readYaml<T>(path)
+    } catch (error) {
+      console.log("tryReadYaml error:", path)
+    }
+    return jsonObj
   }
 
   const listFiles = async (dir?: string) => {
@@ -75,7 +95,7 @@ export const createFsUtils = (fs: IFsPromisesApi) => {
     const dir = dirname(file)
     const fileExist = await exists(dir)
     if (!fileExist) {
-      console.log(dir)
+      // console.log(dir)
       await mkdir(dir, { recursive: true })
     }
     await writeFile(file, data, options)
@@ -96,7 +116,9 @@ export const createFsUtils = (fs: IFsPromisesApi) => {
   return {
     ...fs,
     readJson,
+    tryReadJson,
     readYaml,
+    tryReadYaml,
     listFiles,
     exists,
     isFile,

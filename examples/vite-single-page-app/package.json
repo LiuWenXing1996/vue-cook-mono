@@ -8,12 +8,14 @@
     "build:deps": "vue-cook build-deps -c ./cook.config.json -p ./package.json ",
     "build:schema": "vue-cook build-schema -c ./cook.config.json -p ./package.json",
     "build:auto": "vue-cook build-auto -c ./cook.config.json -p ./package.json",
+    "build:design": "vue-cook build-design -c ./cook.config.json -p ./package.json",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false"
   },
   "dependencies": {
     "@vue-cook/core": "workspace:^0.0.1",
+    "remote-plugin-demo-a": "workspace:^0.0.0",
     "vue": "^3.3.4",
     "vue-router": "^4.2.4"
   },

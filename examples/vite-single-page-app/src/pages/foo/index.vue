@@ -2,7 +2,7 @@
   <template>
       <div class="ref">ref:{{states.ref}}</div>
 <div>raw:{{states.raw}}</div>
-<button @click="methods.change">更改值</button>
+<button @click="methods.change">更改值ssssss</button>
   </template>
 
   <script setup lang="ts">

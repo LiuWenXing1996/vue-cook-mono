@@ -11,6 +11,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "noEmitOnError": true,
+    "strictNullChecks": true,
     "paths": {
       "@/*": [
         "./src/*"

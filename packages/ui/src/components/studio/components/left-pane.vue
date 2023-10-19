@@ -24,7 +24,8 @@ import RunPane from "./run-pane.vue"
 import {
     DocumentsOutline,
     SearchOutline,
-    PlayOutline
+    PlayOutline,
+    GridOutline
 } from '@vicons/ionicons5'
 
 const selectedKey = ref('resource-manager')
@@ -45,6 +46,12 @@ const menuOptions: (MenuOption & {
             key: 'resource-manager',
             icon: renderIcon(DocumentsOutline),
             content: FileTree
+        },
+        {
+            label: '物料',
+            key: 'material',
+            icon: renderIcon(GridOutline),
+            content: () => h('div', "物料")
         },
         {
             label: '搜索',

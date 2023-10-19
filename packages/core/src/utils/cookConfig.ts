@@ -11,13 +11,42 @@ export interface ICookConfig {
   deps?: {
     name: string
     entry?: string
-    injectName?: string// 是不是必须的？
+    injectName?: string // 是不是必须的？
   }[]
+  overrideCookMetas: {
+    name: string
+    meta: ICookMeta
+  }[]
+}
+
+export interface ICookMeta {
+  isRemotePlugin?: boolean
+  remotePluginVarName?: string
+  runtimeEntry?: {
+    import?: string
+    assets?: string[]
+  }
+  designerEntry?: {
+    import?: string
+    assets?: string[]
+  }
+}
+
+export interface ICookMaterialConfig {
+  editorEntry: {
+    js: string
+    css: string
+  }
+  designViewEntry: {
+    js: string
+    css: string
+  }
 }
 
 export type IDeepRequiredCookConfig = DeepRequired<ICookConfig>
 export type IPkgJson = ProjectManifest & {
-  cookConfigFile?: string
+  cookConfigFile?: string // support json and yaml ? or only yaml
+  cookMetaFile?: string // support json and yaml ? or only yaml
 }
 
 export const getCookConfigRelativePath = (pkgJson: IPkgJson) => {
@@ -43,7 +72,8 @@ export const getCookConfigDefault = () => {
     minify: true,
     tempDir: './node_modules/.vue-cook',
     sourcemap: true,
-    deps: []
+    deps: [],
+    overrideCookMetas: []
   }
   return defaultConfig
 }

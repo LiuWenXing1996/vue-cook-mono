@@ -62,6 +62,12 @@ export * from "${depName}";
   )
   console.log('buildDeps')
 
+  const depsEntryCss = {
+    path: resolve(tempDir, `./index.css`),
+    content: '/* deps css content */'
+  }
+  await outputFile(depsEntryCss.path, depsEntryCss.content)
+
   const depsEntryJs = {
     path: '',
     content: ''
@@ -69,6 +75,7 @@ export * from "${depName}";
   depsEntryJs.path = resolve(tempDir, `./deps-entry.ts`)
   depsEntryJs.content = `
 import { exportDeps } from "@vue-cook/core"
+import "./index.css"
 
 ${depEntryList
   .map((dep, index) => {

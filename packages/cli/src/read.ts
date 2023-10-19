@@ -3,6 +3,7 @@ import { version, description } from '../package.json'
 import buildDeps from './command/build-deps'
 import buildSchema from './command/build-schema'
 import buildAuto from './command/build-auto'
+import buildDesign from './command/build-design'
 
 export const read = () => {
   program.name('vue-cook-cli').description(description).version(version)
@@ -22,6 +23,18 @@ export const read = () => {
       })
     })
 
+  program
+    .command('build-design')
+    .description('构建命令')
+    .option('-c,--config <string>', 'cook.config.json配置文件路径')
+    .option('-p,--pkgJson <string>', 'package.json文件路径')
+    .action((options) => {
+      const { config = '', pkgJson = '', } = options
+      buildDesign({
+        configPath: config,
+        pkgJsonPath: pkgJson,
+      })
+    })
   program
     .command('build-schema')
     .description('构建命令')

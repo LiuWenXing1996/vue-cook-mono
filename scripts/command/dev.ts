@@ -31,27 +31,27 @@ export const dev = async () => {
         "/packages/ui/dist"
       )}' && pnpm --filter '@vue-cook/cli' dev`,
     },
+    // {
+    //   name: "vite-single-page-app",
+    //   command: `wait-on '${join(
+    //     process.cwd(),
+    //     "/packages/cli/dist"
+    //   )}' && pnpm --filter 'vite-single-page-app' dev`,
+    // },
     {
-      name: "vite-single-page-app",
+      name: "server-demo",
       command: `wait-on '${join(
         process.cwd(),
         "/packages/cli/dist"
-      )}' && pnpm --filter 'vite-single-page-app' dev`,
+      )}' && pnpm --filter 'server-demo' start:dev`,
     },
-    // {
-    //   name: "server-demo",
-    //   command: `wait-on '${join(
-    //     process.cwd(),
-    //     "/examples/vite-single-page-app/dist"
-    //   )}' && pnpm --filter 'server-demo' start:dev`,
-    // },
-    // {
-    //   name: "studio-demo",
-    //   command: `wait-on '${join(
-    //     process.cwd(),
-    //     "/examples/vite-single-page-app/dist"
-    //   )}' && pnpm --filter 'studio-demo' dev`,
-    // },
+    {
+      name: "studio-demo", 
+      command: `wait-on '${join(
+        process.cwd(),
+        "/packages/cli/dist"
+      )}' && pnpm --filter 'studio-demo' dev`,
+    },
   ];
   console.log("commands", commands);
   const longCommands = toLongCommond(commands);

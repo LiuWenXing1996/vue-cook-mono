@@ -8,16 +8,24 @@ export {
   fillConfig,
   getCookConfigRelativePath,
   type IPkgJson,
-  type IDeepRequiredCookConfig
+  type IDeepRequiredCookConfig,
+  type ICookMaterialConfig,
+  type ICookMeta
 } from './utils/cookConfig'
 export {
   createLowcodeContext,
-  exportDeps,
   getLowcodeContext,
   ElementDataLowcodeContextIdKey,
   ElementDataCoreLibOnceGetterIdIdKey,
   type ISchemaData
 } from './lowcode'
+
+export {
+  runRemotePlugin,
+  defineRemotePlugin,
+  type IRemotePlugin
+} from './design-mode/remote-plugin'
+export { exportDeps, type IDepMeta } from './utils/fetchDeps'
 
 export { emitEditorWindowSchemaChange, SchemaChanegeDataType } from './lowcode/schemaChange'
 
