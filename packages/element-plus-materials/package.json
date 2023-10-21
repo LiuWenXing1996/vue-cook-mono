@@ -1,5 +1,5 @@
 {
-  "name": "@vue-cook/ui",
+  "name": "@vue-cook/element-plus-materials",
   "version": "0.0.1",
   "files": [
     "dist"
@@ -18,9 +18,26 @@
     "vue3"
   ],
   "homepage": "https://liuwenxing1996.github.io/vue-cook/",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/runtime.cjs",
+  "module": "./dist/runtime.js",
+  "types": "./dist/runtime.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/runtime.js",
+      "require": "./dist/runtime.cjs",
+      "types": "./dist/runtime.d.ts"
+    },
+    "./design": {
+      "import": "./dist/design.js",
+      "require": "./dist/design.cjs",
+      "types": "./dist/design.d.ts"
+    },
+    "./runtime": {
+      "import": "./dist/runtime.js",
+      "require": "./dist/runtime.cjs",
+      "types": "./dist/runtime.d.ts"
+    }
+  },
   "scripts": {
     "dev": "vite build -w",
     "build": "run-p type-check \"build-only {@}\" --",
@@ -50,8 +67,7 @@
     "naive-ui": "^2.34.4",
     "splitpanes": "^3.1.5",
     "uuid": "^9.0.0",
-    "vue": "^3.3.4",
-    "vue3-moveable": "^0.26.2"
+    "vue": "^3.3.4"
   },
   "devDependencies": {
     "@pnpm/types": "^9.2.0",

@@ -14,13 +14,36 @@ const serveRoot = `/page/asserts`;
   ],
 })
 export class PageAssetsModule {
-  getPluginAutoEntry(projectName: string) {
+  getPluginAutoEntry(projectName: string, baseUrl?: string) {
+    const tryGenUrl = (path: string) => {
+      if (baseUrl) {
+        return new URL(path, baseUrl).toString();
+      }
+      return path;
+    };
     const entry = {
-      js: join(serveRoot, projectName, './dist/design/remote-plugin/index.js'),
-      css: join(
-        serveRoot,
-        projectName,
-        './dist/design/remote-plugin/style.css',
+      js: tryGenUrl(
+        join(serveRoot, projectName, './dist/design/remote-plugin/index.js'),
+      ),
+      css: tryGenUrl(
+        join(serveRoot, projectName, './dist/design/remote-plugin/style.css'),
+      ),
+    };
+    return entry;
+  }
+  getDesignDepsEntry(projectName: string, baseUrl?: string) {
+    const tryGenUrl = (path: string) => {
+      if (baseUrl) {
+        return new URL(path, baseUrl).toString();
+      }
+      return path;
+    };
+    const entry = {
+      js: tryGenUrl(
+        join(serveRoot, projectName, './dist/design/deps/index.js'),
+      ),
+      css: tryGenUrl(
+        join(serveRoot, projectName, './dist/design/deps/style.css'),
       ),
     };
     return entry;

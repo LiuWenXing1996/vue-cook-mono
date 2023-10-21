@@ -1,0 +1,11 @@
+materialsVarName: default
+runtimeEntry:
+  import: import * as Lib from "@vue-cook/element-plus-materials/runtime";
+    export * from "@vue-cook/element-plus-materials/runtime";
+    const defaultValue = Lib.default||{};
+    export default defaultValue;
+designerEntry:
+  import: import * as Lib from "@vue-cook/element-plus-materials/design";
+    export * from "@vue-cook/element-plus-materials/design";
+    const defaultValue = Lib.default||{};
+    export default defaultValue;

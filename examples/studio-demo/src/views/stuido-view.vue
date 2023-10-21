@@ -10,7 +10,11 @@ const studioStateRef = ref<IStudioState>()
 onMounted(async () => {
   const vfs = createVfs()
 
-  const zipFile = await request({ url: "/api/getZip", responseType: "arraybuffer" }) as any
+  const zipFile = await request({
+    url: "/api/getZip", params: {
+      projectName: "vite-single-page-app"
+    }, responseType: "arraybuffer"
+  }) as any
   const zip = new JSZip();
   const zipData = await zip.loadAsync(zipFile?.data);
   const files = zipData.files
@@ -29,7 +33,29 @@ onMounted(async () => {
         // .then(content => );
       }
     }
-    const studioState = await createStudioState({ vfs })
+    const studioState = await createStudioState({
+      vfs, projectName: "vite-single-page-app", services: {
+        getRemotePluginEntry: async (params) => {
+          const a = await request({
+            url: "/api/getRemotePluginEntry",
+            params: {
+              projectName: params.projectName
+            },
+          }) as any
+          console.log("a", a)
+
+          return a
+        },
+        getDesignDepsEntry: async (params) => {
+          return await request({
+            url: "/api/getDesignDepsEntry",
+            params: {
+              projectName: params.projectName
+            },
+          }) as any
+        }
+      }
+    })
     studioStateRef.value = studioState
   } catch (error: any) {
     console.error('save zip files encountered error!', error.message);

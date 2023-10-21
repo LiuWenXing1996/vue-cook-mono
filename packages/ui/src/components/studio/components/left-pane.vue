@@ -4,10 +4,11 @@
             <n-menu :options="menuOptions" :collapsed="true" :collapsed-width="64" :collapsed-icon-size="22"
                 v-model:value="selectedKey" />
         </n-layout-sider>
-        
+
         <n-layout>
             <div class="left-content">
                 <keep-alive>
+                    <!-- TODO:使用数组渲染，不然iframe 会重复刷新 -->
                     <component :is="selectedContent"></component>
                 </keep-alive>
             </div>
@@ -21,6 +22,7 @@ import { NLayout, NLayoutSider, NMenu, NIcon } from "naive-ui"
 import type { MenuOption } from "naive-ui"
 import FileTree from "./file-tree.vue"
 import RunPane from "./run-pane.vue"
+import MaterialPane from "./material-pane.vue"
 import {
     DocumentsOutline,
     SearchOutline,
@@ -51,7 +53,7 @@ const menuOptions: (MenuOption & {
             label: '物料',
             key: 'material',
             icon: renderIcon(GridOutline),
-            content: () => h('div', "物料")
+            content: MaterialPane
         },
         {
             label: '搜索',
@@ -67,3 +69,10 @@ const menuOptions: (MenuOption & {
         }
     ]
 </script>
+<style lang="less">
+.left-content {
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+}
+</style>

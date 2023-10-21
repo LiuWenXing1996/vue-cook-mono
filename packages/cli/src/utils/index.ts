@@ -14,7 +14,7 @@ import {
 } from '@vue-cook/core'
 import fsPromises from 'node:fs/promises'
 
-const { outputFile, readJson, tryReadJson } = createFsUtils(fsPromises)
+const { outputFile, readJson, tryReadJson, tryReadYaml } = createFsUtils(fsPromises)
 
 export const isDir = (path: string) => {
   if (!existsSync(path)) {
@@ -140,15 +140,6 @@ export const getFielsContent = async (pathList: string[]) => {
   return fielsContent
 }
 
-export function getModulePath(packageName: string, useCwd: boolean = true): string {
-  const packageJson = `${packageName}/package.json`
-  const paths = useCwd ? [resolve(process.cwd(), './node_modules')] : undefined
-  const packageJsonPath = require.resolve(packageJson, { paths })
-  const packagePath = dirname(packageJsonPath)
-
-  return packagePath
-}
-
 export const collectDepMetaList = async (
   cookConfig: ICookConfig,
   packageJson: IPkgJson
@@ -156,11 +147,11 @@ export const collectDepMetaList = async (
   let { dependencies = {} } = packageJson
   const metaList = await Promise.all(
     Object.keys(dependencies).map(async (depName) => {
-      const modulePath = getModulePath(depName)
+      const modulePath = resolve(process.cwd(), './node_modules', depName)
       const packageJsonPath = resolve(modulePath, './package.json')
       const pkgJson = await readJson<IPkgJson>(packageJsonPath)
-      let metaFilePath = resolve(modulePath, pkgJson.cookMetaFile || './cook.meta.json')
-      const cookMeta = await tryReadJson<ICookMeta>(metaFilePath)
+      let metaFilePath = resolve(modulePath, pkgJson.cookMetaFile || './cook.meta.yaml')
+      const cookMeta = await tryReadYaml<ICookMeta>(metaFilePath)
       const overrideCookMeta = cookConfig.overrideCookMetas.find((e) => e.name === depName)
       return {
         name: pkgJson.name as string,

@@ -16,7 +16,7 @@ axiosInstance.interceptors.response.use((response) => {
     if (response?.config?.responseType === 'blob' || response?.config?.responseType === 'arraybuffer') {
         return response
     } else if (response.data.isSuccess) {
-        return response.data
+        return response.data.data
     } else {
         ElMessage.error(response.data.message)
     }

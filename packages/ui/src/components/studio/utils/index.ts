@@ -1,5 +1,5 @@
 import { markRaw, reactive, ref } from 'vue'
-import type { IStudioState } from '../types'
+import type { IStudioServices, IStudioState } from '../types'
 import { path } from '@vue-cook/core'
 import { initEsbuild } from './esbuild'
 import { initSwc } from './swc'
@@ -9,6 +9,7 @@ import {
   type IVirtulFileSystem,
   type ILowcodeContextConfig
 } from '@vue-cook/schema-bundler'
+import { template } from 'lodash'
 
 export const getExtName = (name: string) => {
   const allPathPoints = name.split('.')
@@ -28,8 +29,10 @@ export const getLanguage = (extName: string) => {
 
 export const createStudioState = async (config: {
   vfs: IVirtulFileSystem
+  services: IStudioServices
+  projectName: string
 }): Promise<IStudioState> => {
-  const { vfs } = config
+  const { vfs, services, projectName } = config
   const buildContext = await createBuildContext({
     vfs,
     onBuildEnd: (res) => {
@@ -50,7 +53,9 @@ export const createStudioState = async (config: {
 
   const state: IStudioState = {
     vfs: markRaw(vfs),
+    services: markRaw(services),
     schemaData: undefined,
+    projectName,
     buildContext: markRaw(buildContext),
     path: markRaw({ ...path }),
     panelList: [],
@@ -77,4 +82,49 @@ export const createBuildContext = async (options: {
     watch: true,
     onBuildEnd: options.onBuildEnd
   })
+}
+
+export const getRemotePluginPageHtmlString = (options: {
+  pluginName: string
+  projectName: string
+  packageName: string
+  entry: {
+    js: string
+    css: string
+  }
+}) => {
+  const compiled = template(
+    `
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>remote-plugin:{{pluginName}}</title>
+  <script>
+  var autoRunConfig = {
+      mountedEl:"#app",
+      packageName:"{{packageName}}",
+      projectName:"{{projectName}}",
+      pluginName:"{{pluginName}}"
+  }
+  console.log(window.sss)
+  // console.log(sss)
+  </script>
+  <script src="{{entry.js}}" data-config-var-name="autoRunConfig"></script>
+  <link href="{{entry.css}}"></link>
+</head>
+
+<body>
+  <div id="app"></div>
+</body>
+
+</html>
+  `,
+    {
+      interpolate: /{{([\s\S]+?)}}/g
+    }
+  )
+
+  return compiled(options)
 }

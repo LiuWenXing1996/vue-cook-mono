@@ -22,6 +22,12 @@ export interface ICookConfig {
 export interface ICookMeta {
   isRemotePlugin?: boolean
   remotePluginVarName?: string
+  remotePlugins?: {
+    name: string
+    varName: string
+  }[]
+  materialsVarName?: string
+  materials?: { name: string; varName: string }[]
   runtimeEntry?: {
     import?: string
     assets?: string[]

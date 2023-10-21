@@ -12,9 +12,22 @@ export interface IPanelConfig {
   content: () => VNodeChild
 }
 
+export interface IStudioServices {
+  getRemotePluginEntry: (params: { projectName: string }) => Promise<{
+    js: string
+    css: string
+  }>
+  getDesignDepsEntry: (params: { projectName: string }) => Promise<{
+    js: string
+    css: string
+  }>
+}
+
 export interface IStudioState {
+  projectName: string
   vfs: IVirtulFileSystem
   path: IPath
+  services: IStudioServices
   buildContext: ILowcodeBuildContext
   panelList: IPanelConfig[]
   currentPanelId: string

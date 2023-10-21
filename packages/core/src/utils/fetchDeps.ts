@@ -22,7 +22,7 @@ export interface IDepMeta {
   version: string | undefined
   packageJson: IPkgJson
 }
-export type IDeps = Record<string, IDep>
+export type IDeps = Map<string, IDep>
 export interface IDepsEntry {
   js: string
   css: string

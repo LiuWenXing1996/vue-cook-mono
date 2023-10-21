@@ -16,14 +16,7 @@ import {
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import commonjs from '@rollup/plugin-commonjs'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
-import {
-  collectDepMetaList,
-  getModulePath,
-  getOutDir,
-  getTempDir,
-  resolveConfig,
-  resolvePkgJson
-} from '@/utils'
+import { collectDepMetaList, getOutDir, getTempDir, resolveConfig, resolvePkgJson } from '@/utils'
 import fsPromises from 'node:fs/promises'
 
 const { outputFile } = createFsUtils(fsPromises)
@@ -87,7 +80,7 @@ const buildDesignDeps = async (options: {
 }) => {
   const { cookConfig, packageJson, outDir, tempDir } = options
   const deps = await collectDepMetaList(cookConfig, packageJson)
-  console.log('deps', deps)
+  // console.log('deps', deps)
   const depEntryList = deps.map((dep) => {
     const cookMeta = dep.cookMeta
     return {
@@ -144,18 +137,17 @@ import Lib${index}Meta from "${realtiveMetaPath}"
     })
     .join('\n')}
 
-  const libs = {
+  const deps = new Map();
   ${depEntryList
     .map((dep, index) => {
-      return `  ["${dep.name}"]:{
-        value:Lib${index},
-        meta:Lib${index}Meta
-      }`
+      return `deps.set("${dep.name}",{
+    value:Lib${index},
+    meta:Lib${index}Meta
+  });`
     })
-    .join(',\n')}
-  }
+    .join('\n')}
 
-  exportDeps(libs)
+  exportDeps(deps)
   `
   await outputFile(depsEntryJs.path, depsEntryJs.content)
 

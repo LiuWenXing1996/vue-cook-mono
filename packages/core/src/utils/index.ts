@@ -1,9 +1,30 @@
-import * as self from '../index'
+import * as self from '@/index'
 import { v4 as uuidv4 } from 'uuid'
+
+export const createCoreLibOnceGetter = (window: Window) => {
+  const prefix = '__vue__cook__core__lib__getter__'
+  const uid = `${prefix}_${uuidv4()}`
+  let isGet = false
+  // @ts-ignore
+  const oldValue = window[uid]
+  const getter = () => {
+    // @ts-ignore
+    window[uid] = oldValue
+    if (isGet) {
+      return
+    }
+    isGet = true
+    return self
+  }
+  // @ts-ignore
+  window[uid] = getter
+
+  return uid
+}
 
 export const createCoreLibOnceGetterId = () => {
   const prefix = '__vue__cook__core__lib__getter__'
-  const uid = `${prefix}${uuidv4()}`
+  const uid = `${prefix}_${uuidv4()}`
   let isGet = false
   const getter = () => {
     if (isGet) {

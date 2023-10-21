@@ -23,9 +23,17 @@ export {
 export {
   runRemotePlugin,
   defineRemotePlugin,
-  type IRemotePlugin
+  type IRemotePlugin,
+  type IRunRemotePluginConfig
 } from './design-mode/remote-plugin'
-export { exportDeps, type IDepMeta } from './utils/fetchDeps'
+export { exportDeps, type IDepMeta, type IDeps } from './utils/fetchDeps'
+
+export {
+  getMaterialList,
+  type IMaterial,
+  defineMaterial,
+  type IMaterialWithDep
+} from './design-mode/material'
 
 export { emitEditorWindowSchemaChange, SchemaChanegeDataType } from './lowcode/schemaChange'
 

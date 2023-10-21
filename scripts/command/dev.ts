@@ -18,10 +18,24 @@ export const dev = async () => {
       )}' && pnpm --filter '@vue-cook/schema-bundler' dev`,
     },
     {
-      name: "@vue-cook/ui",
+      name: "@vue-cook/plugins",
       command: `wait-on '${join(
         process.cwd(),
         "/packages/schema-bundler/dist"
+      )}' && pnpm --filter '@vue-cook/plugins' dev`,
+    },
+    {
+      name: "@vue-cook/element-plus-materials",
+      command: `wait-on '${join(
+        process.cwd(),
+        "/packages/plugins/dist"
+      )}' && pnpm --filter '@vue-cook/element-plus-materials' dev`,
+    },
+    {
+      name: "@vue-cook/ui",
+      command: `wait-on '${join(
+        process.cwd(),
+        "/packages/element-plus-materials/dist"
       )}' && pnpm --filter '@vue-cook/ui' dev`,
     },
     {
@@ -43,7 +57,7 @@ export const dev = async () => {
       command: `wait-on '${join(
         process.cwd(),
         "/packages/cli/dist"
-      )}' && pnpm --filter 'server-demo' start:dev`,
+      )}' && pnpm --filter 'server-demo' start:debug`,
     },
     {
       name: "studio-demo", 
