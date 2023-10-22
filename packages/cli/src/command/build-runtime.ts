@@ -26,49 +26,7 @@ const pkgNameNormalize = (name: string) => {
   return name.replaceAll('/', '+')
 }
 
-const buildRemotePlugin = async (options: {
-  cookConfig: IDeepRequiredCookConfig
-  outDir: string
-  tempDir: string
-}) => {
-  const { cookConfig, outDir, tempDir } = options
-  await remove(tempDir)
-  const autoEntryJs = {
-    path: resolve(tempDir, `./entry.ts`),
-    content: `
-import { runRemotePlugin } from '@vue-cook/core'
-
-runRemotePlugin({
-  depsEntry:{
-    js:'../deps/index.js',
-    css:'../deps/style.css'
-  }
-})
-    `
-  }
-  await outputFile(autoEntryJs.path, autoEntryJs.content)
-  await build({
-    publicDir: false,
-    plugins: [nodeResolve(), commonjs(), nodePolyfills()],
-    build: {
-      minify: false,
-      outDir: outDir,
-      sourcemap: cookConfig.sourcemap,
-      lib: {
-        entry: autoEntryJs.path,
-        name: 'auto',
-        formats: ['iife'],
-        fileName: () => {
-          return 'index.js'
-        }
-      }
-    }
-  })
-
-  return true
-}
-
-const buildDesignDeps = async (options: {
+const buildRuntimeDeps = async (options: {
   cookConfig: IDeepRequiredCookConfig
   packageJson: IPkgJson
   outDir: string
@@ -76,7 +34,6 @@ const buildDesignDeps = async (options: {
 }) => {
   const { cookConfig, packageJson, outDir, tempDir } = options
   const deps = await collectDepMetaList(cookConfig, packageJson)
-  // console.log('deps', deps)
   const depEntryList = deps.map((dep) => {
     const cookMeta = dep.cookMeta
     return {
@@ -84,7 +41,7 @@ const buildDesignDeps = async (options: {
       version: dep.version,
       path: resolve(tempDir, './libs', `./${pkgNameNormalize(dep.name)}.ts`),
       content:
-        cookMeta?.designerEntry?.import ||
+        cookMeta?.runtimeEntry?.import ||
         `
 import * as Lib from "${dep.name}";
 export * from "${dep.name}";
@@ -188,7 +145,7 @@ import Lib${index}Meta from "${realtiveMetaPath}"
   })
 }
 
-const buildDesign = async (options: IBuildDepsOptions) => {
+const buildRuntime = async (options: IBuildDepsOptions) => {
   const { configPath, pkgJsonPath } = options
   const _cookConfig = await resolveConfig(configPath)
   if (!_cookConfig) {
@@ -200,22 +157,17 @@ const buildDesign = async (options: IBuildDepsOptions) => {
     return
   }
 
-  const outDir = resolve(getOutDir(cookConfig), './design')
-  const tempDir = resolve(getTempDir(cookConfig), './design')
+  const outDir = resolve(getOutDir(cookConfig), './runtime')
+  const tempDir = resolve(getTempDir(cookConfig), './runtime')
   await remove(tempDir)
 
-  await buildDesignDeps({
+  await buildRuntimeDeps({
     cookConfig,
     packageJson,
     outDir: resolve(outDir, './deps'),
     tempDir: resolve(tempDir, './deps')
   })
-
-  await buildRemotePlugin({
-    cookConfig,
-    outDir: resolve(outDir, './remote-plugin'),
-    tempDir: resolve(tempDir, './remote-plugin')
-  })
+  // TODO:build schema ,build auto
 }
 
-export default buildDesign
+export default buildRuntime

@@ -1,9 +1,0 @@
-remotePlugins:
-    - name: dependenciesManager
-      varName: dependenciesManager
-    - name: materialsManager
-      varName: materialsManager
-runtimeEntry:
-    import: export * from "@vue-cook/plugins/runtime"
-designerEntry:
-    import: export * from "@vue-cook/plugins/design"

@@ -1,4 +1,4 @@
-import { createCoreLibOnceGetter, type MaybePromise } from '@/utils'
+import { type MaybePromise } from '@/utils'
 import { fetchDeps, type IDep, type IDeps, type IDepsEntry } from '@/utils/fetchDeps'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -73,7 +73,7 @@ export const getMaterialList = async (params: { depsEntry: IDepsEntry }) => {
     // @ts-ignore
     window[uid] = oldValue
     const deps = await fetchDeps({ entry: depsEntry })
-    const materialLibList = Array.from(deps?.values() || []).filter(dep=>{
+    const materialLibList = Array.from(deps?.values() || []).filter((dep) => {
       return dep.meta.cookMeta
     })
   }

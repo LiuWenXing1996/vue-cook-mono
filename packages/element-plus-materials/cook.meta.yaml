@@ -1,4 +1,5 @@
 materialsVarName: default
+viewsVarName: default
 runtimeEntry:
   import: import * as Lib from "@vue-cook/element-plus-materials/runtime";
     export * from "@vue-cook/element-plus-materials/runtime";

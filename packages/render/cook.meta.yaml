@@ -1,0 +1,10 @@
+runtimeEntry:
+  import: import * as Lib from "@vue-cook/render/runtime";
+    export * from "@vue-cook/render/runtime";
+    const defaultValue = Lib.default||{};
+    export default defaultValue;
+designerEntry:
+  import: import * as Lib from "@vue-cook/render/design";
+    export * from "@vue-cook/render/design";
+    const defaultValue = Lib.default||{};
+    export default defaultValue;

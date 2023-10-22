@@ -11,24 +11,17 @@ export const dev = async () => {
   const commands: ICommand[] = [
     { name: "@vue-cook/core", command: "pnpm --filter '@vue-cook/core' dev" },
     {
-      name: "@vue-cook/schema-bundler",
+      name: "@vue-cook/render",
       command: `wait-on '${join(
         process.cwd(),
         "/packages/core/dist"
-      )}' && pnpm --filter '@vue-cook/schema-bundler' dev`,
-    },
-    {
-      name: "@vue-cook/plugins",
-      command: `wait-on '${join(
-        process.cwd(),
-        "/packages/schema-bundler/dist"
-      )}' && pnpm --filter '@vue-cook/plugins' dev`,
+      )}' && pnpm --filter '@vue-cook/render' dev`,
     },
     {
       name: "@vue-cook/element-plus-materials",
       command: `wait-on '${join(
         process.cwd(),
-        "/packages/plugins/dist"
+        "/packages/render/dist"
       )}' && pnpm --filter '@vue-cook/element-plus-materials' dev`,
     },
     {
@@ -45,13 +38,6 @@ export const dev = async () => {
         "/packages/ui/dist"
       )}' && pnpm --filter '@vue-cook/cli' dev`,
     },
-    // {
-    //   name: "vite-single-page-app",
-    //   command: `wait-on '${join(
-    //     process.cwd(),
-    //     "/packages/cli/dist"
-    //   )}' && pnpm --filter 'vite-single-page-app' dev`,
-    // },
     {
       name: "server-demo",
       command: `wait-on '${join(

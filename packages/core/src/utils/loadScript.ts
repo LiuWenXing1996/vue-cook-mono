@@ -1,12 +1,15 @@
-export async function loadScript (
-  src: string,
+export async function loadScript(config: {
+  src: string
   dataset?: Record<string, any>
-): Promise<boolean> {
+  targetWindow: Window
+}): Promise<boolean> {
+  const { src, dataset, targetWindow } = config
+  const { document } = targetWindow
   return new Promise((resolve, reject) => {
     const head = document.head || document.getElementsByTagName('head')[0]
     const script = document.createElement('script')
     if (dataset) {
-      Object.keys(dataset).map(key => {
+      Object.keys(dataset).map((key) => {
         script.dataset[key] = dataset[key]
       })
     }
@@ -14,7 +17,7 @@ export async function loadScript (
     script.async = true
     script.src = src
     script.onload = () => resolve(true)
-    script.onerror = e => {
+    script.onerror = (e) => {
       script.remove()
       console.log(e)
       reject(false)

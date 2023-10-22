@@ -4,7 +4,8 @@ import { loadScript } from './loadScript'
 import { loadStyle } from './loadStyle'
 import { v4 as uuidv4 } from 'uuid'
 
-const genAbsoulteUrl = (url: string) => {
+const genAbsoulteUrl = (url: string, targetWindow: Window) => {
+  const { document, location } = targetWindow
   const script = document.currentScript as HTMLScriptElement
   const scriptUrl = new URL(script?.src, location.href)
   const newUrl = new URL(url, scriptUrl)
@@ -29,7 +30,9 @@ export interface IDepsEntry {
 }
 const depsMap = new Map<string, IDeps>()
 
-export const exportDeps = (deps: IDeps) => {
+export const exportDeps = (config: { deps: IDeps; targetWindow: Window }) => {
+  const { deps, targetWindow } = config
+  const { document } = targetWindow
   const script = document.currentScript
   const uid = script?.dataset?.[ElementDataFetchDepsContextIdKey] || ''
   if (uid) {
@@ -37,24 +40,36 @@ export const exportDeps = (deps: IDeps) => {
   }
 }
 
-export const fetchDeps = async <T extends IDeps = IDeps>(config: { entry: IDepsEntry }) => {
+export const fetchDeps = async <T extends IDeps = IDeps>(config: {
+  entry: IDepsEntry
+  targetWindow: Window
+}) => {
+  const { targetWindow } = config
   const id = uuidv4()
-  const entryJsAbsoultePath = genAbsoulteUrl(config.entry.js)
-  const entryJCssAbsoultePath = genAbsoulteUrl(config.entry.css)
+  const entryJsAbsoultePath = genAbsoulteUrl(config.entry.js, targetWindow)
+  const entryCssAbsoultePath = genAbsoulteUrl(config.entry.css, targetWindow)
 
   await Promise.all([
     (async () => {
       try {
-        await loadStyle(entryJCssAbsoultePath, {
-          [ElementDataFetchDepsContextIdKey]: id
+        await loadStyle({
+          src: entryCssAbsoultePath,
+          dataset: {
+            [ElementDataFetchDepsContextIdKey]: id
+          },
+          targetWindow
         })
       } catch (error) {}
     })(),
     (async () => {
-      const coreLibOnceGetterId = createCoreLibOnceGetterId()
-      await loadScript(entryJsAbsoultePath, {
-        [ElementDataFetchDepsContextIdKey]: id,
-        [ElementDataCoreLibOnceGetterIdIdKey]: coreLibOnceGetterId
+      const coreLibOnceGetterId = createCoreLibOnceGetterId(targetWindow)
+      await loadScript({
+        src: entryJsAbsoultePath,
+        dataset: {
+          [ElementDataFetchDepsContextIdKey]: id,
+          [ElementDataCoreLibOnceGetterIdIdKey]: coreLibOnceGetterId
+        },
+        targetWindow
       })
     })()
   ])

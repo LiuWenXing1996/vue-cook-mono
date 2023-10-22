@@ -72,4 +72,18 @@ export class ApiController {
       isSuccess: true,
     };
   }
+  @Get('getRuntimeDepsEntry')
+  async getRuntimeDepsEntry(
+    @Query() params: { projectName: string },
+    @Request() req: ExpressRequest,
+  ) {
+    const protocol = req.protocol;
+    const host = req.get('Host');
+    const { projectName } = params;
+    const baseUrl = protocol + '://' + host;
+    return {
+      data: this.pageAssetsModule.getRuntimeDepsEntry(projectName, baseUrl),
+      isSuccess: true,
+    };
+  }
 }

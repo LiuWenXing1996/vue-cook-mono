@@ -22,16 +22,17 @@ const getMaterialListInternal = (params: {
   iframeEl.style.display = 'none'
   document.body.append(iframeEl)
   const contentWindow = iframeEl.contentWindow as Window
+
   const prefix = '__vue__cook__inject__method__'
   const uid = `${prefix}_${uuidv4()}`
   // @ts-ignore
-  const oldValue = window[uid]
+  const oldValue = contentWindow[uid]
   // @ts-ignore
   contentWindow[uid] = async () => {
     const materialLibList: IMaterialWithDep[] = []
     // @ts-ignore
-    window[uid] = oldValue
-    const deps = await fetchDeps({ entry: depsEntry })
+    contentWindow[uid] = oldValue
+    const deps = await fetchDeps({ entry: depsEntry, targetWindow: contentWindow })
     await Promise.all(
       Array.from(deps?.values() || []).map(async (dep) => {
         const materialsVarName = dep.meta.cookMeta?.materialsVarName

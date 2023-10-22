@@ -1,10 +1,5 @@
 import type { VNodeChild } from 'vue'
-import {
-  type IBuildContext,
-  type ILowcodeBuildContext,
-  type IVirtulFileSystem
-} from '@vue-cook/schema-bundler'
-import { type IPath, type ISchemaData } from '@vue-cook/core'
+import { type IPath, type ISchemaData, type IVirtulFileSystem } from '@vue-cook/core'
 
 export interface IPanelConfig {
   uid: string
@@ -21,6 +16,10 @@ export interface IStudioServices {
     js: string
     css: string
   }>
+  getRuntimeDepsEntry: (params: { projectName: string }) => Promise<{
+    js: string
+    css: string
+  }>
 }
 
 export interface IStudioState {
@@ -28,7 +27,6 @@ export interface IStudioState {
   vfs: IVirtulFileSystem
   path: IPath
   services: IStudioServices
-  buildContext: ILowcodeBuildContext
   panelList: IPanelConfig[]
   currentPanelId: string
   currentEditFiles: {

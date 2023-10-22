@@ -2,17 +2,16 @@
 import { NTree, NIcon } from "naive-ui"
 import { h, ref, toRefs, type VNodeChild, inject, computed } from 'vue';
 import { Folder } from '@vicons/ionicons5'
-import { createFsUtils } from "@vue-cook/core"
+import { createFsUtils, path } from "@vue-cook/core"
 import { listToTree, type IItem } from "../utils/listToTree"
 import type { IStudioState } from "../types";
 import FileEditor from "./file-editor.vue"
 import PageEditor from "./page-editor.vue"
 import { useInjectSudioState } from "@/hooks/useInjectStudioState";
 
-const { panelListRef, currentPanelIdRef, buildContextRef, vfsRef } = useInjectSudioState()
+const { panelListRef, currentPanelIdRef, vfsRef } = useInjectSudioState()
 const vfs = vfsRef.value
 const fs = vfs.getFs()
-const buildContext = buildContextRef.value
 const modulesRef = ref<string[]>([])
 
 vfs.listFiles().then(res => {
@@ -85,10 +84,15 @@ const nodeClick = (keys: string[]) => {
     }
     const filePanel = panelListRef.value.find(e => e.uid === willEditKey)
     if (!filePanel) {
+        console.log("willEditKey", willEditKey)
         let PanelComponent = () => h(FileEditor, { name: willEditKey })
-        if (buildContext.findSchemaParser(willEditKey)) {
+        const fileName = path.basename(willEditKey)
+        if (fileName === "page.config.yaml") {
             PanelComponent = () => h(PageEditor, { filePath: willEditKey })
         }
+        // if (buildContext.findSchemaParser(willEditKey)) {
+        //     PanelComponent = () => h(PageEditor, { filePath: willEditKey })
+        // }
         panelListRef.value.push({
             uid: willEditKey,
             title: willEditKey,

@@ -3,7 +3,7 @@ import { emptyDir, outputFile } from 'fs-extra'
 import * as esbuild from 'esbuild'
 import * as swc from '@swc/core'
 import { getFielsContent, getFiles, resolveConfig, resolvePkgJson } from '../utils'
-import { createLowcodeBuildContext, createVfs } from '@vue-cook/schema-bundler'
+import { createVfs } from '@vue-cook/core'
 
 export interface IBuildDepsOptions {
   configPath: string
@@ -12,6 +12,7 @@ export interface IBuildDepsOptions {
 }
 
 const buildSchema = async (options: IBuildDepsOptions) => {
+  console.log("buildSchema 需要重新实现")
   const { configPath, pkgJsonPath, __dirname } = options
   const config = await resolveConfig(configPath)
   if (!config) {
@@ -43,48 +44,48 @@ const buildSchema = async (options: IBuildDepsOptions) => {
       await vfs.outputFile(filePath, modules[filePath])
     })
   )
-  const context = await createLowcodeBuildContext({
-    env: 'node',
-    vfs,
-    esbuild,
-    // FIXME:这个watch有问题，没有监测到真实的文件更改
-    watch: true,
-    onBuildEnd: () => {
-      console.log('===>')
-    },
-    plugins: [
-      {
-        name: 'logVfs',
-        enforce: 'post',
-        bundleStart: async (options, helper) => {
-          const vfs = helper.getVirtualFileSystem()
-          const files = (await vfs.listFiles()) || []
-          const tempLogFile = resolve(__dirname, './node_modules/.vfs-temp')
-          await emptyDir(tempLogFile)
-          await Promise.all(
-            files.map(async (key) => {
-              const _path = resolve(tempLogFile, key)
-              const content = await vfs.readFile(key)
-              await outputFile(_path, content || '')
-            })
-          )
-          console.log('虚拟文件: ' + tempLogFile)
-        }
-      }
-    ],
-    swc
-  })
+  // const context = await createLowcodeBuildContext({
+  //   env: 'node',
+  //   vfs,
+  //   esbuild,
+  //   // FIXME:这个watch有问题，没有监测到真实的文件更改
+  //   watch: true,
+  //   onBuildEnd: () => {
+  //     console.log('===>')
+  //   },
+  //   plugins: [
+  //     {
+  //       name: 'logVfs',
+  //       enforce: 'post',
+  //       bundleStart: async (options, helper) => {
+  //         const vfs = helper.getVirtualFileSystem()
+  //         const files = (await vfs.listFiles()) || []
+  //         const tempLogFile = resolve(__dirname, './node_modules/.vfs-temp')
+  //         await emptyDir(tempLogFile)
+  //         await Promise.all(
+  //           files.map(async (key) => {
+  //             const _path = resolve(tempLogFile, key)
+  //             const content = await vfs.readFile(key)
+  //             await outputFile(_path, content || '')
+  //           })
+  //         )
+  //         console.log('虚拟文件: ' + tempLogFile)
+  //       }
+  //     }
+  //   ],
+  //   swc
+  // })
 
-  const res = await context.rebuild()
+  // const res = await context.rebuild()
 
-  // TODO:使用copyFs是不是逻辑更清晰？
-  await Promise.all(
-    Object.keys(res || {}).map(async (key) => {
-      await outputFile(key, res?.[key]?.content || '')
-    })
-  )
+  // // TODO:使用copyFs是不是逻辑更清晰？
+  // await Promise.all(
+  //   Object.keys(res || {}).map(async (key) => {
+  //     await outputFile(key, res?.[key]?.content || '')
+  //   })
+  // )
 
-  return res
+  // return res
 }
 
 export default buildSchema

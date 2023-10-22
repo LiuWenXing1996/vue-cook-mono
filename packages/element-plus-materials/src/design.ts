@@ -1,7 +1,7 @@
 import { defineMaterial } from '@vue-cook/core'
 export default [
   defineMaterial({
-    name: 'button',
+    name: 'el-button',
     group: 'element-plus'
   })
 ]

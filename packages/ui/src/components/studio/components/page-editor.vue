@@ -6,7 +6,7 @@
                 <file-editor :name="filePath"></file-editor>
             </n-tab-pane>
             <n-tab-pane name="designView" tab="设计视图" display-directive="show">
-                <design-view :path="designViewPath" :schemaData="schemaDataRef"></design-view>
+                <design-view :path="filePath"></design-view>
             </n-tab-pane>
         </n-tabs>
     </div>
@@ -20,7 +20,6 @@ import type { IStudioState } from "../types";
 import { toRenameRefs } from "@/utils/toRenameRefs";
 const studioState = inject<IStudioState>('studioState') as IStudioState
 const { schemaDataRef } = toRenameRefs(studioState)
-const { panelList, currentPanelId } = toRefs(studioState)
 const props = defineProps<{ filePath: string }>()
 
 watch(() => studioState.currentPanelId, () => {
@@ -32,10 +31,6 @@ watch(schemaDataRef, (newVale) => {
 })
 
 const { filePath } = toRefs(props)
-
-const designViewPath = computed(() => {
-    return "http://localhost:3000/page-servers/aa"
-})
 
 </script>
 <style lang="less" scoped>

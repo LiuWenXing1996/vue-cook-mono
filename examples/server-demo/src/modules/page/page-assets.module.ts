@@ -48,4 +48,21 @@ export class PageAssetsModule {
     };
     return entry;
   }
+  getRuntimeDepsEntry(projectName: string, baseUrl?: string) {
+    const tryGenUrl = (path: string) => {
+      if (baseUrl) {
+        return new URL(path, baseUrl).toString();
+      }
+      return path;
+    };
+    const entry = {
+      js: tryGenUrl(
+        join(serveRoot, projectName, './dist/runtime/deps/index.js'),
+      ),
+      css: tryGenUrl(
+        join(serveRoot, projectName, './dist/runtime/deps/style.css'),
+      ),
+    };
+    return entry;
+  }
 }

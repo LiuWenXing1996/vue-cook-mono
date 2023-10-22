@@ -1,14 +1,8 @@
 import { markRaw, reactive, ref } from 'vue'
 import type { IStudioServices, IStudioState } from '../types'
-import { path } from '@vue-cook/core'
+import { path, createVfs, type IVirtulFileSystem } from '@vue-cook/core'
 import { initEsbuild } from './esbuild'
 import { initSwc } from './swc'
-import {
-  createVfs,
-  createLowcodeBuildContext,
-  type IVirtulFileSystem,
-  type ILowcodeContextConfig
-} from '@vue-cook/schema-bundler'
 import { template } from 'lodash'
 
 export const getExtName = (name: string) => {
@@ -33,30 +27,12 @@ export const createStudioState = async (config: {
   projectName: string
 }): Promise<IStudioState> => {
   const { vfs, services, projectName } = config
-  const buildContext = await createBuildContext({
-    vfs,
-    onBuildEnd: (res) => {
-      console.log('....')
-      const { outputFiles = {} } = res
-      const outputFileArray = Object.values(outputFiles)
-      const js = (outputFileArray.find((e) => e.type == 'js')?.content || '') as string
-      const css = (outputFileArray.find((e) => e.type == 'css')?.content || '') as string
-      stateRef.schemaData = {
-        timestamp: res.timestamp,
-        schema: {
-          js: js,
-          css: css
-        }
-      }
-    }
-  })
 
   const state: IStudioState = {
     vfs: markRaw(vfs),
     services: markRaw(services),
     schemaData: undefined,
     projectName,
-    buildContext: markRaw(buildContext),
     path: markRaw({ ...path }),
     panelList: [],
     currentPanelId: '',
@@ -66,22 +42,6 @@ export const createStudioState = async (config: {
   }
   const stateRef = reactive(state) as IStudioState
   return stateRef
-}
-
-export const createBuildContext = async (options: {
-  vfs: IVirtulFileSystem
-  onBuildEnd?: ILowcodeContextConfig['onBuildEnd']
-}) => {
-  const esbuild = await initEsbuild()
-  const swc = await initSwc()
-  return createLowcodeBuildContext({
-    vfs: options.vfs,
-    env: 'browser',
-    esbuild,
-    swc,
-    watch: true,
-    onBuildEnd: options.onBuildEnd
-  })
 }
 
 export const getRemotePluginPageHtmlString = (options: {

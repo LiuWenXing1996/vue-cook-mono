@@ -202,10 +202,9 @@ importers:
       '@vue-cook/cli': workspace:^0.0.1
       '@vue-cook/core': workspace:^0.0.1
       '@vue-cook/element-plus-materials': workspace:^0.0.1
-      '@vue-cook/plugins': workspace:^0.0.1
+      '@vue-cook/render': workspace:^0.0.1
       '@vue/tsconfig': ^0.4.0
       npm-run-all: ^4.1.5
-      remote-plugin-demo-a: workspace:^0.0.0
       typescript: ~5.1.6
       vite: ^4.4.9
       vite-plugin-node-polyfills: ^0.14.1
@@ -215,8 +214,7 @@ importers:
     dependencies:
       '@vue-cook/core': link:../../packages/core
       '@vue-cook/element-plus-materials': link:../../packages/element-plus-materials
-      '@vue-cook/plugins': link:../../packages/plugins
-      remote-plugin-demo-a: link:../remote-plugin-demo-a
+      '@vue-cook/render': link:../../packages/render
       vue: 3.3.4
       vue-router: 4.2.4_vue@3.3.4
     devDependencies:
@@ -423,7 +421,7 @@ importers:
       '@vitejs/plugin-vue': ^4.3.4
       '@vitejs/plugin-vue-jsx': ^3.0.2
       '@vue-cook/core': workspace:^0.0.1
-      '@vue-cook/schema-bundler': workspace:^0.0.1
+      '@vue-cook/render': workspace:^0.0.1
       '@vue/compiler-sfc': ^3.3.4
       '@vue/eslint-config-prettier': ^8.0.0
       '@vue/eslint-config-typescript': ^12.0.0
@@ -431,6 +429,7 @@ importers:
       '@vue/tsconfig': ^0.4.0
       '@vueuse/core': ^10.4.1
       browserfs: ^1.4.3
+      element-plus: ^2.3.14
       esbuild: ^0.17.13
       esbuild-wasm: ^0.19.3
       eslint: ^8.49.0
@@ -460,10 +459,11 @@ importers:
       '@vicons/fluent': 0.12.0
       '@vicons/ionicons5': 0.12.0
       '@vue-cook/core': link:../core
-      '@vue-cook/schema-bundler': link:../schema-bundler
+      '@vue-cook/render': link:../render
       '@vue/compiler-sfc': 3.3.4
       '@vueuse/core': 10.4.1_vue@3.3.4
       browserfs: 1.4.3
+      element-plus: 2.3.14_vue@3.3.4
       esbuild-wasm: 0.19.3
       lodash: 4.17.21
       lodash-es: 4.17.21
@@ -3278,7 +3278,7 @@ packages:
       '@babel/core': 7.22.10
       '@babel/plugin-transform-typescript': 7.22.11_@babel+core@7.22.10
       '@vue/babel-plugin-jsx': 1.1.5_@babel+core@7.22.10
-      vite: 4.4.9_p2p3ap6o42fgtljrcqzieobpvi
+      vite: 4.4.9_5mc7cazrbgggrp366jrhv5m4he
       vue: 3.3.4
     transitivePeerDependencies:
       - supports-color
@@ -3291,7 +3291,7 @@ packages:
       vite: ^4.0.0
       vue: ^3.2.25
     dependencies:
-      vite: 4.4.9_p2p3ap6o42fgtljrcqzieobpvi
+      vite: 4.4.9_5mc7cazrbgggrp366jrhv5m4he
       vue: 3.3.4
     dev: true
 

@@ -1,5 +1,6 @@
 import { parse } from 'yaml'
 import { dirname, join } from './path'
+import { Volume, createFsFromVolume, type IFs } from 'memfs'
 import type * as _FsPromisesApi from 'node:fs/promises'
 export type IFsPromisesApi = typeof _FsPromisesApi
 export type IWriteFileData = Parameters<IFsPromisesApi['writeFile']>[1]
@@ -24,7 +25,7 @@ export const createFsUtils = (fs: IFsPromisesApi) => {
     try {
       jsonObj = await readJson<T>(path)
     } catch (error) {
-      console.log("tryReadJson error:", path)
+      console.log('tryReadJson error:', path)
     }
     return jsonObj
   }
@@ -41,7 +42,7 @@ export const createFsUtils = (fs: IFsPromisesApi) => {
     try {
       jsonObj = await readYaml<T>(path)
     } catch (error) {
-      console.log("tryReadYaml error:", path)
+      console.log('tryReadYaml error:', path)
     }
     return jsonObj
   }
@@ -126,4 +127,25 @@ export const createFsUtils = (fs: IFsPromisesApi) => {
     outputFile,
     copyFromFs
   }
+}
+
+export interface IVirtulFileSystem extends IFsUtils {
+  getFs: () => IFs
+}
+
+export const createVfs = (): IVirtulFileSystem => {
+  const vol = new Volume()
+  const fs = createFsFromVolume(vol)
+
+  // @ts-ignore
+  const fsUtils = createFsUtils(fs.promises)
+
+  const vfs: IVirtulFileSystem = {
+    ...(fsUtils as IFsUtils),
+    getFs: () => {
+      return fs
+    }
+  }
+
+  return vfs
 }

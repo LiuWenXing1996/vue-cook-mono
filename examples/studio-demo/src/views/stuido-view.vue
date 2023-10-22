@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Studio, createStudioState, type IStudioState } from '@vue-cook/ui'
-import { path } from '@vue-cook/core'
-import { createVfs } from '@vue-cook/schema-bundler'
+import { path, createVfs } from '@vue-cook/core'
 import { request } from "@/utils/index"
 import JSZip from "jszip";
 import '@vue-cook/ui/dist/style.css'
@@ -53,7 +52,15 @@ onMounted(async () => {
               projectName: params.projectName
             },
           }) as any
-        }
+        },
+        getRuntimeDepsEntry: async (params) => {
+          return await request({
+            url: "/api/getRuntimeDepsEntry",
+            params: {
+              projectName: params.projectName
+            },
+          }) as any
+        },
       }
     })
     studioStateRef.value = studioState

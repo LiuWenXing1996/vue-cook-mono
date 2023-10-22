@@ -2,7 +2,13 @@ import * as path from './utils/path'
 
 export type IPath = typeof path
 export { path }
-export { createFsUtils, type IFsPromisesApi, type IFsUtils } from './utils/fs'
+export {
+  createFsUtils,
+  type IFsPromisesApi,
+  type IFsUtils,
+  createVfs,
+  type IVirtulFileSystem
+} from './utils/fs'
 export {
   type ICookConfig,
   fillConfig,
@@ -26,7 +32,7 @@ export {
   type IRemotePlugin,
   type IRunRemotePluginConfig
 } from './design-mode/remote-plugin'
-export { exportDeps, type IDepMeta, type IDeps } from './utils/fetchDeps'
+export { exportDeps, type IDepMeta, type IDeps, fetchDeps } from './utils/fetchDeps'
 
 export {
   getMaterialList,
@@ -34,6 +40,13 @@ export {
   defineMaterial,
   type IMaterialWithDep
 } from './design-mode/material'
+
+export {
+  createRenderContext,
+  type IRenderContext,
+  defineRender,
+  type IRenderData
+} from './design-mode/render'
 
 export { emitEditorWindowSchemaChange, SchemaChanegeDataType } from './lowcode/schemaChange'
 
@@ -44,16 +57,21 @@ export {
   transfer as exportSchemaTransfer
 } from './schema/export'
 
-export {
-  type IPageConfig as IPageSchemaConfig,
-  check as pageSchemaCheck,
-  transformPage as pageSchemaTransfer,
-  transformPageEntryTs
-} from './schema/page'
+// export {
+//   type IPageConfig as IPageSchemaConfig,
+//   check as pageSchemaCheck,
+//   transformPage as pageSchemaTransfer,
+//   transformPageEntryTs
+// } from './schema/page'
 
 export {
   type IComponentConfig as IComponentSchemaConfig,
-  check as componentSchemaCheck,
-  transformComponent as componentSchemaTransfer,
-  transformComponentEntryTs
+  type ITemplateConfig,
+  defineView,
+  type IView,
+  getViewList
+
+  // check as componentSchemaCheck,
+  // transformComponent as componentSchemaTransfer,
+  // transformComponentEntryTs
 } from './schema/component'

@@ -15,11 +15,11 @@ const projectName = projectNameRef.value
 
 const materials = shallowRef<IMaterialWithDep[]>([])
 onMounted(async () => {
-    const designEntry = await services.getDesignDepsEntry({
+    const designDepsEntry = await services.getDesignDepsEntry({
         projectName
     })
     const list = await getMaterialList({
-        depsEntry: designEntry
+        depsEntry: designDepsEntry
     })
     materials.value = list
 })

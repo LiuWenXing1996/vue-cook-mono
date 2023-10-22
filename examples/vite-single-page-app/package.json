@@ -9,6 +9,8 @@
     "build:schema": "vue-cook build-schema -c ./cook.config.json -p ./package.json",
     "build:auto": "vue-cook build-auto -c ./cook.config.json -p ./package.json",
     "build:design": "vue-cook build-design -c ./cook.config.json -p ./package.json",
+    "build:runtime": "vue-cook build-runtime -c ./cook.config.json -p ./package.json",
+    "build:lowcode": "run-p build:design build:runtime",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false"
@@ -16,7 +18,7 @@
   "dependencies": {
     "@vue-cook/core": "workspace:^0.0.1",
     "@vue-cook/element-plus-materials": "workspace:^0.0.1",
-    "@vue-cook/plugins": "workspace:^0.0.1",
+    "@vue-cook/render": "workspace:^0.0.1",
     "vue": "^3.3.4",
     "vue-router": "^4.2.4"
   },

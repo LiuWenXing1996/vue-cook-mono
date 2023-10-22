@@ -1,4 +1,10 @@
-export async function loadStyle(src: string, dataset?: Record<string, any>): Promise<HTMLLinkElement> {
+export async function loadStyle(config: {
+  src: string
+  dataset?: Record<string, any>
+  targetWindow: Window
+}): Promise<HTMLLinkElement> {
+  const { src, dataset, targetWindow } = config
+  const { document } = targetWindow
   return new Promise((resolve, reject) => {
     const head = document.head || document.getElementsByTagName('head')[0]
     const link = document.createElement('link')
@@ -20,10 +26,13 @@ export async function loadStyle(src: string, dataset?: Record<string, any>): Pro
   })
 }
 
-export async function loadStyleByContent(
-  content: string,
+export async function loadStyleByContent(config: {
+  content: string
   dataset?: Record<string, any>
-): Promise<HTMLStyleElement> {
+  targetWindow: Window
+}): Promise<HTMLStyleElement> {
+  const { content, dataset, targetWindow } = config
+  const { document } = targetWindow
   return new Promise((resolve, reject) => {
     const head = document.head || document.getElementsByTagName('head')[0]
     const style = document.createElement('style')

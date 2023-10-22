@@ -1,15 +1,17 @@
 import * as self from '@/index'
 import { v4 as uuidv4 } from 'uuid'
 
-export const createCoreLibOnceGetter = (window: Window) => {
+export type ICore = typeof self
+
+export const createCoreLibOnceGetterId = (targetWindow: Window) => {
   const prefix = '__vue__cook__core__lib__getter__'
   const uid = `${prefix}_${uuidv4()}`
   let isGet = false
   // @ts-ignore
-  const oldValue = window[uid]
+  const oldValue = targetWindow[uid]
   const getter = () => {
     // @ts-ignore
-    window[uid] = oldValue
+    targetWindow[uid] = oldValue
     if (isGet) {
       return
     }
@@ -17,28 +19,7 @@ export const createCoreLibOnceGetter = (window: Window) => {
     return self
   }
   // @ts-ignore
-  window[uid] = getter
-
-  return uid
-}
-
-export const createCoreLibOnceGetterId = () => {
-  const prefix = '__vue__cook__core__lib__getter__'
-  const uid = `${prefix}_${uuidv4()}`
-  let isGet = false
-  const getter = () => {
-    if (isGet) {
-      return
-    }
-    isGet = true
-    return self
-  }
-  // @ts-ignore
-  if (globalThis[uid]) {
-    throw new Error(`${uid} 重复`)
-  }
-  // @ts-ignore
-  globalThis[uid] = getter
+  targetWindow[uid] = getter
 
   return uid
 }
