@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from 'uuid'
 export interface IRenderContextConfig {
   depsEntry: IDepsEntry
   iframeEl: HTMLIFrameElement
+  dev: boolean
+  renderMode: IRenderMode
   schemaData?: IComponentConfig
   renderConfig: {
     packageName: string
@@ -12,32 +14,44 @@ export interface IRenderContextConfig {
   }
 }
 
+export type IRenderMode = 'design' | 'runtime'
+
 export interface IRenderData {
-  mountElementId: string
-  deps: IDeps
+  dev: boolean
+  renderMode: IRenderMode
   schemaData?: IComponentConfig
-  watchSchemaData: (listener: ISchemaDataChangeListener) => void
 }
 
-export type IRender = (data: IRenderData) => Promise<void> | void
+export type IRender = (params: {
+  mountElementId: string
+  deps: IDeps
+  data: IRenderData
+  watchData: (listener: IRenderDataChangeListener) => void
+}) => Promise<void> | void
 
 export const defineRender = (render: IRender) => render
 
-export type ISchemaDataChangeListener = (data: {
-  schemaData?: IComponentConfig
-  timestamp: number
-}) => void
+export type IRenderDataChangeListener = (data: { value: IRenderData; timestamp: number }) => void
 
 export type IRenderContext = Awaited<ReturnType<typeof createRenderContext>>
 
 export const createRenderContext = async (config: IRenderContextConfig) => {
-  const { depsEntry, renderConfig, schemaData, iframeEl } = config
+  const { depsEntry, renderConfig, iframeEl, dev, renderMode, schemaData } = config
+  let currentRenderData: IRenderData = {
+    dev,
+    renderMode,
+    schemaData
+  }
   const contentWindow = iframeEl.contentWindow as Window
-  let listenerList: ISchemaDataChangeListener[] = []
-  const setSchemaData = (data?: IComponentConfig) => {
+  let listenerList: IRenderDataChangeListener[] = []
+  const updateData = (data?: Partial<IRenderData>) => {
+    currentRenderData = {
+      ...currentRenderData,
+      ...data
+    }
     listenerList.map((l) => {
       l({
-        schemaData: data,
+        value: currentRenderData,
         timestamp: Date.now()
       })
     })
@@ -59,8 +73,12 @@ export const createRenderContext = async (config: IRenderContextConfig) => {
     await render({
       mountElementId: '#app',
       deps: deps || new Map(),
-      schemaData,
-      watchSchemaData: (listener) => {
+      data: {
+        schemaData,
+        dev: false,
+        renderMode: 'design'
+      },
+      watchData: (listener) => {
         listenerList.push(listener)
         const removeListener = () => {
           listenerList = listenerList.filter((e) => e !== listener)
@@ -86,6 +104,11 @@ export const createRenderContext = async (config: IRenderContextConfig) => {
 </html>
       `)
   return {
-    setSchemaData
+    updateData,
+    getRenderData: () => {
+      return {
+        ...currentRenderData
+      } as IRenderData
+    }
   }
 }

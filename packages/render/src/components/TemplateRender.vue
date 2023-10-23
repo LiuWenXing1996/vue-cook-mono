@@ -2,43 +2,52 @@
     <template v-if="config.text">
         {{ config.text }}
     </template>
-    <template v-else>
-        <component :is="cmpt" v-bind="config?.props" v-on="emits">
+    <template v-else-if="cmpt">
+        <component :is="cmpt" v-bind="attributes" v-on="emits">
             <template v-for="(slot, name) in config?.slots" v-slot:[name]>
-                <template-render :config="_config" v-for="_config in slot" :dev="dev"
-                    :component-map="componentMap"></template-render>
+                <template-render :config="_config" v-for="_config in slot" :dev="dev" :view-map="viewMap"
+                    :editor-map="editorMap" :render-mode="renderMode"></template-render>
             </template>
         </component>
     </template>
 </template>
 <script setup lang="ts">
 import { getCurrentInstance, toRefs, onMounted, computed, inject, onUpdated, type Component } from "vue";
-import { type ITemplateConfig } from "@vue-cook/core"
-const props = defineProps(
-    {
-        config: {
-            type: Object as () => ITemplateConfig,
-            required: true
-        },
-        componentMap: {
-            type: Object as () => Map<string, Component>,
-            required: true
-        },
-        dev: {
-            type: Boolean,
-            default: false
+import { type ITemplateConfig, type IView, getComponentTypeUniName, type IEditor, getEditorTypeUniName, type IRenderMode } from "@vue-cook/core"
+const props = defineProps<{
+    config: ITemplateConfig,
+    viewMap: Map<string, IView<Component>>,
+    editorMap: Map<string, IEditor>,
+    dev: boolean,
+    renderMode: IRenderMode
+}>()
+const { config, dev, viewMap, editorMap, renderMode } = toRefs(props)
+
+const attributes = computed(() => {
+    const attributesConfig = config.value.attributes || {}
+    let res: Record<string, any> = {}
+    Object.keys(attributesConfig).map(key => {
+        const config = attributesConfig[key]
+        const editorUName = getEditorTypeUniName(config.editorType)
+        const editor = editorMap.value.get(editorUName)
+        if (editor) {
+            res[key] = editor.transfer(config.value)
         }
-    }
-)
-const { config, dev, componentMap } = toRefs(props)
+    })
+    return res
+})
 
 const cmpt = computed(() => {
-    const { type } = config.value
-    let cmptValue: Component | undefined = undefined
-    if (type) {
-        cmptValue = componentMap.value.get("" + type.packageName || "" + type.tag || "")
+    if (config.value.text) {
+        return ""
     }
-    return cmptValue || type?.tag || ""
+    if (!config.value.type) {
+        return ""
+    }
+    const { type } = config.value
+    const cmptUName = getComponentTypeUniName(type)
+    const view = viewMap.value.get(cmptUName)?.makeComponent?.(renderMode.value)
+    return view || type.name || ""
 })
 const emits = computed(() => {
     const res: Record<string, Function> = {}

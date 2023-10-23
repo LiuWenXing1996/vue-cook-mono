@@ -45,8 +45,9 @@ export {
   createRenderContext,
   type IRenderContext,
   defineRender,
-  type IRenderData
-} from './design-mode/render'
+  type IRenderData,
+  type IRenderMode
+} from './render/index'
 
 export { emitEditorWindowSchemaChange, SchemaChanegeDataType } from './lowcode/schemaChange'
 
@@ -69,8 +70,10 @@ export {
   type ITemplateConfig,
   defineView,
   type IView,
-  getViewList
-
+  getViewList,
+  getComponentTypeUniName,
+  getEditorTypeUniName,
+  type IEditor
   // check as componentSchemaCheck,
   // transformComponent as componentSchemaTransfer,
   // transformComponentEntryTs

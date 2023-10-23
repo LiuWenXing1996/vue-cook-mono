@@ -1,16 +1,17 @@
 <template>
-    <template-render v-for="tConfig in config?.template" :config="tConfig" :dev="dev" :componentMap="componentMap" />
+    <template-render v-for="tConfig in config?.template" :config="tConfig" :dev="dev" :render-mode="renderMode"
+        :view-map="viewMap" :editor-map="editorMap" />
 </template>
 <script setup lang="ts">
 import { type Component } from "vue";
-import { type IComponentSchemaConfig } from "@vue-cook/core"
+import { type IComponentSchemaConfig, type IEditor, type IRenderMode, type IView } from "@vue-cook/core"
 import TemplateRender from "./TemplateRender.vue";
-withDefaults(defineProps<{
+defineProps<{
     config?: IComponentSchemaConfig,
-    componentMap: Map<string, Component>,
-    dev?: boolean
-}>(), {
-    dev: false
-})
+    viewMap: Map<string, IView<Component>>,
+    editorMap: Map<string, IEditor>,
+    renderMode: IRenderMode,
+    dev: boolean
+}>()
 
 </script>

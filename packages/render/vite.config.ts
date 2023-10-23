@@ -54,7 +54,9 @@ export default defineConfig({
     minify: false,
     sourcemap: true,
     lib: {
-      entry: [resolve(__dirname, 'src/design.ts'), resolve(__dirname, 'src/runtime.ts')],
+      entry: {
+        index: resolve(__dirname, 'src/index.ts')
+      },
       formats: ['cjs', 'es'],
       fileName: (format, entryName) => {
         if (format == 'cjs') {

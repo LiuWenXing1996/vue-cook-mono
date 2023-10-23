@@ -1,17 +1,31 @@
 <template>
-    <ComponentRender :config="componentSchemaConfig" :component-map="componentMap"></ComponentRender>
+    <ComponentRender :config="componentSchemaConfig" :dev="data.dev" :render-mode="data.renderMode" :view-map="viewMap"
+        :editor-map="editorMap"></ComponentRender>
 </template>
 <script setup lang="ts">
-import { type IComponentSchemaConfig, type IRenderData, getViewList } from '@vue-cook/core';
+import { type IComponentSchemaConfig, type IRenderData, getViewList, type IView, type IEditor } from '@vue-cook/core';
 import ComponentRender from './components//ComponentRender.vue';
-import { ref, toRefs, type Component, shallowRef, onMounted } from 'vue';
+import { ref, toRefs, type Component, shallowRef, onMounted, watch } from 'vue';
+import type { IDeps } from '@vue-cook/core';
 const props = defineProps<{
-    data: IRenderData
+    data: IRenderData,
+    deps: IDeps
 }>()
-const { data } = toRefs(props)
+const { data,deps } = toRefs(props)
 
 const componentSchemaConfig = shallowRef<IComponentSchemaConfig | undefined>(data.value.schemaData)
-const componentMap = ref<Map<string, Component>>(new Map())
+const viewMap = ref<Map<string, IView<Component>>>(new Map())
+const editorMap = ref<Map<string, IEditor>>(new Map())
+
+watch(data, () => {
+    const viewList = getViewList<Component>({
+        deps: data.value.deps
+    })
+    viewList.map(e => {
+        // TODO:注册view
+        // componentMap.value.set()
+    })
+})
 
 onMounted(async () => {
     const viewList = await getViewList<Component>({
@@ -29,4 +43,3 @@ data.value.watchSchemaData((data) => {
 })
 
 </script>
-<style lang="less" scoped></style>
