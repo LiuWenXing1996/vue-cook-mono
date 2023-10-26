@@ -1,45 +1,29 @@
 <template>
-    <ComponentRender :config="componentSchemaConfig" :dev="data.dev" :render-mode="data.renderMode" :view-map="viewMap"
-        :editor-map="editorMap"></ComponentRender>
+    <ComponentRender :config="componentSchemaConfig" :dev="data.dev" :render-mode="data.renderMode" :var-map="varMap"
+        :component-map="componentMap"></ComponentRender>
 </template>
 <script setup lang="ts">
-import { type IComponentSchemaConfig, type IRenderData, getViewList, type IView, type IEditor } from '@vue-cook/core';
+import { type IComponentSchemaConfig, type IRenderData, type IView, type IEditor } from '@vue-cook/core';
 import ComponentRender from './components//ComponentRender.vue';
 import { ref, toRefs, type Component, shallowRef, onMounted, watch } from 'vue';
 import type { IDeps } from '@vue-cook/core';
+import { getComponetMap } from '@vue-cook/core';
 const props = defineProps<{
     data: IRenderData,
     deps: IDeps
 }>()
-const { data,deps } = toRefs(props)
+const { data, deps } = toRefs(props)
 
 const componentSchemaConfig = shallowRef<IComponentSchemaConfig | undefined>(data.value.schemaData)
-const viewMap = ref<Map<string, IView<Component>>>(new Map())
-const editorMap = ref<Map<string, IEditor>>(new Map())
+const componentMap = shallowRef<Map<string, Component>>(new Map())
+const varMap = shallowRef<Map<string, IView<Component>>>(new Map())
 
-watch(data, () => {
-    const viewList = getViewList<Component>({
-        deps: data.value.deps
-    })
-    viewList.map(e => {
-        // TODO:注册view
-        // componentMap.value.set()
-    })
-})
-
-onMounted(async () => {
-    const viewList = await getViewList<Component>({
-        deps: data.value.deps
-    })
-    viewList.map(e => {
-        // TODO:注册view
-        // componentMap.value.set()
+watch(data, (value) => {
+    const schemaData = value.schemaData
+    componentSchemaConfig.value = schemaData
+    componentMap.value = getComponetMap({
+        deps: deps.value,
+        componentConfig: schemaData
     })
 })
-
-
-data.value.watchSchemaData((data) => {
-    componentSchemaConfig.value = data.schemaData
-})
-
 </script>

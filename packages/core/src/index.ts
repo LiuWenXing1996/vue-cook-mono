@@ -68,11 +68,9 @@ export {
 export {
   type IComponentConfig as IComponentSchemaConfig,
   type ITemplateConfig,
-  defineView,
   type IView,
-  getViewList,
-  getComponentTypeUniName,
   getEditorTypeUniName,
+  getComponetMap,
   type IEditor
   // check as componentSchemaCheck,
   // transformComponent as componentSchemaTransfer,

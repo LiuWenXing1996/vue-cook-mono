@@ -1,9 +1,12 @@
-import { fetchDeps, type IDep, type IDepsEntry } from '@/utils/fetchDeps'
+import { fetchDeps, resolveDepVar, type IDep, type IDepsEntry } from '@/utils/fetchDeps'
 import { v4 as uuidv4 } from 'uuid'
 
 export interface IMaterial {
   name: string
   group: string
+  tag: string
+  packageName: string
+  varName: string
 }
 
 export const defineMaterial = (material: IMaterial) => material
@@ -39,7 +42,10 @@ const getMaterialListInternal = (params: {
         if (!materialsVarName) {
           return
         }
-        const materialsVar = dep.value?.[materialsVarName] as IMaterial[] | undefined
+        const materialsVar = resolveDepVar<IMaterial[]>({
+          dep,
+          varName: materialsVarName
+        })
         if (!materialsVar) {
           return
         }

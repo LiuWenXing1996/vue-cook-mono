@@ -5,33 +5,36 @@
     <template v-else-if="cmpt">
         <component :is="cmpt" v-bind="attributes" v-on="emits">
             <template v-for="(slot, name) in config?.slots" v-slot:[name]>
-                <template-render :config="_config" v-for="_config in slot" :dev="dev" :view-map="viewMap"
-                    :editor-map="editorMap" :render-mode="renderMode"></template-render>
+                <template-render :config="_config" v-for="_config in slot" :dev="dev" :component-map="componentMap"
+                    :var-map="varMap"></template-render>
             </template>
         </component>
     </template>
 </template>
 <script setup lang="ts">
 import { getCurrentInstance, toRefs, onMounted, computed, inject, onUpdated, type Component } from "vue";
-import { type ITemplateConfig, type IView, getComponentTypeUniName, type IEditor, getEditorTypeUniName, type IRenderMode } from "@vue-cook/core"
+import { type ITemplateConfig } from "@vue-cook/core"
 const props = defineProps<{
     config: ITemplateConfig,
-    viewMap: Map<string, IView<Component>>,
-    editorMap: Map<string, IEditor>,
+    componentMap: Map<string, Component>,
+    varMap: Map<string, any>,
     dev: boolean,
-    renderMode: IRenderMode
 }>()
-const { config, dev, viewMap, editorMap, renderMode } = toRefs(props)
+const { config, dev, componentMap, varMap } = toRefs(props)
 
 const attributes = computed(() => {
     const attributesConfig = config.value.attributes || {}
     let res: Record<string, any> = {}
     Object.keys(attributesConfig).map(key => {
         const config = attributesConfig[key]
-        const editorUName = getEditorTypeUniName(config.editorType)
-        const editor = editorMap.value.get(editorUName)
-        if (editor) {
-            res[key] = editor.transfer(config.value)
+        if (config.isVar) {
+            const value = config.value as string
+            res[key] = varMap.value.get(value)
+        } else {
+            try {
+                res[key] = JSON.parse(config.value)
+            } catch (error) {
+            }
         }
     })
     return res
@@ -41,13 +44,12 @@ const cmpt = computed(() => {
     if (config.value.text) {
         return ""
     }
-    if (!config.value.type) {
+    if (!config.value.tag) {
         return ""
     }
-    const { type } = config.value
-    const cmptUName = getComponentTypeUniName(type)
-    const view = viewMap.value.get(cmptUName)?.makeComponent?.(renderMode.value)
-    return view || type.name || ""
+    const { tag } = config.value
+    const view = componentMap.value.get(tag)
+    return view || tag || ""
 })
 const emits = computed(() => {
     const res: Record<string, Function> = {}

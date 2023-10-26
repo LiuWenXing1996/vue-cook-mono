@@ -15,7 +15,7 @@ export const ElementDataFetchDepsContextIdKey = 'fetchDepsContextId'
 export const ElementDataCoreLibOnceGetterIdIdKey = 'coreLibOnceGetterId'
 export interface IDep {
   meta: IDepMeta
-  value: any
+  value: unknown
 }
 export interface IDepMeta {
   cookMeta?: ICookMeta
@@ -38,6 +38,15 @@ export const exportDeps = (config: { deps: IDeps; targetWindow: Window }) => {
   if (uid) {
     depsMap.set(uid, deps)
   }
+}
+
+export const resolveDepVar = <T>(params: { dep?: IDep; varName: string }) => {
+  const { dep, varName } = params
+  if (!dep) {
+    return
+  }
+  const depValue: Record<string, any> = dep?.value || {}
+  return depValue[varName] as T
 }
 
 export const fetchDeps = async <T extends IDeps = IDeps>(config: {
