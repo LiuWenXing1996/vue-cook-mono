@@ -54,6 +54,7 @@ defineProps<{ filePath: string }>()
     .actions {
         padding: 3px;
         width: 100%;
+        border-bottom: 1px solid rgb(239, 239, 245);
 
         .n-icon:hover {
             cursor: pointer;
