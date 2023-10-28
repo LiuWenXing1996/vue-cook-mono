@@ -2,9 +2,8 @@ import { resolveDepVar, type IDep } from '@/utils/fetchDeps'
 import type { IDeps } from '..'
 import type { JsonType, JsonTypeObject } from '@/utils/jsonType'
 import type { IRenderMode } from '@/render'
-import type { ISchemaData } from '@/design-mode/render'
+import type { ISchemaData } from '@/design-mode/renderer-context'
 import { resolve } from '@/utils/path'
-
 export interface IEditorType extends JsonTypeObject {
   name: string
   packageName: string
@@ -141,4 +140,77 @@ export interface IView<T = any> {
 export interface IViewWithDep<T = any> {
   view: IView<T>
   dep: IDep
+}
+
+export interface ITemplateConfigWithPid extends ITemplateConfig {
+  __designPid: string
+  slots?: Record<string, ITemplateConfigWithPid[]>
+}
+export interface IComponentConfigWithTemplatePid extends IComponentConfig {
+  template?: ITemplateConfigWithPid[]
+}
+
+export const appendTemplatePid = (template: ITemplateConfig[]): ITemplateConfigWithPid[] => {
+  const appendMultiTemplatePid = (
+    multiTemplate: ITemplateConfig[],
+    parentDesignPid: string
+  ): ITemplateConfigWithPid[] => {
+    return multiTemplate.map((tpl, index) => {
+      const tag = (tpl.text ? '#text' : tpl.tag) || 'unknown-tag'
+      const __designPid = `${parentDesignPid}__${index}__${tag}`
+      const _tpl = {
+        ...tpl,
+        __designPid,
+        slots: appendSlotsPid(tpl.slots, __designPid)
+      }
+      return _tpl as ITemplateConfigWithPid
+    })
+  }
+  const appendSlotsPid = (
+    slots: ITemplateConfig['slots'],
+    parentDesignPid: string
+  ): ITemplateConfigWithPid['slots'] => {
+    if (!slots) {
+      return
+    }
+    const _slots: ITemplateConfigWithPid['slots'] = {}
+    Object.keys(slots).map((key) => {
+      const _tpl = slots[key]
+      _slots[key] = appendMultiTemplatePid(_tpl, `${parentDesignPid}__${key}`)
+    })
+    return _slots
+  }
+
+  const _tpl: ITemplateConfigWithPid[] = appendMultiTemplatePid(template, '#root')
+
+  return _tpl
+}
+
+export const removeTemplatePid = (template: ITemplateConfigWithPid[]): ITemplateConfig[] => {
+  const removeMultiTemplatePid = (multiTemplate: ITemplateConfigWithPid[]): ITemplateConfig[] => {
+    return multiTemplate.map((tpl, index) => {
+      const tag = (tpl.text ? '#text' : tpl.tag) || 'unknown-tag'
+      const _tpl = {
+        ...tpl,
+        __designPid: undefined,
+        slots: removeSlotsPid(tpl.slots)
+      }
+      return _tpl as ITemplateConfig
+    })
+  }
+  const removeSlotsPid = (slots: ITemplateConfigWithPid['slots']): ITemplateConfig['slots'] => {
+    if (!slots) {
+      return
+    }
+    const _slots: ITemplateConfig['slots'] = {}
+    Object.keys(slots).map((key) => {
+      const _tpl = slots[key]
+      _slots[key] = removeMultiTemplatePid(_tpl)
+    })
+    return _slots
+  }
+
+  const _tpl: ITemplateConfig[] = removeMultiTemplatePid(template)
+
+  return _tpl
 }

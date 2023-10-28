@@ -20,9 +20,8 @@ import { toRefs, provide, ref, h, computed } from 'vue';
 import type { Component } from "vue"
 import { NLayout, NLayoutSider, NMenu, NIcon } from "naive-ui"
 import type { MenuOption } from "naive-ui"
-import FileTree from "./file-tree.vue"
-import RunPane from "./run-pane.vue"
-import MaterialPane from "./material-pane.vue"
+import FileTree from "@/components/file-tree/index.vue"
+import MaterialPane from "@/components/material-pane/index.vue"
 import {
     DocumentsOutline,
     SearchOutline,
@@ -60,12 +59,6 @@ const menuOptions: (MenuOption & {
             key: 'search',
             icon: renderIcon(SearchOutline),
             content: () => h('div', "搜索")
-        },
-        {
-            label: '运行',
-            key: 'run',
-            icon: renderIcon(PlayOutline),
-            content: RunPane
         }
     ]
 </script>

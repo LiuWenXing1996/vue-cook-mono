@@ -40,7 +40,7 @@ const handleClose = (uid: string) => {
         </template>
     </div>
 </template>
-<style lang="less" scoped>
+<style lang="less">
 .panel-list {
     height: 100%;
     display: flex;

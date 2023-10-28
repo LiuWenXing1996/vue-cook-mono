@@ -49,13 +49,18 @@ export {
 } from './render/index'
 
 export {
-  type IDesignRenderData,
-  type IDesignRenderContext,
+  type IDesignRendererContext,
   type ISchemaData,
-  type IDesignRenderDataWatch,
-  defineDesignRender,
-  createDesignRenderContext
-} from './design-mode/render'
+  type IDesignComponentOverlay,
+  type IDesignComponentPageSize,
+  createDesignRendererContext
+} from './design-mode/renderer-context'
+
+export {
+  type IDesignRendererData,
+  type IDesignRendererDataWatch,
+  AbstractDesignRenderer
+} from './design-mode/abstract-renderer'
 
 export { emitEditorWindowSchemaChange, SchemaChanegeDataType } from './lowcode/schemaChange'
 
@@ -80,9 +85,12 @@ export {
   getEditorTypeUniName,
   getComponetMap,
   getStateMap,
+  removeTemplatePid,
   type IEditor,
   type IComponentMap,
-  type IStateMap
+  type IStateMap,
+  type ITemplateConfigWithPid,
+  type IComponentConfigWithTemplatePid
   // check as componentSchemaCheck,
   // transformComponent as componentSchemaTransfer,
   // transformComponentEntryTs
