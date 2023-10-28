@@ -6,16 +6,17 @@
 <script setup lang="ts">
 import { shallowRef, ref, watch, onMounted } from 'vue';
 import type * as Vue from "vue";
-import { emitEditorWindowSchemaChange, type ISchemaData, type IRenderContext, SchemaChanegeDataType, createRenderContext, type IComponentSchemaConfig } from "@vue-cook/core"
+import { emitEditorWindowSchemaChange, type ISchemaData, type IRenderContext, SchemaChanegeDataType, createRenderContext, type IComponentSchemaConfig, createDesignRenderContext, type IDesignRenderContext } from "@vue-cook/core"
 import { toRenameRefs } from '@/utils/toRenameRefs';
 import { useInjectSudioState } from '@/hooks/useInjectStudioState';
-type IVue = typeof Vue
+import { useComponentSchemaList } from '@/hooks/useComponentSchemaList';
 
 const { servicesRef, projectNameRef, vfsRef } = useInjectSudioState()
 const services = servicesRef.value
 const projectName = projectNameRef.value
 const vfs = vfsRef.value
 const fs = vfs.getFs()
+const componentSchemaList = useComponentSchemaList({ vfs, componentSchemaFileNames: ["page.config.yaml"] })
 
 const props = defineProps({
     path: {
@@ -24,46 +25,34 @@ const props = defineProps({
     }
 })
 const { pathRef } = toRenameRefs(props)
-const schemaDataJsonStringRef = ref<IComponentSchemaConfig>()
-fs.watch(pathRef.value, {}, async () => {
-    try {
-        const content = await vfs.readYaml<IComponentSchemaConfig>(pathRef.value)
-        schemaDataJsonStringRef.value = content
-    } catch (error) {
-        schemaDataJsonStringRef.value = undefined
-    }
-})
-onMounted(async () => {
-    try {
-        const content = await vfs.readYaml<IComponentSchemaConfig>(pathRef.value)
-        schemaDataJsonStringRef.value = content
-    } catch (error) {
-        schemaDataJsonStringRef.value = undefined
-    }
-})
-
 const iframeRef = ref<HTMLIFrameElement>()
-const renderContextRef = shallowRef<IRenderContext>()
+const renderContextRef = shallowRef<IDesignRenderContext>()
 watch(iframeRef, async () => {
     if (iframeRef?.value?.contentWindow) {
-        const runtimeDepsEntry = await services.getRuntimeDepsEntry({
+        const depsEntry = await services.getDesignDepsEntry({
             projectName
         })
-        const conext = await createRenderContext({
-            depsEntry: runtimeDepsEntry,
+        const conext = await createDesignRenderContext({
+            depsEntry: depsEntry,
             iframeEl: iframeRef.value,
-            schemaData: schemaDataJsonStringRef.value,
+            schemaData: {
+                mainPath: pathRef.value,
+                componentList: componentSchemaList.value
+            },
             renderConfig: {
                 packageName: '@vue-cook/render',
                 renderVarName: 'default'
-            }
+            },
         })
         renderContextRef.value = conext
     }
 })
-watch(schemaDataJsonStringRef, (value) => {
+watch([pathRef, componentSchemaList], ([path, componentSchemaList]) => {
     if (renderContextRef.value) {
-        renderContextRef.value.setSchemaData(value)
+        renderContextRef.value.updateSchemaData({
+            mainPath: path,
+            componentList: componentSchemaList
+        })
     }
 })
 </script>

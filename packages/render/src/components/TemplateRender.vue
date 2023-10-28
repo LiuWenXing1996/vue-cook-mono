@@ -5,22 +5,23 @@
     <template v-else-if="cmpt">
         <component :is="cmpt" v-bind="attributes" v-on="emits">
             <template v-for="(slot, name) in config?.slots" v-slot:[name]>
-                <template-render :config="_config" v-for="_config in slot" :dev="dev" :component-map="componentMap"
-                    :var-map="varMap"></template-render>
+                <template-render :config="_config" v-for="_config in slot" :component-map="componentMap"
+                    :state-map="stateMap"></template-render>
             </template>
         </component>
     </template>
 </template>
 <script setup lang="ts">
-import { getCurrentInstance, toRefs, onMounted, computed, inject, onUpdated, type Component } from "vue";
-import { type ITemplateConfig } from "@vue-cook/core"
+import { getCurrentInstance, toRefs, onMounted, computed, inject, onUpdated, type Component, h } from "vue";
+import { type IComponentMap, type IStateMap, type ITemplateConfig } from "@vue-cook/core"
+import TemplateRender from "./TemplateRender.vue"
+import { getComponentElements } from "@/utils/getComponentElements"
 const props = defineProps<{
     config: ITemplateConfig,
-    componentMap: Map<string, Component>,
-    varMap: Map<string, any>,
-    dev: boolean,
+    stateMap: IStateMap,
+    componentMap: IComponentMap<Component>,
 }>()
-const { config, dev, componentMap, varMap } = toRefs(props)
+const { config, componentMap, stateMap } = toRefs(props)
 
 const attributes = computed(() => {
     const attributesConfig = config.value.attributes || {}
@@ -29,7 +30,7 @@ const attributes = computed(() => {
         const config = attributesConfig[key]
         if (config.isVar) {
             const value = config.value as string
-            res[key] = varMap.value.get(value)
+            res[key] = stateMap.value.get(value)
         } else {
             try {
                 res[key] = JSON.parse(config.value)
@@ -49,7 +50,12 @@ const cmpt = computed(() => {
     }
     const { tag } = config.value
     const view = componentMap.value.get(tag)
-    return view || tag || ""
+    if (view?.isInnerComponent) {
+        const schema = view.schema
+        return "inner"
+    } else {
+        return view?.component || tag || ""
+    }
 })
 const emits = computed(() => {
     const res: Record<string, Function> = {}
@@ -71,28 +77,26 @@ const emits = computed(() => {
     return res
 })
 
-if (dev.value) {
-    // onMounted(() => {
-    //     const internalInstance = getCurrentInstance()
-    //     if (internalInstance) {
-    //         const elements = getComponentElements(internalInstance)
-    //         elements.forEach(el => {
-    //             ElementToComponentUidMap.set(el, config.value.uid)
-    //         })
-    //         ComponentUidToInstanceMap.set(config.value.uid, internalInstance)
-    //     }
-    // })
-    // onUpdated(() => {
-    //     const internalInstance = getCurrentInstance()
-    //     if (internalInstance) {
-    //         const elements = getComponentElements(internalInstance)
-    //         elements.forEach(el => {
-    //             ElementToComponentUidMap.set(el, config.value.uid)
-    //         })
-    //         ComponentUidToInstanceMap.set(config.value.uid, internalInstance)
-    //     }
-    // })
-}
+onMounted(() => {
+    const internalInstance = getCurrentInstance()
+    if (internalInstance) {
+        const elements = getComponentElements(internalInstance)
+        elements.forEach(el => {
+            ElementToComponentUidMap.set(el, config.value.uid)
+        })
+        ComponentUidToInstanceMap.set(config.value.uid, internalInstance)
+    }
+})
+onUpdated(() => {
+    const internalInstance = getCurrentInstance()
+    if (internalInstance) {
+        const elements = getComponentElements(internalInstance)
+        elements.forEach(el => {
+            ElementToComponentUidMap.set(el, config.value.uid)
+        })
+        ComponentUidToInstanceMap.set(config.value.uid, internalInstance)
+    }
+})
 
 
 </script>

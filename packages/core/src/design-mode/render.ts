@@ -1,60 +1,95 @@
-import type { IComponentConfig } from '@/schema/component'
+import {
+  getComponetMap,
+  getStateMap,
+  type IComponentConfig,
+  type IComponentMap,
+  type IStateMap
+} from '@/schema/component'
 import { fetchDeps, resolveDepVar, type IDeps, type IDepsEntry } from '@/utils/fetchDeps'
 import { v4 as uuidv4 } from 'uuid'
+import { clone } from 'lodash'
+export interface ISchemaData {
+  mainPath: string
+  componentList: {
+    path: string
+    value: IComponentConfig
+  }[]
+}
 
 export interface IDesignRenderContextConfig {
   depsEntry: IDepsEntry
   iframeEl: HTMLIFrameElement
-  dev: boolean
-  renderMode: IDesignRenderMode
-  schemaData?: IComponentConfig
+  schemaData?: ISchemaData
   renderConfig: {
     packageName: string
     renderVarName: string
   }
 }
 
-export type IDesignRenderMode = 'design' | 'runtime'
-
-export interface IDesignRenderData {
-  dev: boolean
-  renderMode: IDesignRenderMode
-  schemaData?: IComponentConfig
+export const schemaDataToDesignRenderData = <Component>(params: {
+  data?: ISchemaData
+  deps?: IDeps
+}): IDesignRenderData<Component> | undefined => {
+  const { data, deps } = params
+  if (!data) {
+    return
+  }
+  const { componentList, mainPath } = data
+  const mainComponent = componentList.find((e) => e.path === mainPath)
+  if (!mainComponent) {
+    return {
+      schemaData: data
+    }
+  }
+  const componentMap = getComponetMap<Component>({ data, deps })
+  const stateMap = getStateMap({ data, deps })
+  return {
+    mainComponentConfig: mainComponent.value,
+    schemaData: data,
+    componentMap,
+    stateMap
+  }
 }
 
-export type IDesignRender = (params: {
+export interface IDesignRenderData<Component> {
+  schemaData?: ISchemaData
+  componentMap?: IComponentMap<Component>
+  stateMap?: IStateMap
+  mainComponentConfig?: IComponentConfig
+}
+
+export type IDesignRender<Component> = (params: {
   mountElementId: string
   deps: IDeps
-  data: IDesignRenderData
-  watchData: (listener: IDesignRenderDataChangeListener) => void
+  data: IDesignRenderData<Component>
+  watchData: IDesignRenderDataWatch<Component>
 }) => Promise<void> | void
 
-export const defineDesignRender = (render: IDesignRender) => render
+export type IDesignRenderDataWatch<Component> = (
+  listener: IDesignRenderDataChangeListener<Component>
+) => void
 
-export type IDesignRenderDataChangeListener = (data: {
-  value: IDesignRenderData
+export const defineDesignRender = <Component>(render: IDesignRender<Component>) => render
+
+export type IDesignRenderDataChangeListener<Component> = (data: {
+  value: IDesignRenderData<Component>
   timestamp: number
 }) => void
 
 export type IDesignRenderContext = Awaited<ReturnType<typeof createDesignRenderContext>>
 
-export const createDesignRenderContext = async (config: IDesignRenderContextConfig) => {
-  const { depsEntry, renderConfig, iframeEl, dev, renderMode, schemaData } = config
-  let currentDesignRenderData: IDesignRenderData = {
-    dev,
-    renderMode,
-    schemaData
-  }
+export const createDesignRenderContext = async <Component>(config: IDesignRenderContextConfig) => {
+  const { depsEntry, renderConfig, iframeEl, schemaData } = config
+  let currentSchemaData = clone(schemaData)
+  let currentDeps: IDeps | undefined = undefined
   const contentWindow = iframeEl.contentWindow as Window
-  let listenerList: IDesignRenderDataChangeListener[] = []
-  const updateData = (data?: Partial<IDesignRenderData>) => {
-    currentDesignRenderData = {
-      ...currentDesignRenderData,
-      ...data
-    }
+  let listenerList: IDesignRenderDataChangeListener<Component>[] = []
+  const updateSchemaData = (data?: ISchemaData) => {
+    currentSchemaData = data
+    const renderData = schemaDataToDesignRenderData<Component>({ data, deps: currentDeps })
     listenerList.map((l) => {
       l({
-        value: currentDesignRenderData,
+        value: { ...renderData },
         timestamp: Date.now()
       })
     })
@@ -68,23 +103,24 @@ export const createDesignRenderContext = async (config: IDesignRenderContextConf
     // @ts-ignore
     contentWindow[uid] = oldValue
     const deps = await fetchDeps({ entry: depsEntry, targetWindow: contentWindow })
+    currentDeps = deps
     const renderLib = deps?.get(renderConfig.packageName)
 
-    const render = resolveDepVar<IDesignRender>({
+    const render = resolveDepVar<IDesignRender<Component>>({
       dep: renderLib,
       varName: renderConfig.renderVarName
     })
     if (!render) {
       return
     }
+    const renderData = schemaDataToDesignRenderData<Component>({
+      data: schemaData,
+      deps: currentDeps
+    })
     await render({
       mountElementId: '#app',
       deps: deps || new Map(),
-      data: {
-        schemaData,
-        dev: false,
-        renderMode: 'design'
-      },
+      data: { ...renderData },
       watchData: (listener) => {
         listenerList.push(listener)
         const removeListener = () => {
@@ -111,11 +147,14 @@ export const createDesignRenderContext = async (config: IDesignRenderContextConf
 </html>
       `)
   return {
-    updateData,
-    getDesignRenderData: () => {
+    updateSchemaData,
+    getSchemaData: () => {
       return {
-        ...currentDesignRenderData
-      } as IDesignRenderData
+        ...currentSchemaData
+      } as ISchemaData
+    },
+    getDeps: () => {
+      return currentDeps
     }
   }
 }

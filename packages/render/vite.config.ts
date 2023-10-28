@@ -55,7 +55,8 @@ export default defineConfig({
     sourcemap: true,
     lib: {
       entry: {
-        index: resolve(__dirname, 'src/index.ts')
+        runtime: resolve(__dirname, 'src/runtime.ts'),
+        design: resolve(__dirname, 'src/design.ts')
       },
       formats: ['cjs', 'es'],
       fileName: (format, entryName) => {

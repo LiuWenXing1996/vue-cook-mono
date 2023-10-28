@@ -22,8 +22,7 @@ export {
   createLowcodeContext,
   getLowcodeContext,
   ElementDataLowcodeContextIdKey,
-  ElementDataCoreLibOnceGetterIdIdKey,
-  type ISchemaData
+  ElementDataCoreLibOnceGetterIdIdKey
 } from './lowcode'
 
 export {
@@ -49,6 +48,15 @@ export {
   type IRenderMode
 } from './render/index'
 
+export {
+  type IDesignRenderData,
+  type IDesignRenderContext,
+  type ISchemaData,
+  type IDesignRenderDataWatch,
+  defineDesignRender,
+  createDesignRenderContext
+} from './design-mode/render'
+
 export { emitEditorWindowSchemaChange, SchemaChanegeDataType } from './lowcode/schemaChange'
 
 export { createVueRenderContext, autoRunVueApp } from './lowcode/vueRender'
@@ -71,7 +79,10 @@ export {
   type IView,
   getEditorTypeUniName,
   getComponetMap,
-  type IEditor
+  getStateMap,
+  type IEditor,
+  type IComponentMap,
+  type IStateMap
   // check as componentSchemaCheck,
   // transformComponent as componentSchemaTransfer,
   // transformComponentEntryTs

@@ -37,7 +37,11 @@ export const generateExternal = () => {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    dts({ tsconfigPath: resolve(__dirname, './tsconfig.dts.json'), rollupTypes: true }),
+    dts({
+      tsconfigPath: resolve(__dirname, './tsconfig.dts.json'),
+      rollupTypes: true,
+      insertTypesEntry: true
+    }),
     vue(),
     vueJsx()
   ],
@@ -53,8 +57,12 @@ export default defineConfig({
   build: {
     minify: false,
     sourcemap: true,
+    cssCodeSplit: true,
     lib: {
-      entry: [resolve(__dirname, 'src/design.ts'), resolve(__dirname, 'src/runtime.ts')],
+      entry: {
+        design: resolve(__dirname, 'src/design.ts'),
+        runtime: resolve(__dirname, 'src/runtime.ts')
+      },
       formats: ['cjs', 'es'],
       fileName: (format, entryName) => {
         if (format == 'cjs') {

@@ -5,13 +5,31 @@ template:
       class: sss
     slots:
       default:
-        - text: 1111fffffff
+        - text: 11113ffffffffsdfsdffdsf
             fsdfjkhsdkjfhdskj
         - tag: el-button
           attributes:
             size: large
             type: success
+          slots:
+            default:
+              - text: 11113ff
 components:
   el-button:
     packageName: "@vue-cook/element-plus-materials"
     varName: ElButton
+states:
+  name: "'ssss'"
+  hello: |
+    {
+      a: "aa",
+      b: {
+        c: states.name,
+        d: {
+          e: "eeee"
+        }
+      }
+    }
+    `${ssss}`
+  he:
+    helloFinall: "`hello-${states.hello}`"

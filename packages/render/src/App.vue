@@ -1,29 +1,27 @@
 <template>
-    <ComponentRender :config="componentSchemaConfig" :dev="data.dev" :render-mode="data.renderMode" :var-map="varMap"
-        :component-map="componentMap"></ComponentRender>
+    ssss
+    <ComponentRender :config="componentSchemaConfig" :state-map="stateMap" :component-map="componentMap"></ComponentRender>
 </template>
 <script setup lang="ts">
-import { type IComponentSchemaConfig, type IRenderData, type IView, type IEditor } from '@vue-cook/core';
+import { type IComponentSchemaConfig, type IRenderData, type IView, type IEditor, getStateMap } from '@vue-cook/core';
 import ComponentRender from './components//ComponentRender.vue';
-import { ref, toRefs, type Component, shallowRef, onMounted, watch } from 'vue';
-import type { IDeps } from '@vue-cook/core';
-import { getComponetMap } from '@vue-cook/core';
+import { ref, toRefs, type Component, shallowRef, onMounted, watch, computed } from 'vue';
+import type { IComponentMap, IDeps, IDesignRenderData, IDesignRenderDataWatch, IStateMap } from '@vue-cook/core';
 const props = defineProps<{
-    data: IRenderData,
-    deps: IDeps
+    data: IDesignRenderData<Component>,
+    watchData: IDesignRenderDataWatch<Component>
 }>()
-const { data, deps } = toRefs(props)
+const { data, watchData } = toRefs(props)
 
-const componentSchemaConfig = shallowRef<IComponentSchemaConfig | undefined>(data.value.schemaData)
-const componentMap = shallowRef<Map<string, Component>>(new Map())
-const varMap = shallowRef<Map<string, IView<Component>>>(new Map())
+const componentSchemaConfig = shallowRef<IComponentSchemaConfig | undefined>(data.value.mainComponentConfig)
+const componentMap = shallowRef<IComponentMap<Component>>(new Map())
+const stateMap = shallowRef<IStateMap>(new Map())
 
-watch(data, (value) => {
-    const schemaData = value.schemaData
-    componentSchemaConfig.value = schemaData
-    componentMap.value = getComponetMap({
-        deps: deps.value,
-        componentConfig: schemaData
-    })
+watchData.value((data) => {
+    const { value } = data
+    componentSchemaConfig.value = value.mainComponentConfig
+    componentMap.value = value.componentMap || new Map()
+    stateMap.value = value.stateMap || new Map()
 })
+
 </script>
