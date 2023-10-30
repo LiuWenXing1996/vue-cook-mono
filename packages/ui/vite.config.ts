@@ -6,6 +6,7 @@ import { resolve } from 'node:path'
 import pkgJson from './package.json'
 import dts from 'vite-plugin-dts'
 import type { ProjectManifest } from '@pnpm/types'
+import svgLoader from 'vite-svg-loader'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
@@ -39,7 +40,8 @@ export default defineConfig({
   plugins: [
     dts({ tsconfigPath: resolve(__dirname, './tsconfig.dts.json'), rollupTypes: true }),
     vue(),
-    vueJsx()
+    vueJsx(),
+    svgLoader()
   ],
   define: {
     __VUE_PROD_DEVTOOLS__: true

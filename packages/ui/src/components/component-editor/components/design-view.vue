@@ -54,15 +54,12 @@
             </n-space>
         </div>
         <div class="component-cook-contaienr">
-            <ruler-box :size="size">
-                <div class="component-cook-content">
-                    <iframe ref="iframeRef"></iframe>
-                    <component-picker :iframe-ref="iframeRef" :enable-picker="true" :size="size"
-                        :rendererContext="rendererContextRef"></component-picker>
-                </div>
-            </ruler-box>
+            <div class="component-cook-content">
+                <iframe ref="iframeRef"></iframe>
+                <component-picker :iframe-ref="iframeRef" :enable-picker="true" :size="size"
+                    :rendererContext="rendererContextRef"></component-picker>
+            </div>
         </div>
-
     </div>
 </template>
 <script setup lang="ts">
