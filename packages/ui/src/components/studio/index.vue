@@ -10,10 +10,7 @@
                         <Pane class="center-pane" min-size="15">
                             <center-pane></center-pane>
                         </Pane>
-                        <Pane class="bottom-pane" min-size="15" size="20">
-                            bottom
-                            <!-- <panel-list :list=" state.layout.bottom"></panel-list> -->
-                        </Pane>
+                     
                     </Splitpanes>
                 </Pane>
             </Splitpanes>

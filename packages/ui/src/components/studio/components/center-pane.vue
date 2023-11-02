@@ -5,7 +5,7 @@ import { inject, toRefs } from "vue";
 import type { IStudioState } from "../types";
 
 const studioState = inject<IStudioState>('studioState') as IStudioState
-const { panelList, currentPanelId } = toRefs(studioState)
+const { panelList, currentPanelId,tabsLayout } = toRefs(studioState)
 
 const handleClose = (uid: string) => {
     if (currentPanelId.value === uid) {
@@ -18,10 +18,7 @@ const handleClose = (uid: string) => {
 </script>
 <template>
     <div class="panel-list">
-        <template v-if="panelList.length <= 0">
-            <div class="title">
-                <div>无面板</div>
-            </div>
+        <template v-if="tabsLayout.list.length <= 0">
             <div class="content">
                 <n-empty description="没有打开的面板"></n-empty>
             </div>
