@@ -2,7 +2,7 @@ import { resolveDepVar, type IDep } from '@/utils/fetchDeps'
 import type { IDeps } from '..'
 import type { JsonType, JsonTypeObject } from '@/utils/jsonType'
 import type { IRenderMode } from '@/render'
-import type { ISchemaData } from '@/design-mode/renderer-context'
+import type { ISchemaData } from '@/design-mode/design-renderer-context'
 import { resolve } from '@/utils/path'
 export interface IEditorType extends JsonTypeObject {
   name: string

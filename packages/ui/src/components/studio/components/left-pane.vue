@@ -22,12 +22,14 @@ import { NLayout, NLayoutSider, NMenu, NIcon } from "naive-ui"
 import type { MenuOption } from "naive-ui"
 import FileTree from "@/components/file-tree/index.vue"
 import MaterialPane from "@/components/material-pane/index.vue"
+import ComponentTree from "@/components/component-tree/index.vue"
 import {
     DocumentsOutline,
     SearchOutline,
     PlayOutline,
     GridOutline
 } from '@vicons/ionicons5'
+import ComponentTreeIcon from "@/icons/component-tree.svg?component"
 
 const selectedKey = ref('resource-manager')
 const selectedContent = computed(() => {
@@ -43,8 +45,14 @@ const menuOptions: (MenuOption & {
     content: Component
 })[] = [
         {
-            label: '资源管理器',
-            key: 'resource-manager',
+            label: '大纲树',
+            key: 'component-tree',
+            icon: renderIcon(ComponentTreeIcon),
+            content: ComponentTree
+        },
+        {
+            label: '文件管理器',
+            key: 'file-manager',
             icon: renderIcon(DocumentsOutline),
             content: FileTree
         },

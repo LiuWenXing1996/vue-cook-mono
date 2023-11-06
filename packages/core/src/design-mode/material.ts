@@ -1,4 +1,5 @@
 import { fetchDeps, resolveDepVar, type IDep, type IDepsEntry } from '@/utils/fetchDeps'
+import type { JsonType } from '@/utils/jsonType'
 import { v4 as uuidv4 } from 'uuid'
 
 export interface IMaterial {
@@ -7,6 +8,17 @@ export interface IMaterial {
   tag: string
   packageName: string
   varName: string
+  editor: {
+    attributes?: Record<string, IEditorConfig>
+    events?: Record<string, IEditorConfig>
+    slots?: Record<string, IEditorConfig>
+  }
+}
+
+export interface IEditorConfig {
+  editorComponentName: string // TODO:只有自己的包里面的editor才能使用的
+  data?: any
+  defaultValue?: JsonType
 }
 
 export const defineMaterial = (material: IMaterial) => material

@@ -1,12 +1,15 @@
 <template>
     <div class="material-pane">
-        <n-data-table :columns="columns" :data="data" size="small" :pagination="false" :bordered="false" />
+        <n-space>
+            <material-item v-for="m in materials" :material="m.material" :dep="m.dep"></material-item>
+        </n-space>
     </div>
 </template>
 <script setup lang="ts">
 import { computed, onMounted, shallowRef } from 'vue';
-import { NDataTable } from 'naive-ui'
+import { NDataTable, NSpace } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
+import MaterialItem from './components/material-item.vue';
 import { type IMaterialWithDep, getMaterialList } from "@vue-cook/core"
 import { useInjectSudioState } from "@/hooks/useInjectStudioState";
 const { services, projectName } = useInjectSudioState()

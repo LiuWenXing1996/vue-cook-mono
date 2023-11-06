@@ -6,6 +6,14 @@ export default [
     group: 'element-plus',
     tag: 'el-button',
     packageName: '@vue-cook/element-plus-materials',
-    varName: 'ElButton'
+    varName: 'ElButton',
+    editor: {
+      attributes: {
+        size: {
+          type: 'enum',
+          packageName: ''
+        }
+      }
+    }
   })
 ]

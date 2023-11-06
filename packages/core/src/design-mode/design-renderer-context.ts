@@ -14,7 +14,7 @@ import {
   type AbstractDesignRenderer,
   type IDesignRendererData,
   getInternalDesignRenderer
-} from './abstract-renderer'
+} from './abstract-design-renderer'
 
 class InternalDesignRendererContext<Component> {
   #schemaData: ISchemaData | undefined
@@ -135,6 +135,7 @@ export interface IDesignComponentPageSize {
   scale: number
 }
 
+// TODO:改成dev-render,或者dev-mode==>{design-render,editor-render}
 export type IDesignRendererContext = Awaited<ReturnType<typeof createDesignRendererContext>>
 export const createDesignRendererContext = async <Component>(
   config: IDesignRendererContextConfig

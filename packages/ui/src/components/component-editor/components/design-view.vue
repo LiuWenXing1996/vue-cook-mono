@@ -1,78 +1,34 @@
 <template>
     <div class="design-view">
-        <div class="actions">
-            <n-space align="center">
-                <n-popover trigger="hover" placement="bottom">
-                    <template #trigger>
-                        <n-icon @click="undo()">
-                            <arrow-undo-outline></arrow-undo-outline>
-                        </n-icon>
-                    </template>
-                    撤销
-                </n-popover>
-                <n-popover trigger="hover" placement="bottom">
-                    <template #trigger>
-                        <n-icon @click="redo()">
-                            <arrow-redo-outline></arrow-redo-outline>
-                        </n-icon>
-                    </template>
-                    恢复
-                </n-popover>
-                <n-popover trigger="hover" placement="bottom">
-                    <template #trigger>
-                        <n-icon>
-                            <document-outline></document-outline>
-                        </n-icon>
-                    </template>
-                    <n-space vertical>
-                        <n-space align="center" justify="space-around" style="width: 200px;">
-                            <label>宽度：</label>
-                            <div style="width: 130px;">
-                                <n-input-number v-model:value="size.width" size="small">
-                                    <template #suffix>px</template>
-                                </n-input-number>
-                            </div>
-                        </n-space>
-                        <n-space align="center" justify="space-around" style="width: 200px;">
-                            <label>高度：</label>
-                            <div style="width: 130px;">
-                                <n-input-number v-model:value="size.height" size="small">
-                                    <template #suffix>px</template>
-                                </n-input-number>
-                            </div>
-                        </n-space>
-                        <n-space align="center" justify="space-around" style="width: 200px;">
-                            <label>比例：</label>
-                            <div style="width: 130px;">
-                                <n-input-number v-model:value="size.scale" size="small">
-                                    <template #suffix>%</template>
-                                </n-input-number>
-                            </div>
-                        </n-space>
-                    </n-space>
-                </n-popover>
-            </n-space>
-        </div>
-        <div class="component-cook-contaienr">
-            <div class="component-cook-content">
-                <iframe ref="iframeRef"></iframe>
-                <component-picker :iframe-ref="iframeRef" :enable-picker="true" :size="size"
-                    :rendererContext="rendererContextRef"></component-picker>
-            </div>
-        </div>
+        <split-pane-container>
+            <split-pane min-size="15" size="70">
+                <div class="component-cook-contaienr">
+                    <div class="component-cook-content">
+                        <iframe ref="designRendererIframeRef"></iframe>
+                        <component-picker :iframe-ref="designRendererIframeRef" :enable-picker="true" :size="size"
+                            :rendererContext="rendererContextRef"></component-picker>
+                    </div>
+                </div>
+            </split-pane>
+            <split-pane min-size="15" size="30">
+                <div class="component-editor-container">
+                    <iframe class="component-editor-container-iframe" ref="editorRendererIframeRef"></iframe>
+                </div>
+            </split-pane>
+        </split-pane-container>
+
+
     </div>
 </template>
 <script setup lang="ts">
 import { shallowRef, ref, watch, toRefs, computed, onUnmounted } from 'vue';
-import { NIcon, NPopover, NSpace, NInputNumber } from "naive-ui"
-import { ArrowUndoOutline, ArrowRedoOutline, DocumentOutline } from "@vicons/ionicons5"
-import { createDesignRendererContext, removeTemplatePid, type IComponentConfigWithTemplatePid, type IDesignComponentPageSize, type IDesignRendererContext } from "@vue-cook/core"
+import { createDesignRendererContext, removeTemplatePid, type IDesignComponentPageSize, type IDesignRendererContext } from "@vue-cook/core"
 import { useInjectSudioState } from '@/hooks/useInjectStudioState';
 import { useComponentSchemaList } from '@/hooks/useComponentSchemaList';
-import RulerBox from "./ruler-box.vue"
 import { useRefHistory } from '@vueuse/core'
 import ComponentPicker from "./component-picker.vue"
-import FileEditor from "@/components/file-editor/index.vue"
+import SplitPaneContainer from "@/components/splitpanes/split-pane-container.vue"
+import SplitPane from "@/components/splitpanes/split-pane.vue"
 
 const { services, projectName, vfs } = useInjectSudioState()
 const componentSchemaList = useComponentSchemaList({ vfs: vfs.value, componentSchemaFileNames: ["page.config.yaml"] })
@@ -86,7 +42,8 @@ const size = ref<IDesignComponentPageSize>({
     height: 1080,
     scale: 100
 })
-const iframeRef = ref<HTMLIFrameElement>()
+const designRendererIframeRef = ref<HTMLIFrameElement>()
+const editorRendererIframeRef = ref<HTMLIFrameElement>()
 const rendererContextRef = shallowRef<IDesignRendererContext>()
 const toPx = (n: number) => `${n}px`
 const widthPx = computed(() => toPx(size.value.width * size.value.scale / 100))
@@ -105,14 +62,14 @@ onUnmounted(() => {
     dispose()
 })
 
-watch(iframeRef, async () => {
-    if (iframeRef?.value?.contentWindow) {
+watch(designRendererIframeRef, async () => {
+    if (designRendererIframeRef?.value?.contentWindow) {
         const depsEntry = await services.value.getDesignDepsEntry({
             projectName: projectName.value
         })
         const conext = await createDesignRendererContext({
             depsEntry: depsEntry,
-            iframeEl: iframeRef.value,
+            iframeEl: designRendererIframeRef.value,
             schemaData: {
                 mainPath: path.value,
                 componentList: componentSchemaList.value
@@ -153,33 +110,16 @@ watch([path, componentSchemaList], ([path, componentSchemaList]) => {
 <style lang="less" scoped>
 .design-view {
     height: 100%;
-    position: relative;
+    width: 100%;
     display: flex;
-    flex-direction: column;
-
-    .actions {
-        padding: 3px;
-        width: 100%;
-
-        .n-icon:hover {
-            cursor: pointer;
-            color: rgb(24, 160, 88);
-        }
-
-        .n-icon.actived {
-            color: rgb(24, 160, 88);
-        }
-    }
+    flex-direction: row;
 
     .component-cook-contaienr {
         flex-grow: 1;
-        overflow: hidden;
-        position: relative;
+        width: 60%;
 
         .component-cook-content {
             position: relative;
-            width: v-bind(widthPx);
-            height: v-bind(heightPx);
 
             iframe {
                 border: none;
@@ -192,6 +132,17 @@ watch([path, componentSchemaList], ([path, componentSchemaList]) => {
                 transform: v-bind(scaleString);
                 transform-origin: top left;
             }
+        }
+    }
+
+    .component-editor-container {
+        flex-grow: 1;
+        width: 40%;
+
+        .component-editor-container-iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
         }
     }
 

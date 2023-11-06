@@ -25,52 +25,16 @@
                         </n-icon>
                     </template>
                 </n-popover>
-                <n-divider vertical />
-                <n-popover trigger="hover" placement="bottom">
-                    <template #trigger>
-                        <n-icon>
-                            <code-and-design-view-split-icon></code-and-design-view-split-icon>
-                        </n-icon>
-                    </template>
-                    平分视图
-                </n-popover>
-                <n-popover trigger="hover" placement="bottom">
-                    <template #trigger>
-                        <n-icon>
-                            <code-view-icon></code-view-icon>
-                        </n-icon>
-                    </template>
-                    代码视图
-                </n-popover>
-                <n-popover trigger="hover" placement="bottom">
-                    <template #trigger>
-                        <n-icon>
-                            <design-view-icon></design-view-icon>
-                        </n-icon>
-                    </template>
-                    设计视图
-                </n-popover>
-                <n-divider vertical />
             </n-space>
         </div>
-        <div class="view-content">
-            <div class="code-view-wrapper">
-                <file-editor :name="filePath"></file-editor>
-            </div>
-            <div class="design-view-wrapper">
-                <design-view :path="filePath"></design-view>
-            </div>
+        <div class="design-view-wrapper">
+            <design-view :path="filePath"></design-view>
         </div>
     </div>
 </template>
 <script setup lang="ts">
-import { NDivider } from "naive-ui"
-import FileEditor from "@/components/file-editor/index.vue"
 import DesignView from "./components/design-view.vue"
-import CodeAndDesignViewSplitIcon from "@/icons/code-and-design-view-split.svg?component"
-import CodeViewIcon from "@/icons/code-view.svg?component"
-import DesignViewIcon from "@/icons/design-view.svg?component"
-import { NIcon, NPopover, NSpace, NInputNumber } from "naive-ui"
+import { NIcon, NPopover, NSpace } from "naive-ui"
 import { ArrowUndoOutline, ArrowRedoOutline, DocumentOutline } from "@vicons/ionicons5"
 
 defineProps<{ filePath: string }>()
@@ -96,17 +60,10 @@ defineProps<{ filePath: string }>()
         }
     }
 
-    .view-content {
+    .design-view-wrapper {
         flex: 1;
         display: flex;
         flex-direction: row;
-
-        .code-view-wrapper,
-        .design-view-wrapper {
-            height: 100%;
-            width: 50%;
-        }
-
     }
 }
 </style>

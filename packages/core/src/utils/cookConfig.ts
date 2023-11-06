@@ -28,6 +28,7 @@ export interface ICookMeta {
   }[]
   materialsVarName?: string
   viewsVarName?: string
+  editorsVarName?: string
   materials?: { name: string; varName: string }[]
   runtimeEntry?: {
     import?: string

@@ -4,7 +4,7 @@ import {
   type IStateMap
 } from '@/schema/component'
 import { type IDeps } from '@/utils/fetchDeps'
-import type { IDesignComponentOverlay, ISchemaData } from './renderer-context'
+import type { IDesignComponentOverlay, ISchemaData } from './design-renderer-context'
 
 const internalToExternalMap = new WeakMap<InternalDesignRenderer, AbstractDesignRenderer>()
 const externalToInternalMap = new WeakMap<AbstractDesignRenderer, InternalDesignRenderer>()

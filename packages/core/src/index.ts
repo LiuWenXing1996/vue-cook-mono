@@ -31,7 +31,7 @@ export {
   type IRemotePlugin,
   type IRunRemotePluginConfig
 } from './design-mode/remote-plugin'
-export { exportDeps, type IDepMeta, type IDeps, fetchDeps } from './utils/fetchDeps'
+export { exportDeps, type IDepMeta, type IDeps, type IDep, fetchDeps } from './utils/fetchDeps'
 
 export {
   getMaterialList,
@@ -54,13 +54,24 @@ export {
   type IDesignComponentOverlay,
   type IDesignComponentPageSize,
   createDesignRendererContext
-} from './design-mode/renderer-context'
+} from './design-mode/design-renderer-context'
 
 export {
   type IDesignRendererData,
   type IDesignRendererDataWatch,
   AbstractDesignRenderer
-} from './design-mode/abstract-renderer'
+} from './design-mode/abstract-design-renderer'
+
+export {
+  type IEditorRendererContext,
+  createEditorRendererContext
+} from './design-mode/editor-renderer-context'
+
+export {
+  type IEditorRendererData,
+  type IEditorRendererDataWatch,
+  AbstractEditorRenderer
+} from './design-mode/abstract-editor-renderer'
 
 export { emitEditorWindowSchemaChange, SchemaChanegeDataType } from './lowcode/schemaChange'
 
