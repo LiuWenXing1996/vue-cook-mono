@@ -3,8 +3,43 @@
     "template": [
         {
             "tag": "div",
+            "class": [
+                "c",
+                {
+                    "name": "toggle-c",
+                    "toggoleStateName": "a"
+                }
+            ],
             "attributes": {
-                "class": "sss"
+                "the-logic": {
+                    "type": "action",
+                    "value": "alert"
+                },
+                "the-string": {
+                    "type": "string",
+                    "value": "alert"
+                },
+                "the-number": {
+                    "type": "number",
+                    "value": 1
+                },
+                "the-component": {
+                    "type": "component",
+                    "value": {
+                        "s": 1,
+                        "b": "ddd"
+                    }
+                },
+                "the-object": {
+                    "type": "object",
+                    "value": {
+                        "s": 1,
+                        "b": "ddd"
+                    }
+                }
+            },
+            "events": {
+                "click": "alert"
             },
             "slots": {
                 "default": [
@@ -33,6 +68,17 @@
         "el-button": {
             "packageName": "@vue-cook/element-plus-materials",
             "varName": "ElButton"
+        }
+    },
+    "states": {},
+    "styles": {
+        "s": {}
+    },
+    "actions": {
+        "alert": {
+            "type": "JsFunction|LogicComposer",
+            "jsPath": "./actions.ts",
+            "varName": "alert"
         }
     }
 }

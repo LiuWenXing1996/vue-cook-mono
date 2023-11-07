@@ -1,4 +1,5 @@
 import {
+  type IAttributeData,
   type IComponentConfigWithTemplatePid,
   type IComponentMap,
   type IStateMap
@@ -29,10 +30,16 @@ class InternalDesignRenderer<Component = any> {
 }
 
 export abstract class AbstractDesignRenderer<Component = any> {
+  #actionMap: Map<string, Function>
+  #stateMap: Map<string, any>
+  #locale: string
   constructor() {
     const internalDesignRenderer = new InternalDesignRenderer()
     internalToExternalMap.set(internalDesignRenderer, this)
     externalToInternalMap.set(this, internalDesignRenderer)
+    this.#actionMap = new Map()
+    this.#stateMap = new Map()
+    this.#locale = 'zh'
   }
   watchData(listener: IDesignRendererDataChangeListener<Component>) {
     const internalDesignRenderer = getInternalDesignRenderer(this)
@@ -48,6 +55,65 @@ export abstract class AbstractDesignRenderer<Component = any> {
   }
   getDeps() {
     return getInternalDesignRenderer(this).deps
+  }
+  // 拆分？
+  transferAttributeData(data: IAttributeData) {
+    const transferMap: Record<IAttributeData['type'], (data: IAttributeData) => any> = {
+      string: (data) => {
+        if (data.type === 'string') {
+          return String(data.value)
+        }
+      },
+      number: (data) => {
+        if (data.type === 'number') {
+          return Number(data.value)
+        }
+      },
+      boolean: (data) => {
+        if (data.type === 'boolean') {
+          return Boolean(data.value)
+        }
+      },
+      object: (data) => {
+        if (data.type === 'object') {
+          let res: Record<string, any> = {}
+          const { value = {} } = data
+          Object.keys(value).map((key) => {
+            const itemData = value[key]
+            res[key] = transferMap[itemData.type](itemData)
+          })
+          return res
+        }
+      },
+      action: (data) => {
+        if (data.type === 'object') {
+          let res: Record<string, any> = {}
+          const { value = {} } = data
+          Object.keys(value).map((key) => {
+            const itemData = value[key]
+            res[key] = transferMap[itemData.type](itemData)
+          })
+          return res
+        }
+      },
+      state: (data) => {
+        if (data.type === 'state') {
+          return this.#stateMap.get(data.value)
+        }
+      },
+      i18n: (data) => {
+        if (data.type === 'i18n') {
+          return data.value[this.#locale]
+        }
+      },
+      json: (data) => {
+        if (data.type === 'json') {
+          return data.value
+        }
+      }
+    }
+
+    return transferMap[data.type](data)
   }
   abstract mount(mountElementId: string): Promise<void> | void
   abstract getComponetnOverlayFromElement(element: Element): IDesignComponentOverlay | undefined

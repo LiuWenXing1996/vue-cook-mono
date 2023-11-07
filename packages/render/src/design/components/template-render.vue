@@ -31,16 +31,9 @@ const attributes = computed(() => {
     let res: Record<string, any> = {}
     Object.keys(attributesConfig).map(key => {
         const config = attributesConfig[key]
-        if (config.isVar) {
-            const value = config.value as string
-            res[key] = stateMap.value.get(value)
-        } else {
-            try {
-                res[key] = JSON.parse(config.value)
-            } catch (error) {
-            }
-        }
+        res[key] = renderer.transferAttributeData(config)
     })
+
     return res
 })
 

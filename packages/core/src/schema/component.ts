@@ -21,16 +21,76 @@ export interface IEditor<V extends JsonType = JsonType, R = any> {
 export type ITemplateAttributes = Record<
   string,
   | {
-      isVar: false
-      value: string
-    }
+    isVar: false
+    value: string
+  }
   | { isVar: true; value: JsonType }
 >
+
+export interface IAttributeDataBase {
+  type: string
+  value: any
+}
+
+export type IAttributeData =
+  IAttributeActionData |
+  IAttributeStringData |
+  IAttributeStateData |
+  IAttributeNumberData |
+  IAttributeBooleanData |
+  IAttributeI18nData |
+  IAttributeJsonData |
+  IAttributeObjectData
+
+export interface IAttributeActionData extends IAttributeDataBase {
+  type: "action"
+  value: string
+}
+
+export interface IAttributeStateData extends IAttributeDataBase {
+  type: "state"
+  value: string
+}
+
+export interface IAttributeStringData extends IAttributeDataBase {
+  type: "string"
+  value: string
+}
+
+export interface IAttributeNumberData extends IAttributeDataBase {
+  type: "number"
+  value: number
+}
+
+export interface IAttributeBooleanData extends IAttributeDataBase {
+  type: "boolean"
+  value: boolean
+}
+
+export interface IAttributeI18nData extends IAttributeDataBase {
+  type: "i18n"
+  value: {
+    [langKey: string]: string
+  }
+}
+
+export interface IAttributeJsonData extends IAttributeDataBase {
+  type: "json"
+  value: JsonTypeObject
+}
+
+export interface IAttributeObjectData extends IAttributeDataBase {
+  type: "object"
+  value: {
+    [dataKey: string]: IAttributeData
+  }
+}
+
 
 export interface ITemplateConfig {
   text?: string
   tag?: string
-  attributes?: ITemplateAttributes
+  attributes?: Record<string, IAttributeData>
   slots?: Record<string, ITemplateConfig[]>
   events?: Record<string, string[]>
 }
@@ -40,6 +100,7 @@ export interface IComponentConfig {
   template?: ITemplateConfig[]
   style?: string
   states?: Record<string, string>
+  props?: Record<string, unknown>
   components?: Record<
     string,
     {
