@@ -16,8 +16,8 @@
                     "value": "alert"
                 },
                 "the-string": {
-                    "type": "string",
-                    "value": "alert"
+                    "type": "state",
+                    "value": "msg"
                 },
                 "the-number": {
                     "type": "number",
@@ -48,9 +48,28 @@
                     },
                     {
                         "tag": "el-button",
+                        "v-for": {
+                            "key": "item",
+                            "data": {
+                                "type": "state",
+                                "value": "forData"
+                            }
+                        },
+                        "v-if": {
+                            "bind": {
+                                "type": "state",
+                                "value": "show"
+                            }
+                        },
                         "attributes": {
-                            "size": "large",
-                            "type": "success"
+                            "size": {
+                                "type": "state",
+                                "value": "msg"
+                            },
+                            "type": {
+                                "type": "slotProp",
+                                "value": "a"
+                            }
                         },
                         "slots": {
                             "default": [
@@ -70,7 +89,9 @@
             "varName": "ElButton"
         }
     },
-    "states": {},
+    "states": {
+        "msg": "large"
+    },
     "styles": {
         "s": {}
     },

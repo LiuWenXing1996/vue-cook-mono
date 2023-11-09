@@ -1,5 +1,6 @@
 import type { ProjectManifest } from '@pnpm/types'
 import type { DeepRequired } from 'utility-types'
+import { createFsUtils, type IFsPromisesApi } from './fs'
 
 export interface ICookConfig {
   root?: string
@@ -8,6 +9,18 @@ export interface ICookConfig {
   minify?: boolean
   tempDir?: string
   sourcemap?: boolean
+  viewFileSuffix: {
+    component: string
+    page: string
+    layout: string
+  }
+  embed?: {
+    name: string
+    externals?: {
+      packageName: string
+      injectName: string
+    }[]
+  }[]
   deps?: {
     name: string
     entry?: string
@@ -61,6 +74,18 @@ export const getCookConfigRelativePath = (pkgJson: IPkgJson) => {
   return pkgJson.cookConfigFile || 'cook.config.json'
 }
 
+export const getCookConfigFromFs = async (fs: IFsPromisesApi) => {
+  const fsUtils = createFsUtils(fs)
+  const packageJsonPath = './package.json'
+  const pkgJson = await fsUtils.readJson<IPkgJson>(packageJsonPath)
+  const cookConfigRelativePath = pkgJson.cookConfigFile || 'cook.config.json'
+  const cookConfig = await fsUtils.readJson<ICookConfig>(packageJsonPath)
+  return {
+    path: cookConfigRelativePath,
+    content: fillConfig(cookConfig)
+  }
+}
+
 export const fillConfig = (config: ICookConfig): IDeepRequiredCookConfig => {
   const defaultConfig = getCookConfigDefault()
 
@@ -81,7 +106,13 @@ export const getCookConfigDefault = () => {
     tempDir: './node_modules/.vue-cook',
     sourcemap: true,
     deps: [],
-    overrideCookMetas: []
+    overrideCookMetas: [],
+    viewFileSuffix: {
+      component: '.cook-component.json',
+      page: '.cook-page.json',
+      layout: '.cook-layout.json'
+    },
+    embed: []
   }
   return defaultConfig
 }

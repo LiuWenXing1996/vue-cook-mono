@@ -1,3 +1,4 @@
+import { getCookConfigFromFs } from '@vue-cook/core'
 import {
   type IVirtulFileSystem,
   type ISchemaData,
@@ -9,13 +10,13 @@ import { computed, shallowRef } from 'vue'
 
 const getComponentSchemaList = async (params: {
   vfs: IVirtulFileSystem
-  componentSchemaFileNames: string[]
 }) => {
   const list: ISchemaData['componentList'] = []
-  const { vfs, componentSchemaFileNames } = params
+  const { vfs, } = params
   try {
+    const cookConfig = await getCookConfigFromFs(vfs)
     const allFiles = await vfs.listFiles()
-    const schemaFiles = allFiles.filter((e) => componentSchemaFileNames.includes(path.basename(e)))
+    const schemaFiles = allFiles.filter((e) => e.endsWith(cookConfig.content.viewFileSuffix.component))
     await Promise.all(
       schemaFiles.map(async (e) => {
         try {
@@ -24,10 +25,11 @@ const getComponentSchemaList = async (params: {
             path: e,
             value: schema
           })
-        } catch (error) {}
+        } catch (error) { }
       })
     )
-  } catch (error) {}
+  } catch (error) { }
+  console.log("list", list)
   return list
 }
 

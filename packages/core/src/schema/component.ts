@@ -189,7 +189,7 @@ export const getStateMap = (params: { deps?: IDeps; data?: ISchemaData }) => {
     }
   })
   Object.entries(states).map(([key, value]) => {
-    map.set(key, s[value])
+    map.set(key, value)
   })
   return map
 }

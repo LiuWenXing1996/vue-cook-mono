@@ -9,6 +9,7 @@
     "build:schema": "vue-cook build-schema -c ./cook.config.json -p ./package.json",
     "build:auto": "vue-cook build-auto -c ./cook.config.json -p ./package.json",
     "build:design": "vue-cook build-design -c ./cook.config.json -p ./package.json",
+    "build:dev": "vue-cook build-dev -c ./cook.config.json -p ./package.json",
     "build:runtime": "vue-cook build-runtime -c ./cook.config.json -p ./package.json",
     "build:lowcode": "run-p build:design build:runtime",
     "preview": "vite preview",

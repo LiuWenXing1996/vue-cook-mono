@@ -12,6 +12,9 @@
   "compilerOptions": {
     "composite": true,
     "baseUrl": ".",
+    "lib": [
+      "ES2021.String"
+    ],
     "paths": {
       "@/*": [
         "./src/*"

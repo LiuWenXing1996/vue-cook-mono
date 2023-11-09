@@ -13,6 +13,7 @@ export {
   type ICookConfig,
   fillConfig,
   getCookConfigRelativePath,
+  getCookConfigFromFs,
   type IPkgJson,
   type IDeepRequiredCookConfig,
   type ICookMaterialConfig,

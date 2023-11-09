@@ -8,14 +8,24 @@
     "minify": false,
     "sourcemap": true,
     "outdir": "./dist",
-    "deps": [
+    "embed": [
         {
-            "name": "vue",
-            "external": "Vue"
-        },
-        {
-            "name": "vue-router",
-            "external": "VueRouter"
+            "name": "vue-eco-system",
+            "externals": [
+                {
+                    "packageName": "vue",
+                    "injectName": "Vue"
+                },
+                {
+                    "packageName": "vue-router",
+                    "injectName": "VueRouter"
+                },
+                {
+                    "packageName": "@vue-cook/element-plus-materials",
+                    "injectName": "ElementPlusMaterials"
+                }
+                
+            ]
         }
     ]
 }

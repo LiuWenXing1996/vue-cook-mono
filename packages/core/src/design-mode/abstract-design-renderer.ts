@@ -78,10 +78,15 @@ export abstract class AbstractDesignRenderer<Component = any> {
         if (data.type === 'object') {
           let res: Record<string, any> = {}
           const { value = {} } = data
-          Object.keys(value).map((key) => {
-            const itemData = value[key]
-            res[key] = transferMap[itemData.type](itemData)
-          })
+          try {
+            Object.keys(value).map((key) => {
+              const itemData = value[key]
+              res[key] = transferMap[itemData.type](itemData)
+            })
+          } catch (error) {
+
+          }
+
           return res
         }
       },
@@ -113,7 +118,7 @@ export abstract class AbstractDesignRenderer<Component = any> {
       }
     }
 
-    return transferMap[data.type](data)
+    return transferMap[data.type]?.(data)
   }
   abstract mount(mountElementId: string): Promise<void> | void
   abstract getComponetnOverlayFromElement(element: Element): IDesignComponentOverlay | undefined
