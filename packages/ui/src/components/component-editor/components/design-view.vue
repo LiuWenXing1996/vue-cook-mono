@@ -16,13 +16,11 @@
                 </div>
             </split-pane>
         </split-pane-container>
-
-
     </div>
 </template>
 <script setup lang="ts">
 import { shallowRef, ref, watch, toRefs, computed, onUnmounted } from 'vue';
-import { createDesignRendererContext, removeTemplatePid, type IDesignComponentPageSize, type IDesignRendererContext } from "@vue-cook/core"
+import { createDesignRendererContext, type IDesignComponentPageSize, type IDesignRendererContext } from "@vue-cook/core"
 import { useInjectSudioState } from '@/hooks/useInjectStudioState';
 import { useComponentSchemaList } from '@/hooks/useComponentSchemaList';
 import { useRefHistory } from '@vueuse/core'
@@ -30,7 +28,7 @@ import ComponentPicker from "./component-picker.vue"
 import SplitPaneContainer from "@/components/splitpanes/split-pane-container.vue"
 import SplitPane from "@/components/splitpanes/split-pane.vue"
 
-const { services, projectName, vfs } = useInjectSudioState()
+const { services, projectName, vfs, cookConfig, lowcodeBundleData } = useInjectSudioState()
 const componentSchemaList = useComponentSchemaList({ vfs: vfs.value, componentSchemaFileNames: ["page.config.yaml"] })
 
 const props = defineProps<{
@@ -70,15 +68,10 @@ watch(designRendererIframeRef, async () => {
         const conext = await createDesignRendererContext({
             depsEntry: depsEntry,
             iframeEl: designRendererIframeRef.value,
-            schemaData: {
-                mainPath: path.value,
-                componentList: componentSchemaList.value
-            },
-            renderConfig: {
-                packageName: '@vue-cook/render',
-                renderVarName: 'default'
-            },
+            cookConfig: cookConfig.value,
+            mainViewFilePath: path.value,
         })
+        conext.setLowcodeBundleData(lowcodeBundleData.value)
         rendererContextRef.value = conext
     }
 })
@@ -90,21 +83,14 @@ watch(editingSchemaString, async (editingSchemaStringValue) => {
             editingSchema = JSON.parse(editingSchemaStringValue)
             editingSchema = {
                 ...editingSchema,
-                template: editingSchema?.template ? removeTemplatePid(editingSchema?.template) : undefined
+                template: editingSchema?.template ? editingSchema?.template : undefined
             }
         } catch (error) { }
         await vfs.value.writeFile(path.value, JSON.stringify(editingSchema), "utf-8")
     }
 })
-watch([path, componentSchemaList], ([path, componentSchemaList]) => {
-    const editingSchemaValue = componentSchemaList.find(e => e.path = path)?.value
-    editingSchemaString.value = JSON.stringify(editingSchemaValue)
-    if (rendererContextRef.value) {
-        rendererContextRef.value.updateSchemaData({
-            mainPath: path,
-            componentList: componentSchemaList
-        })
-    }
+watch(lowcodeBundleData, (lowcodeBundleDataValue) => {
+    rendererContextRef.value?.setLowcodeBundleData(lowcodeBundleDataValue)
 })
 </script>
 <style lang="less" scoped>

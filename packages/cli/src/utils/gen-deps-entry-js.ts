@@ -65,15 +65,16 @@ import Lib${index}Meta from "${realtiveMetaPath}"
     })
     .join('\n')}
 
-  const deps = new Map();
-  ${depEntryList
-    .map((dep, index) => {
-      return `deps.set("${dep.name}",{
-    value:Lib${index},
-    meta:Lib${index}Meta
-  });`
-    })
-    .join('\n')}
+  const deps = {
+    ${depEntryList
+      .map((dep, index) => {
+        return `"${dep.name}":{
+          value:Lib${index},
+          meta:Lib${index}Meta
+      }`
+      })
+      .join(',\n')}
+  };
 
   exportDeps({deps,targetWindow:window})
   `

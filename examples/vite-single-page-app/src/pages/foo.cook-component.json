@@ -10,77 +10,52 @@
                     "toggoleStateName": "a"
                 }
             ],
-            "attributes": {
-                "the-logic": {
-                    "type": "action",
-                    "value": "alert"
-                },
-                "the-string": {
-                    "type": "state",
-                    "value": "msg"
-                },
-                "the-number": {
-                    "type": "number",
-                    "value": 1
-                },
-                "the-component": {
-                    "type": "component",
-                    "value": {
-                        "s": 1,
-                        "b": "ddd"
-                    }
-                },
-                "the-object": {
-                    "type": "object",
-                    "value": {
-                        "s": 1,
-                        "b": "ddd"
-                    }
-                }
-            },
             "events": {
                 "click": "alert"
             },
-            "slots": {
-                "default": [
-                    {
-                        "text": "11113ffffffffsdfsdffdsf fsdfjkhsdkjfhdskj"
-                    },
-                    {
-                        "tag": "el-button",
-                        "v-for": {
-                            "key": "item",
-                            "data": {
-                                "type": "state",
-                                "value": "forData"
-                            }
+            "slots": [
+                {
+                    "name": "default",
+                    "content": [
+                        {
+                            "text": "11113ffffffffsdfsdffdsf fsdfjkhsdkjfhdskj"
                         },
-                        "v-if": {
-                            "bind": {
-                                "type": "state",
-                                "value": "show"
-                            }
-                        },
-                        "attributes": {
-                            "size": {
-                                "type": "state",
-                                "value": "msg"
+                        {
+                            "tag": "el-button",
+                            "v-for": {
+                                "key": "item",
+                                "data": {
+                                    "type": "state",
+                                    "value": "forData"
+                                }
                             },
-                            "type": {
-                                "type": "slotProp",
-                                "value": "a"
-                            }
-                        },
-                        "slots": {
-                            "default": [
+                            "v-if": {
+                                "bind": {
+                                    "type": "state",
+                                    "value": "show"
+                                }
+                            },
+                            "attributes": [
                                 {
-                                    "text": "11113ff"
+                                    "name": "size",
+                                    "type": "state",
+                                    "value": "msg"
+                                }
+                            ],
+                            "slots": [
+                                {
+                                    "name": "default",
+                                    "content": [
+                                        {
+                                            "text": "11113ff"
+                                        }
+                                    ]
                                 }
                             ]
                         }
-                    }
-                ]
-            }
+                    ]
+                }
+            ]
         }
     ],
     "components": {
@@ -89,17 +64,22 @@
             "varName": "ElButton"
         }
     },
-    "states": {
-        "msg": "large"
-    },
+    "states": [
+        {
+            "name": "msg",
+            "content": "large",
+            "type": "String"
+        }
+    ],
     "styles": {
         "s": {}
     },
-    "actions": {
-        "alert": {
-            "type": "JsFunction|LogicComposer",
+    "actions": [
+        {
+            "name": "alert",
+            "type": "JsFunction",
             "jsPath": "./actions.ts",
             "varName": "alert"
         }
-    }
+    ]
 }

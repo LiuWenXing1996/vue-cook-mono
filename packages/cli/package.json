@@ -23,6 +23,7 @@
     "@swc/core": "^1.3.46",
     "@swc/helpers": "^0.5.2",
     "@vue-cook/core": "workspace:^0.0.1",
+    "@vue-cook/schema-bundler": "workspace:^0.0.1",
     "@vue/compiler-sfc": "^3.3.4",
     "commander": "^10.0.0",
     "dayjs": "^1.11.9",

@@ -49,14 +49,12 @@ export const getBuildConfig = (params: {
                   return `var ${e.injectName}`
                 })
                 .join(';\n')}
-var VueCookCore;
 (function(){
   var script = document.currentScript
-  var contextUid = script.dataset.${ElementDataLowcodeContextIdKey}
   var coreLibGetterUid = script.dataset.${ElementDataCoreLibOnceGetterIdIdKey}
   VueCookCore = window[coreLibGetterUid]()
-  var context = VueCookCore.getLowcodeContext(contextUid)
-  var externalLibs = context.getExternalLibs()
+  var lowcodeContext = VueCookCore.getLowcodeContextFromScript(script)
+  var externalLibs = lowcodeContext.getExternalLibs()
   ${externals
     .filter((e) => e.packageName !== '@vue-cook/core')
     .map((e) => {
@@ -78,8 +76,6 @@ var VueCookCore;
       }
     }
   }
-
-  console.log(buildConfig)
 
   return buildConfig
 }

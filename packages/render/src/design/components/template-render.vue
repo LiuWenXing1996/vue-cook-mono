@@ -1,82 +1,67 @@
 <template>
-    <template v-if="config.text">
-        {{ config.text }}
+    <template v-if="schema.text">
+        {{ schema.text }}
     </template>
-    <template v-else-if="config.for">
-        <template-render :config="_configWithNoFor" v-for="item in config?.for.data" :component-map="componentMap"
-            :state-map="stateMap" :renderer="renderer" :slotProps="slotProps" :forItem="item"></template-render>
-    </template>
-    <template v-else-if="config.if">
-        <!-- /* dev状态要可以强制渲染出来 */ -->
-        <!-- /* v-show 怎么表示下 */ -->
-        <!-- /* 一些状态的值要透传进去 */ -->
-        <template-render v-if="config.if.data" :config="_configWithNoIf" v-for="item in config?.for.data"
-            :component-map="componentMap" :state-map="stateMap" :renderer="renderer" :slotProps="slotProps"
-            :forItem="item"></template-render>
-    </template>
+
     <template v-else-if="cmpt">
         <component :is="cmpt" v-bind="attributes">
-            <template v-for="(slot, name) in config?.slots" v-slot:[name]="slotProps">
-                <template-render :config="_config" v-for="_config in slot" :component-map="componentMap"
-                    :state-map="stateMap" :renderer="renderer" :slotProps="slotProps"></template-render>
+            <template v-for="slotNode in schemaNode?.children" v-slot:[slotNode.content.name]="slotProps">
+                <template-render :schema-node="_schemaNode" v-for="_schemaNode in slotNode.children" :actions="actions"
+                    :states="states" :components="components" :renderer="renderer" :slotProps="slotProps"></template-render>
             </template>
         </component>
     </template>
+    <template ref="d"></template>
 </template>
 <script setup lang="ts">
-import { getCurrentInstance, toRefs, onMounted, computed, onUpdated, type Component, h, type ComponentInternalInstance } from "vue";
-import { type IComponentMap, type IStateMap, type ITemplateConfigWithPid } from "@vue-cook/core"
+import { getCurrentInstance, toRefs, onMounted, computed, onUpdated, type Component } from "vue";
+import { type ITemplateTreeSchemaNode } from "@vue-cook/core"
 import TemplateRender from "./template-render.vue"
 import { getComponentElements } from "../utils/getComponentElements"
 import type { Renderer } from "../renderer";
 // TODO:实现v-for和v-if的转换
 const props = defineProps<{
-    config: ITemplateConfigWithPid,
-    stateMap: IStateMap,
-    slotProps: Record<string, any>,
-    componentMap: IComponentMap<Component>,
-    renderer: Renderer
+    schemaNode: ITemplateTreeSchemaNode,
+    states: Record<string, any>,
+    components: Record<string, Component | undefined>,
+    actions: Record<string, Function | undefined>
+    renderer: Renderer,
+    slotProps?: Record<string, any>
 }>()
-const { config, componentMap, stateMap, renderer: rendererRef, slotProps } = toRefs(props)
-const renderer = rendererRef.value
+const { schemaNode, components, states, renderer } = toRefs(props)
+const schema = computed(() => schemaNode.value.content)
 
 const attributes = computed(() => {
-    const attributesConfig = config.value.attributes || {}
+    const attributesList = schema.value.attributes || []
     let res: Record<string, any> = {}
-    console.log("attributesConfig", attributesConfig)
-    Object.keys(attributesConfig).map(key => {
-        const config = attributesConfig[key]
-        res[key] = renderer.transferAttributeData(config)
+    attributesList.map(attributesSchema => {
+        res[attributesSchema.name] = renderer.value.transferAttributeData(attributesSchema)
     })
 
     return res
 })
 
 const cmpt = computed(() => {
-    if (config.value.text) {
+    if (schema.value.text) {
         return ""
     }
-    if (!config.value.tag) {
+    if (!schema.value.tag) {
         return ""
     }
-    const { tag } = config.value
-    const view = componentMap.value.get(tag)
-    if (view?.isInnerComponent) {
-        const schema = view.schema
-        return "inner"
-    } else {
-        return view?.component || tag || ""
-    }
+    const { tag } = schema.value
+    const view = components.value[tag]
+    return view || tag || ""
 })
 
 onMounted(() => {
     const internalInstance = getCurrentInstance()
     if (internalInstance) {
         const elements = getComponentElements(internalInstance)
+        // element
         elements.forEach(el => {
-            renderer.elementToTemplateConfigMap.set(el, config.value)
+            renderer.value.elementToTreeSchemaNodeMap.set(el, schemaNode.value)
         })
-        renderer.templatePidToInstanceMap.set(config.value.__designPid, internalInstance)
+        renderer.value.templateTreeSchemaNodeIdToInstanceMap.set(schemaNode.value.id, internalInstance)
     }
 })
 onUpdated(() => {
@@ -84,9 +69,9 @@ onUpdated(() => {
     if (internalInstance) {
         const elements = getComponentElements(internalInstance)
         elements.forEach(el => {
-            renderer.elementToTemplateConfigMap.set(el, config.value)
+            renderer.value.elementToTreeSchemaNodeMap.set(el, schemaNode.value)
         })
-        renderer.templatePidToInstanceMap.set(config.value.__designPid, internalInstance)
+        renderer.value.templateTreeSchemaNodeIdToInstanceMap.set(schemaNode.value.id, internalInstance)
     }
 })
 

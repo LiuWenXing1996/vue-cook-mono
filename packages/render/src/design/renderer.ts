@@ -1,7 +1,7 @@
 import {
   AbstractDesignRenderer,
-  type IComponentOverlay,
-  type ITemplateConfigWithPid
+  type IDesignComponentOverlay,
+  type ITemplateTreeSchemaNode
 } from '@vue-cook/core'
 import {
   createApp,
@@ -14,9 +14,12 @@ import {
 import App from './app.vue'
 import getComponentRect from './utils/getComponentRect'
 export class Renderer extends AbstractDesignRenderer<Component> {
+  getView() {
+    return ''
+  }
   private app?: IApp<Element>
-  elementToTemplateConfigMap = new Map<Element, ITemplateConfigWithPid>()
-  templatePidToInstanceMap = new Map<string, ComponentInternalInstance>()
+  elementToTreeSchemaNodeMap = new Map<Element, ITemplateTreeSchemaNode>()
+  templateTreeSchemaNodeIdToInstanceMap = new Map<string, ComponentInternalInstance>()
   mount(mountElementId: string): void | Promise<void> {
     this.app = createApp(
       h(App, {
@@ -25,27 +28,27 @@ export class Renderer extends AbstractDesignRenderer<Component> {
     )
     this.app.mount(mountElementId)
   }
-  getComponetnOverlayFromElement(element: Element): IComponentOverlay | undefined {
+  getComponetnOverlayFromElement(element: Element): IDesignComponentOverlay | undefined {
     let currentEl: Element | null = element
-    let currentConfig: ITemplateConfigWithPid | undefined = undefined
+    let node: ITemplateTreeSchemaNode | undefined = undefined
     while (currentEl) {
-      currentConfig = this.elementToTemplateConfigMap.get(currentEl)
-      if (currentConfig) {
+      node = this.elementToTreeSchemaNodeMap.get(currentEl)
+      if (node) {
         break
       }
       currentEl = currentEl.parentElement
     }
-    if (!currentConfig) {
+    if (!node) {
       return
     }
-    const componentInstance = this.templatePidToInstanceMap.get(currentConfig.__designPid)
+    const componentInstance = this.templateTreeSchemaNodeIdToInstanceMap.get(node.id)
     if (!componentInstance) {
       return
     }
     const rect = getComponentRect(componentInstance)
-    const overlay: IComponentOverlay = {
-      templateConfig: currentConfig,
-      rect: rect
+    const overlay: IDesignComponentOverlay = {
+      rect: rect,
+      templateSchema: node.content
     }
     return overlay
   }

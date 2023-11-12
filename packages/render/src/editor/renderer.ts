@@ -10,8 +10,8 @@ import {
 import App from './app.vue'
 export class Renderer extends AbstractEditorRenderer<Component> {
   private app?: IApp<Element>
-  elementToTemplateConfigMap = new Map<Element, ITemplateConfigWithPid>()
-  templatePidToInstanceMap = new Map<string, ComponentInternalInstance>()
+  elementToTreeSchemaNodeMap = new Map<Element, ITemplateConfigWithPid>()
+  templateTreeSchemaNodeIdToInstanceMap = new Map<string, ComponentInternalInstance>()
   mount(mountElementId: string): void | Promise<void> {
     this.app = createApp(
       h(App, {

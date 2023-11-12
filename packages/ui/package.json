@@ -38,6 +38,7 @@
     "@vicons/fluent": "^0.12.0",
     "@vicons/ionicons5": "^0.12.0",
     "@vue-cook/core": "workspace:^0.0.1",
+    "@vue-cook/schema-bundler": "workspace:^0.0.1",
     "@vue/compiler-sfc": "^3.3.4",
     "@vueuse/core": "^10.4.1",
     "browserfs": "^1.4.3",

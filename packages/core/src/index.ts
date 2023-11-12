@@ -14,6 +14,8 @@ export {
   fillConfig,
   getCookConfigRelativePath,
   getCookConfigFromFs,
+  getPkgJsonFromFs,
+  getViewFilesFromFs,
   type IPkgJson,
   type IDeepRequiredCookConfig,
   type ICookMaterialConfig,
@@ -26,12 +28,6 @@ export {
   ElementDataCoreLibOnceGetterIdIdKey
 } from './lowcode'
 
-export {
-  runRemotePlugin,
-  defineRemotePlugin,
-  type IRemotePlugin,
-  type IRunRemotePluginConfig
-} from './design-mode/remote-plugin'
 export { exportDeps, type IDepMeta, type IDeps, type IDep, fetchDeps } from './utils/fetchDeps'
 
 export {
@@ -41,69 +37,51 @@ export {
   type IMaterialWithDep
 } from './design-mode/material'
 
-export {
-  createRenderContext,
-  type IRenderContext,
-  defineRender,
-  type IRenderData,
-  type IRenderMode
-} from './render/index'
+// export {
+//   createRenderContext,
+//   type IRenderContext,
+//   defineRender,
+//   type IRenderData,
+//   type IRenderMode
+// } from './render/index'
 
 export {
   type IDesignRendererContext,
-  type ISchemaData,
   type IDesignComponentOverlay,
   type IDesignComponentPageSize,
-  createDesignRendererContext
-} from './design-mode/design-renderer-context'
-
-export {
-  type IDesignRendererData,
-  type IDesignRendererDataWatch,
+  createDesignRendererContext,
   AbstractDesignRenderer
-} from './design-mode/abstract-design-renderer'
+} from './renderer/design-renderer'
 
-export {
-  type IEditorRendererContext,
-  createEditorRendererContext
-} from './design-mode/editor-renderer-context'
+// export { emitEditorWindowSchemaChange, SchemaChanegeDataType } from './lowcode/schemaChange'
 
-export {
-  type IEditorRendererData,
-  type IEditorRendererDataWatch,
-  AbstractEditorRenderer
-} from './design-mode/abstract-editor-renderer'
+// export { createVueRenderContext, autoRunVueApp } from './lowcode/vueRender'
+// export {
+//   type IExportConfig as IExportSchemaConfig,
+//   check as exportSchemaCheck,
+//   transfer as exportSchemaTransfer
+// } from './schema/export'
 
-export { emitEditorWindowSchemaChange, SchemaChanegeDataType } from './lowcode/schemaChange'
-
-export { createVueRenderContext, autoRunVueApp } from './lowcode/vueRender'
-export {
-  type IExportConfig as IExportSchemaConfig,
-  check as exportSchemaCheck,
-  transfer as exportSchemaTransfer
-} from './schema/export'
+export { type IViewSchema } from './schema/view'
+export { type ITemplateTreeSchemaNode, templateSchemaToTree } from './schema/template'
+export { type IAction, type IJsFunctionAction } from './schema/action'
 
 // export {
-//   type IPageConfig as IPageSchemaConfig,
-//   check as pageSchemaCheck,
-//   transformPage as pageSchemaTransfer,
-//   transformPageEntryTs
-// } from './schema/page'
+//   type IComponentConfig as IComponentSchemaConfig,
+//   type ITemplateConfig,
+//   type IView,
+//   getEditorTypeUniName,
+//   getComponetMap,
+//   getStateMap,
+//   removeTemplatePid,
+//   type IEditor,
+//   type IComponentMap,
+//   type IStateMap,
+//   type ITemplateConfigWithPid,
+//   type IComponentConfigWithTemplatePid
+//   // check as componentSchemaCheck,
+//   // transformComponent as componentSchemaTransfer,
+//   // transformComponentEntryTs
+// } from './schema/component'
 
-export {
-  type IComponentConfig as IComponentSchemaConfig,
-  type ITemplateConfig,
-  type IView,
-  getEditorTypeUniName,
-  getComponetMap,
-  getStateMap,
-  removeTemplatePid,
-  type IEditor,
-  type IComponentMap,
-  type IStateMap,
-  type ITemplateConfigWithPid,
-  type IComponentConfigWithTemplatePid
-  // check as componentSchemaCheck,
-  // transformComponent as componentSchemaTransfer,
-  // transformComponentEntryTs
-} from './schema/component'
+export { getLowcodeContextFromScript, type ILowcodeBundleData } from './renderer/lowcode-context'

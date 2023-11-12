@@ -1,6 +1,8 @@
 import type { ProjectManifest } from '@pnpm/types'
 import type { DeepRequired } from 'utility-types'
 import { createFsUtils, type IFsPromisesApi } from './fs'
+import type { IViewSchema } from '@/schema/view'
+import { resolve, dirname } from './path'
 
 export interface ICookConfig {
   root?: string
@@ -13,6 +15,20 @@ export interface ICookConfig {
     component: string
     page: string
     layout: string
+  }
+  renderer: {
+    runtime: {
+      packageName: string
+      varName: string
+    }
+    design: {
+      packageName: string
+      varName: string
+    }
+    editor: {
+      packageName: string
+      varName: string
+    }
   }
   embed?: {
     name: string
@@ -74,16 +90,86 @@ export const getCookConfigRelativePath = (pkgJson: IPkgJson) => {
   return pkgJson.cookConfigFile || 'cook.config.json'
 }
 
+export const getPkgJsonFromFs = async (fs: IFsPromisesApi) => {
+  try {
+    const fsUtils = createFsUtils(fs)
+    const packageJsonPath = '/package.json'
+    const pkgJson = await fsUtils.readJson<IPkgJson>(packageJsonPath)
+    return {
+      path: packageJsonPath,
+      content: pkgJson
+    }
+  } catch (error) {}
+}
+
 export const getCookConfigFromFs = async (fs: IFsPromisesApi) => {
-  const fsUtils = createFsUtils(fs)
-  const packageJsonPath = './package.json'
-  const pkgJson = await fsUtils.readJson<IPkgJson>(packageJsonPath)
-  const cookConfigRelativePath = pkgJson.cookConfigFile || 'cook.config.json'
-  const cookConfig = await fsUtils.readJson<ICookConfig>(packageJsonPath)
-  return {
-    path: cookConfigRelativePath,
-    content: fillConfig(cookConfig)
+  try {
+    const fsUtils = createFsUtils(fs)
+    const { content: pkgJson, path: packageJsonPath } = (await getPkgJsonFromFs(fs)) || {}
+    if (pkgJson && packageJsonPath) {
+      let cookConfigPath = '/cook.config.json'
+      if (pkgJson.cookConfigFile) {
+        cookConfigPath = resolve(dirname(packageJsonPath), pkgJson.cookConfigFile)
+      }
+      const cookConfig = await fsUtils.readJson<ICookConfig>(cookConfigPath)
+      return {
+        path: cookConfigPath,
+        content: fillConfig(cookConfig)
+      }
+    }
+  } catch (error) {}
+}
+
+export const getViewFilesFromFs = async (fs: IFsPromisesApi) => {
+  const viewFilesWithContent: {
+    path: string
+    type: IViewSchema['type']
+    content: IViewSchema
+  }[] = []
+
+  const { content: cookConfig } = (await getCookConfigFromFs(fs)) || {}
+  if (cookConfig) {
+    const fsUtils = createFsUtils(fs)
+    const allFiles = await fsUtils.listFiles()
+    const viewFiles: {
+      path: string
+      type: IViewSchema['type']
+    }[] = []
+    allFiles.map((e) => {
+      if (e.endsWith(cookConfig.viewFileSuffix.page)) {
+        viewFiles.push({
+          path: e,
+          type: 'Page'
+        })
+      }
+      if (e.endsWith(cookConfig.viewFileSuffix.component)) {
+        viewFiles.push({
+          path: e,
+          type: 'Component'
+        })
+      }
+      if (e.endsWith(cookConfig.viewFileSuffix.layout)) {
+        viewFiles.push({
+          path: e,
+          type: 'Layout'
+        })
+      }
+    })
+    await Promise.all(
+      viewFiles.map(async (file) => {
+        try {
+          const schema = await fsUtils.readJson<IViewSchema>(file.path)
+          viewFilesWithContent.push({
+            path: file.path,
+            type: file.type,
+            content: schema
+          })
+        } catch (error) {}
+      })
+    )
   }
+
+  return viewFilesWithContent
 }
 
 export const fillConfig = (config: ICookConfig): IDeepRequiredCookConfig => {
@@ -112,7 +198,21 @@ export const getCookConfigDefault = () => {
       page: '.cook-page.json',
       layout: '.cook-layout.json'
     },
-    embed: []
+    embed: [],
+    renderer: {
+      runtime: {
+        packageName: '',
+        varName: ''
+      },
+      design: {
+        packageName: '',
+        varName: ''
+      },
+      editor: {
+        packageName: '',
+        varName: ''
+      }
+    }
   }
   return defaultConfig
 }

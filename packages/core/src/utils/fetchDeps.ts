@@ -5,17 +5,15 @@ import { loadStyle } from './loadStyle'
 import { v4 as uuidv4 } from 'uuid'
 
 const genAbsoulteUrl = (url: string, targetWindow: Window) => {
-  const { document, location } = targetWindow
-  const script = document.currentScript as HTMLScriptElement
-  const scriptUrl = new URL(script?.src, location.href)
-  const newUrl = new URL(url, scriptUrl)
+  const { location } = targetWindow
+  const newUrl = new URL(url, location.href)
   return newUrl.toString()
 }
-export const ElementDataFetchDepsContextIdKey = 'fetchDepsContextId'
+const ElementDataFetchDepsContextIdKey = 'fetchDepsContextId'
 export const ElementDataCoreLibOnceGetterIdIdKey = 'coreLibOnceGetterId'
 export interface IDep {
   meta: IDepMeta
-  value: unknown
+  value: any
 }
 export interface IDepMeta {
   cookMeta?: ICookMeta
@@ -23,7 +21,7 @@ export interface IDepMeta {
   version: string | undefined
   packageJson: IPkgJson
 }
-export type IDeps = Map<string, IDep>
+export type IDeps = Record<string, IDep | undefined>
 export interface IDepsEntry {
   js: string
   css: string
@@ -49,11 +47,13 @@ export const resolveDepVar = <T>(params: { dep?: IDep; varName: string }) => {
   return depValue[varName] as T
 }
 
-export const fetchDeps = async <T extends IDeps = IDeps>(config: {
+export const fetchDeps = async (config: {
   entry: IDepsEntry
   targetWindow: Window
+  dataset?: Record<string, string>
 }) => {
-  const { targetWindow } = config
+  const { targetWindow, dataset } = config
+  console.log(targetWindow)
   const id = uuidv4()
   const entryJsAbsoultePath = genAbsoulteUrl(config.entry.js, targetWindow)
   const entryCssAbsoultePath = genAbsoulteUrl(config.entry.css, targetWindow)
@@ -64,6 +64,7 @@ export const fetchDeps = async <T extends IDeps = IDeps>(config: {
         await loadStyle({
           src: entryCssAbsoultePath,
           dataset: {
+            ...dataset,
             [ElementDataFetchDepsContextIdKey]: id
           },
           targetWindow
@@ -75,6 +76,7 @@ export const fetchDeps = async <T extends IDeps = IDeps>(config: {
       await loadScript({
         src: entryJsAbsoultePath,
         dataset: {
+          ...dataset,
           [ElementDataFetchDepsContextIdKey]: id,
           [ElementDataCoreLibOnceGetterIdIdKey]: coreLibOnceGetterId
         },
@@ -82,7 +84,7 @@ export const fetchDeps = async <T extends IDeps = IDeps>(config: {
       })
     })()
   ])
-  const deps = depsMap.get(id)
+  const deps = depsMap.get(id) || {}
 
-  return deps as T | undefined
+  return deps
 }

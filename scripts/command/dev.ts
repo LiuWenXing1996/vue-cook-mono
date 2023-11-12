@@ -11,10 +11,17 @@ export const dev = async () => {
   const commands: ICommand[] = [
     { name: "@vue-cook/core", command: "pnpm --filter '@vue-cook/core' dev" },
     {
-      name: "@vue-cook/render",
+      name: "@vue-cook/schema-bundler",
       command: `wait-on '${join(
         process.cwd(),
         "/packages/core/dist"
+      )}' && pnpm --filter '@vue-cook/schema-bundler' dev`,
+    },
+    {
+      name: "@vue-cook/render",
+      command: `wait-on '${join(
+        process.cwd(),
+        "/packages/schema-bundler/dist"
       )}' && pnpm --filter '@vue-cook/render' dev`,
     },
     {

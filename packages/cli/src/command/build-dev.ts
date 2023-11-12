@@ -1,4 +1,4 @@
-import { resolve } from 'node:path'
+import { relative, resolve } from 'node:path'
 import { outputFile, remove } from 'fs-extra'
 import { build, type InlineConfig } from 'vite'
 import {
@@ -9,24 +9,76 @@ import {
   type IPkgJson,
   type IDeepRequiredCookConfig,
   type ICookConfig,
-  ElementDataLowcodeContextIdKey
+  ElementDataLowcodeContextIdKey,
+  createVfs
 } from '@vue-cook/core'
+import * as esbuild from 'esbuild'
+import * as swc from '@swc/core'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import commonjs from '@rollup/plugin-commonjs'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
-import { collectDepMetaList, getOutDir, getTempDir, resolveConfig, resolvePkgJson } from '@/utils'
+import {
+  collectDepMetaList,
+  getFielsContent,
+  getOutDir,
+  getTempDir,
+  resolveConfig,
+  resolvePkgJson
+} from '@/utils'
 import { genDepsEntryJs } from '@/utils/gen-deps-entry-js'
 import { getBuildConfig } from '@/utils/get-build-config'
+import { build as schemaBundler } from '@vue-cook/schema-bundler'
 
 export interface IBuildDepsOptions {
   configPath: string
   pkgJsonPath: string
 }
 
+export const buildSchema = async (options: {
+  cookConfig: IDeepRequiredCookConfig
+  packageJson: IPkgJson
+  outDir: string
+  tempDir: string
+}) => {
+  const start = Date.now()
+  const { cookConfig, packageJson, outDir, tempDir } = options
+  const { ignorePaths } = cookConfig
+  const root = resolve(process.cwd(), '.')
+  const { globby } = await import('globby')
+  const files = await globby(['**/*'], {
+    cwd: root,
+    gitignore: true,
+    ignore: ignorePaths
+  })
+  // console.log('files', files)
+  const fielsContent = await getFielsContent(files)
+  // console.log(fielsContent)
+  const modules: Record<string, string> = {}
+  fielsContent.map((e) => {
+    const _path = resolve('/', relative(root, e.path))
+    modules[_path] = e.content
+  })
+  const vfs = createVfs()
+  await Promise.all(
+    Object.keys(modules).map(async (filePath) => {
+      await vfs.outputFile(filePath, modules[filePath])
+    })
+  )
 
-// TODO:buildSchema 实现
-export const buildSchema = async (options: IBuildDepsOptions) => {
-  
+  const res = await schemaBundler({ vfs, esbuild, swc })
+  await Promise.all([
+    (async () => {
+      console.log('...')
+      const path = resolve(outDir, './index.js')
+      await outputFile(path, res?.js || '')
+    })(),
+    (async () => {
+      const path = resolve(outDir, './index.css')
+      await outputFile(path, res?.css || '')
+    })()
+  ])
+  const end = Date.now()
+  console.log('schema build interval', end - start)
 }
 
 /**
@@ -106,22 +158,22 @@ const buildAuto = async (options: {
   autoEntryJs.path = resolve(tempDir, `./entry.ts`)
   // TODO:此处的autoRunVueApp有问题
   autoEntryJs.content = `
-import { autoRunVueApp, path } from '@vue-cook/core'
-import "./index.css"
+// import { autoRunVueApp, path } from '@vue-cook/core'
+// import "./index.css"
 
-const script = document.currentScript as HTMLScriptElement
-const scriptUrl = new URL(script?.src,location.href)
+// const script = document.currentScript as HTMLScriptElement
+// const scriptUrl = new URL(script?.src,location.href)
 
-const genAbsoulteUrl = (url: string) => {
-  const newUrl =  new URL(url,scriptUrl)
-  return newUrl.toString()
-}
+// const genAbsoulteUrl = (url: string) => {
+//   const newUrl =  new URL(url,scriptUrl)
+//   return newUrl.toString()
+// }
 
-autoRunVueApp({
-  depsEntryList: [genAbsoulteUrl('../deps/index.js'), genAbsoulteUrl('../deps/style.css')],
-  schemaEntryList: [genAbsoulteUrl('../schema/index.js'), genAbsoulteUrl('../schema/index.css')],
-  mountedEl:"#app"
-}).then((res)=>{console.log("res",res)})
+// autoRunVueApp({
+//   depsEntryList: [genAbsoulteUrl('../deps/index.js'), genAbsoulteUrl('../deps/style.css')],
+//   schemaEntryList: [genAbsoulteUrl('../schema/index.js'), genAbsoulteUrl('../schema/index.css')],
+//   mountedEl:"#app"
+// }).then((res)=>{console.log("res",res)})
 `
   await outputFile(autoEntryJs.path, autoEntryJs.content)
   await outputFile(autoEntryCss.path, autoEntryCss.content)
@@ -174,6 +226,13 @@ const buildDev = async (options: IBuildDepsOptions) => {
     cookConfig,
     outDir: resolve(outDir, './auto'),
     tempDir: resolve(tempDir, './auto')
+  })
+
+  await buildSchema({
+    cookConfig,
+    packageJson,
+    outDir: resolve(outDir, './schema'),
+    tempDir: resolve(tempDir, './schema')
   })
 }
 

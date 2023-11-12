@@ -1,5 +1,5 @@
 import {
-  type IAttributeData,
+  type IAttributeSchemaData,
   type IComponentConfigWithTemplatePid,
   type IComponentMap,
   type IStateMap
@@ -57,8 +57,8 @@ export abstract class AbstractDesignRenderer<Component = any> {
     return getInternalDesignRenderer(this).deps
   }
   // 拆分？
-  transferAttributeData(data: IAttributeData) {
-    const transferMap: Record<IAttributeData['type'], (data: IAttributeData) => any> = {
+  transferAttributeData(data: IAttributeSchemaData) {
+    const transferMap: Record<IAttributeSchemaData['type'], (data: IAttributeSchemaData) => any> = {
       string: (data) => {
         if (data.type === 'string') {
           return String(data.value)

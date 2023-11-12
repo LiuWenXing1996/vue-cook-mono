@@ -40,10 +40,10 @@ export class PageAssetsModule {
     };
     const entry = {
       js: tryGenUrl(
-        join(serveRoot, projectName, './dist/design/deps/index.js'),
+        join(serveRoot, projectName, './dist/dev/deps/design/index.js'),
       ),
       css: tryGenUrl(
-        join(serveRoot, projectName, './dist/design/deps/style.css'),
+        join(serveRoot, projectName, './dist/dev/deps/design/style.css'),
       ),
     };
     return entry;

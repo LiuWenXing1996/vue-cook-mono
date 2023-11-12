@@ -5,9 +5,23 @@
         "dist",
         "public/lowcode"
     ],
-    "minify": false,
+    "minify": true,
     "sourcemap": true,
     "outdir": "./dist",
+    "renderer": {
+        "runtime": {
+            "packageName": "@vue-cook/render",
+            "varName": "RuntimeRenderer"
+        },
+        "design": {
+            "packageName": "@vue-cook/render",
+            "varName": "DesignRenderer"
+        },
+        "editor": {
+            "packageName": "@vue-cook/render",
+            "varName": "EditorRenderer"
+        }
+    },
     "embed": [
         {
             "name": "vue-eco-system",
@@ -24,7 +38,6 @@
                     "packageName": "@vue-cook/element-plus-materials",
                     "injectName": "ElementPlusMaterials"
                 }
-                
             ]
         }
     ]

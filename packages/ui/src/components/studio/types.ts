@@ -1,5 +1,10 @@
 import type { VNodeChild } from 'vue'
-import { type IPath, type ISchemaData, type IVirtulFileSystem } from '@vue-cook/core'
+import {
+  type IDeepRequiredCookConfig,
+  type ILowcodeBundleData,
+  type IPath,
+  type IVirtulFileSystem
+} from '@vue-cook/core'
 import type { ITabsLayoutVerticalProps } from './components/tabs-layout-vertical.vue'
 
 export interface IPanelConfig {
@@ -33,10 +38,6 @@ export interface ISplitPanelConfig {
 }
 
 export interface IStudioServices {
-  getRemotePluginEntry: (params: { projectName: string }) => Promise<{
-    js: string
-    css: string
-  }>
   getDesignDepsEntry: (params: { projectName: string }) => Promise<{
     js: string
     css: string
@@ -45,6 +46,9 @@ export interface IStudioServices {
     js: string
     css: string
   }>
+  getEsbuildWasmUrl: () => Promise<string>
+  getSwcWasmUrl: () => Promise<string>
+  getFiles: () => Promise<{ path: string; content: string }[]>
 }
 
 export interface IStudioState {
@@ -60,5 +64,6 @@ export interface IStudioState {
     activeFilePath?: string
     files: string[]
   }
-  schemaData?: ISchemaData
+  lowcodeBundleData: ILowcodeBundleData
+  cookConfig?: IDeepRequiredCookConfig
 }
