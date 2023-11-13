@@ -29,6 +29,7 @@ const props = defineProps<{
     slotProps?: Record<string, any>
 }>()
 const { schemaNode, components, states, renderer } = toRefs(props)
+console.log("...",schemaNode)
 const schema = computed(() => schemaNode.value.content)
 
 const attributes = computed(() => {

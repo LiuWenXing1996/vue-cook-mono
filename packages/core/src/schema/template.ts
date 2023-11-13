@@ -52,16 +52,17 @@ export const templateSchemaToTree = (
       id: `${parent?.id || '#root'}__${index}__${tag}`,
       parent,
       root,
-      isLeaf: slots.length > 1,
+      isLeaf: !(slots.length > 1),
       content: schema,
-      children: slots.map((s) =>
-        transferSlotSchema({
-          schema: s,
-          parent: node,
-          root: root
-        })
-      )
+      children: []
     }
+    node.children = slots.map((s) =>
+      transferSlotSchema({
+        schema: s,
+        parent: node,
+        root: root
+      })
+    )
     return node
   }
 
@@ -71,24 +72,37 @@ export const templateSchemaToTree = (
     root: ITemplateTreeSchemaNode[]
   }) => {
     const { schema, parent, root } = params
+    const content = schema.content
     const node: ITemplateTreeSlotNode = {
       id: `${parent.id}__${schema.name}`,
       parent,
       root,
-      isLeaf: false,
-      content: schema
+      isLeaf: !(content.length > 0),
+      content: schema,
+      children: []
     }
+    node.children = content.map((e, i) =>
+      transferTemplateSchema({
+        schema: e,
+        index: i,
+        parent: node,
+        root: tree
+      })
+    )
     return node
   }
 
-  const tree: ITemplateTreeSchemaNode[] = templateList.map((l, i) =>
-    transferTemplateSchema({
+  const tree: ITemplateTreeSchemaNode[] = []
+
+  templateList.map((l, i) => {
+    const node = transferTemplateSchema({
       schema: l,
       index: i,
       parent: undefined,
       root: tree
     })
-  )
+    tree.push(node)
+  })
 
   return tree
 }

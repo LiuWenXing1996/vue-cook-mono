@@ -49,11 +49,11 @@ export abstract class AbstractViewRenderer<View = any> {
     })
   }
   get schema() {
-    return this.#schema
+    return this.#schema ? { ...this.#schema } : undefined
   }
   set schema(value: ILowcodeRunResult['schemaList'][0] | undefined) {
     this.#schema = value
-    this.#emitter.emit('onSchemaChange')
+    this.#emitter.emit('onSchemaChange', this.schema)
   }
   onSchemaChange(listener: (value: AbstractViewRenderer['schema']) => void) {
     return this.#emitter.listen('onSchemaChange', listener)
