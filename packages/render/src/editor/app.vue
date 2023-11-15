@@ -6,7 +6,7 @@
 <script setup lang="ts">
 import { type IComponentConfigWithTemplatePid } from '@vue-cook/core';
 import ComponentRender from './components/component-render.vue';
-import { ref, toRefs, type Component, shallowRef } from 'vue';
+import { ref, toRefs, type Component, shallowRef,watch } from 'vue';
 import type { IComponentMap, IStateMap } from '@vue-cook/core';
 import { type Renderer } from './renderer';
 const props = defineProps<{

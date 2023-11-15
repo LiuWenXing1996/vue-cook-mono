@@ -13,6 +13,8 @@ import { type IAction } from '@/schema/action'
 import { Emitter } from '@/utils/emitter'
 import { dirname, resolve } from '@/utils/path'
 import type { IAttributeSchema } from '@/schema/attribute'
+import { createReactiveStore } from '@/utils/reactive'
+import type { MaybePromise } from '@/utils'
 
 export abstract class AbstractViewRenderer<View = any> {
   #emitter = new Emitter()
@@ -268,35 +270,45 @@ export abstract class AbstractViewRenderer<View = any> {
   abstract getView(): View
 }
 
-export const createViewRendererContext = async <Component>(params: {
-  cookConfig: IDeepRequiredCookConfig
+export type IViewRendererContext<View, Renderer extends AbstractViewRenderer<View>> = Awaited<
+  ReturnType<typeof createViewRendererContext<View, Renderer>>
+>
+
+export const createViewRendererContext = async <
+  View,
+  Renderer extends AbstractViewRenderer<View>
+>(config: {
   depsEntry: IDepsEntry
   externalLibs?: Record<string, any>
-  mainViewFilePath: string
+  targetWindow: Window
   lowcodeBundleData?: ILowcodeBundleData
+  resolveViewRendererClass: (data: { deps: IDeps }) => MaybePromise<(new () => Renderer) | void>
 }) => {
-  const { depsEntry, cookConfig, lowcodeBundleData, externalLibs, mainViewFilePath } = params
-  const renderers: Record<string, AbstractViewRenderer<Component> | undefined> = {}
+  const { depsEntry, lowcodeBundleData, externalLibs, resolveViewRendererClass, targetWindow } =
+    config
+  const store = createReactiveStore<{
+    renderers: {
+      [viewFilePath: string]: Renderer | undefined
+    }
+  }>({
+    renderers: {}
+  })
   const lowcodeContext = await createLowcodeContext({
     depsEntry,
-    targetWindow: window,
+    targetWindow,
     externalLibs
   })
   lowcodeContext.setBundleData(lowcodeBundleData)
 
   const deps = lowcodeContext.getDeps()
-  const renderLib = deps[cookConfig.renderer.runtime.packageName]
-  const RendererClass = resolveDepVar<new () => AbstractViewRenderer<Component>>({
-    dep: renderLib,
-    varName: cookConfig.renderer.runtime.varName
-  })
+  const RendererClass = await resolveViewRendererClass({ deps })
   if (!RendererClass) {
     return
   }
-
   const refreshRenderers = () => {
-    const schemaList = lowcodeContext.getSchemaList()
-    const jsFunctions = lowcodeContext.getJsFunctions()
+    const renderers = { ...store.get('renderers') }
+    const runResult = lowcodeContext.getRunResult()
+    const { schemaList = [], jsFunctions = [] } = runResult || {}
     schemaList.map((schema) => {
       let renderer = renderers[schema.path]
       if (renderer) {
@@ -322,16 +334,27 @@ export const createViewRendererContext = async <Component>(params: {
         renderer.allRenderers = renderers
       }
     })
+    store.set('renderers', { ...renderers })
   }
+  refreshRenderers()
 
-  lowcodeContext.onChangeRunResult(() => {
+  lowcodeContext.onRunResultChange(() => {
     refreshRenderers()
   })
 
+  const getRenderers = () => {
+    const renderers = store.get('renderers')
+    return { ...renderers } as typeof renderers
+  }
+
   return {
-    getMainRenderer: () => {
-      return renderers[mainViewFilePath]
+    getRenderers,
+    onRenderersChange: (listener: (data: ReturnType<typeof getRenderers>) => void) => {
+      return store.on('renderers', () => {
+        listener(getRenderers())
+      })
     },
-    setBundleData: lowcodeContext.setBundleData
+    setLowcodeBundleData: lowcodeContext.setBundleData,
+    onLowcodeRunResultChange: lowcodeContext.onRunResultChange
   }
 }
