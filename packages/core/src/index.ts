@@ -50,6 +50,8 @@ export {
   type IDesignComponentOverlay,
   type IDesignComponentPageSize,
   createDesignRendererContext,
+  autoCreateDesignRendererContext,
+  getDesignRendererContext,
   AbstractDesignRenderer
 } from './renderer/design-renderer'
 

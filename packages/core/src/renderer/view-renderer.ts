@@ -39,6 +39,8 @@ export abstract class AbstractViewRenderer<View = any> {
     return this.#emitter.listen('onComponentsChange', listener)
   }
   constructor() {
+    console.log('...fsfsfds')
+
     this.onSchemaChange(() => {
       this.states = this.transferStates()
       this.actions = this.transferActions()
@@ -48,6 +50,9 @@ export abstract class AbstractViewRenderer<View = any> {
     })
     this.onDepsChange(() => {
       this.actions = this.transferActions()
+    })
+    this.onAllRenderersChange(() => {
+      this.components = this.transferComponents()
     })
   }
   get schema() {
@@ -280,13 +285,12 @@ export const createViewRendererContext = async <
 >(config: {
   depsEntry: IDepsEntry
   externalLibs?: Record<string, any>
-  targetWindow: Window
   lowcodeBundleData?: ILowcodeBundleData
-  resolveViewRendererClass: (data: { deps: IDeps }) => MaybePromise<(new () => Renderer) | void>
 }) => {
-  const { depsEntry, lowcodeBundleData, externalLibs, resolveViewRendererClass, targetWindow } =
-    config
+  type IRendererClass = new () => Renderer
+  const { depsEntry, lowcodeBundleData, externalLibs } = config
   const store = createReactiveStore<{
+    RendererClass?: IRendererClass
     renderers: {
       [viewFilePath: string]: Renderer | undefined
     }
@@ -295,18 +299,18 @@ export const createViewRendererContext = async <
   })
   const lowcodeContext = await createLowcodeContext({
     depsEntry,
-    targetWindow,
     externalLibs
   })
   lowcodeContext.setBundleData(lowcodeBundleData)
-
   const deps = lowcodeContext.getDeps()
-  const RendererClass = await resolveViewRendererClass({ deps })
-  if (!RendererClass) {
-    return
-  }
+
   const refreshRenderers = () => {
     const renderers = { ...store.get('renderers') }
+    const RendererClass = store.get('RendererClass')
+    if (!RendererClass) {
+      store.set('renderers', {})
+      return
+    }
     const runResult = lowcodeContext.getRunResult()
     const { schemaList = [], jsFunctions = [] } = runResult || {}
     schemaList.map((schema) => {
@@ -338,9 +342,8 @@ export const createViewRendererContext = async <
   }
   refreshRenderers()
 
-  lowcodeContext.onRunResultChange(() => {
-    refreshRenderers()
-  })
+  lowcodeContext.onRunResultChange(() => refreshRenderers())
+  store.watch(['RendererClass'], () => refreshRenderers())
 
   const getRenderers = () => {
     const renderers = store.get('renderers')
@@ -348,6 +351,10 @@ export const createViewRendererContext = async <
   }
 
   return {
+    getDeps: lowcodeContext.getDeps,
+    setRendererClass: (data: IRendererClass | undefined) => {
+      store.set('RendererClass', data)
+    },
     getRenderers,
     onRenderersChange: (listener: (data: ReturnType<typeof getRenderers>) => void) => {
       return store.on('renderers', () => {
@@ -355,6 +362,7 @@ export const createViewRendererContext = async <
       })
     },
     setLowcodeBundleData: lowcodeContext.setBundleData,
-    onLowcodeRunResultChange: lowcodeContext.onRunResultChange
+    onLowcodeRunResultChange: lowcodeContext.onRunResultChange,
+    getLowcodeRunResult: lowcodeContext.getRunResult
   }
 }

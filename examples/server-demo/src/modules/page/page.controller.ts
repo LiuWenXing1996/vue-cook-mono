@@ -91,4 +91,47 @@ export class PageController {
       },
     });
   }
+  @Get('preview/:projectName')
+  preview(@Param('projectName') projectName: string) {
+    const compiled = template(
+      `
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>dev-page:{{projectName}}</title>
+    <script>
+    var autoRunConfig = {
+        onContextCreated(context){
+          console.log("context",context)
+        },
+        // TODO:先暂时使用design的auto来预览，后面会换成runtime的auto
+        mainViewFilePath:"/src/pages/foo.cook-component.json",
+        mountElementId:"#app"
+    }
+    </script>
+    <script src="{{auto.jsUrl}}" data-config-var-name="autoRunConfig"></script>
+    <link href="{{auto.cssUrl}}"></link>
+</head>
+
+<body>
+    <div id="app"></div>
+</body>
+
+</html>
+      `,
+      {
+        interpolate: /{{([\s\S]+?)}}/g,
+      },
+    );
+    const autoEntry = this.pageAssetsModule.getDesignAutoEntry(projectName);
+    return compiled({
+      projectName,
+      auto: {
+        jsUrl: autoEntry.js,
+        cssUrl: autoEntry.css,
+      },
+    });
+  }
 }

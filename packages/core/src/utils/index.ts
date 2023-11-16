@@ -3,15 +3,15 @@ import { v4 as uuidv4 } from 'uuid'
 
 export type ICore = typeof self
 
-export const createCoreLibOnceGetterId = (targetWindow: Window) => {
+export const createCoreLibOnceGetterId = () => {
   const prefix = '__vue__cook__core__lib__getter__'
   const uid = `${prefix}_${uuidv4()}`
   let isGet = false
   // @ts-ignore
-  const oldValue = targetWindow[uid]
+  const oldValue = window[uid]
   const getter = () => {
     // @ts-ignore
-    targetWindow[uid] = oldValue
+    window[uid] = oldValue
     if (isGet) {
       return
     }
@@ -19,7 +19,7 @@ export const createCoreLibOnceGetterId = (targetWindow: Window) => {
     return self
   }
   // @ts-ignore
-  targetWindow[uid] = getter
+  window[uid] = getter
 
   return uid
 }

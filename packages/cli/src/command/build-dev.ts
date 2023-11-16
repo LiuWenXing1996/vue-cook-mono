@@ -158,29 +158,26 @@ const buildAuto = async (options: {
   autoEntryJs.path = resolve(tempDir, `./entry.ts`)
   // TODO:此处的autoRunVueApp有问题
   autoEntryJs.content = `
-// import { autoRunVueApp, path } from '@vue-cook/core'
-// import "./index.css"
+import { autoCreateDesignRendererContext, path } from '@vue-cook/core'
+import "./index.css"
 
-// const script = document.currentScript as HTMLScriptElement
-// const scriptUrl = new URL(script?.src,location.href)
-
-// const genAbsoulteUrl = (url: string) => {
-//   const newUrl =  new URL(url,scriptUrl)
-//   return newUrl.toString()
-// }
-
-// autoRunVueApp({
-//   depsEntryList: [genAbsoulteUrl('../deps/index.js'), genAbsoulteUrl('../deps/style.css')],
-//   schemaEntryList: [genAbsoulteUrl('../schema/index.js'), genAbsoulteUrl('../schema/index.css')],
-//   mountedEl:"#app"
-// }).then((res)=>{console.log("res",res)})
+autoCreateDesignRendererContext({
+  depsEntry: {
+    js:"../deps/design/index.js",
+    css:"../deps/design/style.css"
+  },
+  bundleDataEntry:{
+    jsUrl:"../schema/index.js",
+    cssUrl:"../schema/index.css"
+  },
+})
 `
   await outputFile(autoEntryJs.path, autoEntryJs.content)
   await outputFile(autoEntryCss.path, autoEntryCss.content)
 
   await build({
     publicDir: false,
-    plugins: [nodeResolve(), commonjs(), nodePolyfills()],
+    plugins: [ nodePolyfills()],
     build: {
       minify: false,
       outDir: outDir,

@@ -17,7 +17,7 @@ return module.exports
   return new Function('globalObj', code)
 }
 
-export default function sandbox(params: { code: string; ctx: Object; targetWindow: Window }) {
-  const { code, ctx, targetWindow } = params
-  return withedYourCode(code).call(targetWindow, ctx)
+export default function sandbox(params: { code: string; ctx: Object }) {
+  const { code, ctx } = params
+  return withedYourCode(code).call(window, ctx)
 }

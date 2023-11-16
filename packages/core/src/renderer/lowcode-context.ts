@@ -1,13 +1,35 @@
 import { v4 as uuidv4 } from 'uuid'
-import { fetchDeps, type IDepsEntry } from '@/utils/fetchDeps'
+import { fetchDeps, genAbsoulteUrl, type IDepsEntry } from '@/utils/fetchDeps'
 import { loadStyleByContent } from '@/utils/loadStyle'
 import sandbox, { globalModulesMapName } from '@/utils/sandbox'
-import type { IViewSchema } from '..'
+import type { IDeepRequiredCookConfig, IDeps, IViewSchema } from '..'
 import { createReactiveStore } from '@/utils/reactive'
 
 export interface ILowcodeBundleData {
   js: string
   css: string
+}
+
+export interface ILowcodeBundleDataEntry {
+  jsUrl: string
+  cssUrl: string
+}
+
+export const fetchBundleData = async (entry: ILowcodeBundleDataEntry) => {
+  const data: ILowcodeBundleData = {
+    js: '',
+    css: ''
+  }
+
+  try {
+    const { jsUrl, cssUrl } = entry
+    const js = await (await fetch(jsUrl)).text()
+    data.js = js || ''
+    const css = await (await fetch(cssUrl)).text()
+    data.css = css || ''
+  } catch (error) {}
+
+  return data
 }
 
 export interface ILowcodeRunResult {
@@ -21,6 +43,7 @@ export interface ILowcodeRunResult {
     schemaPath: string
     content: Function
   }[]
+  cookConfig: IDeepRequiredCookConfig
 }
 
 const ElementDataLowcodeContextIdKey = 'cookLowcodeContextId'
@@ -35,22 +58,15 @@ const contextMap = new Map<string, ILowcodeContext>()
 export type ILowcodeContext = Awaited<ReturnType<typeof createLowcodeContext>>
 export const createLowcodeContext = async (config: {
   depsEntry: IDepsEntry
-  targetWindow: Window
   externalLibs?: Record<string, any>
 }) => {
-  const { depsEntry, targetWindow, externalLibs } = config
+  const { depsEntry, externalLibs } = config
   const id = `LowcodeContext-${uuidv4()}`
   const store = createReactiveStore<{
     bundleData?: ILowcodeBundleData
     runResult?: ILowcodeRunResult
   }>({})
-  const deps = await fetchDeps({
-    entry: depsEntry,
-    targetWindow,
-    dataset: {
-      [ElementDataLowcodeContextIdKey]: id
-    }
-  })
+
   let currentStyleEl: HTMLStyleElement | undefined = undefined
   const run = async () => {
     const bundleData = store.get('bundleData')
@@ -62,17 +78,21 @@ export const createLowcodeContext = async (config: {
           content: css,
           dataset: {
             [ElementDataLowcodeContextIdKey]: id
-          },
-          targetWindow
+          }
         })
       })(),
       (async () => {
+        const modules: {
+          [key: string]: any
+        } = {}
+        Object.keys(deps).map((key) => {
+          modules[key] = deps[key]?.value
+        })
         const runResult = await sandbox({
           code: js,
           ctx: {
-            [globalModulesMapName]: { ...deps }
-          },
-          targetWindow
+            [globalModulesMapName]: { ...modules }
+          }
         })
         store.set('runResult', runResult)
       })()
@@ -84,7 +104,7 @@ export const createLowcodeContext = async (config: {
   const conext = {
     getId: () => id,
     getDeps: () => {
-      return { ...deps }
+      return { ...deps } as IDeps
     },
     getRunResult: () => {
       const runResult = store.get('runResult')
@@ -105,5 +125,11 @@ export const createLowcodeContext = async (config: {
     }
   }
   contextMap.set(id, conext)
+  const deps = await fetchDeps({
+    entry: depsEntry,
+    dataset: {
+      [ElementDataLowcodeContextIdKey]: id
+    }
+  })
   return conext
 }

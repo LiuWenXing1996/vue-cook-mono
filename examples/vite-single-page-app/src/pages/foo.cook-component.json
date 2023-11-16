@@ -58,12 +58,14 @@
             ]
         }
     ],
-    "components": {
-        "el-button": {
+    "components": [
+        {
+            "tag": "el-button",
+            "type": "Dep",
             "packageName": "@vue-cook/element-plus-materials",
             "varName": "ElButton"
         }
-    },
+    ],
     "states": [
         {
             "name": "msg",

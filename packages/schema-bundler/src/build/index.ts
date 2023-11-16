@@ -91,6 +91,10 @@ export const build = async (params: { vfs: IVirtulFileSystem; esbuild: IEsbuild;
 
   entryTs.content = `
 import "./index.css"
+import {fillConfig} from "@vue-cook/core"
+import CookConfig from "${cookConfigPath}"
+export const cookConfig = fillConfig(CookConfig)
+
 ${viewFiles
   .map((viewFile, index) => {
     let realtivePath = './' + relative(dirname(entryTs.path), viewFile.path)

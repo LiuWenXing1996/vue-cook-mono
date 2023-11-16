@@ -5,7 +5,7 @@
         "dist",
         "public/lowcode"
     ],
-    "minify": true,
+    "minify": false,
     "sourcemap": true,
     "outdir": "./dist",
     "renderer": {

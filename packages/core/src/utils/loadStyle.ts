@@ -1,10 +1,8 @@
 export async function loadStyle(config: {
   src: string
   dataset?: Record<string, any>
-  targetWindow: Window
 }): Promise<HTMLLinkElement> {
-  const { src, dataset, targetWindow } = config
-  const { document } = targetWindow
+  const { src, dataset } = config
   return new Promise((resolve, reject) => {
     const head = document.head || document.getElementsByTagName('head')[0]
     const link = document.createElement('link')
@@ -29,10 +27,8 @@ export async function loadStyle(config: {
 export async function loadStyleByContent(config: {
   content: string
   dataset?: Record<string, any>
-  targetWindow: Window
 }): Promise<HTMLStyleElement> {
-  const { content, dataset, targetWindow } = config
-  const { document } = targetWindow
+  const { content, dataset } = config
   return new Promise((resolve, reject) => {
     const head = document.head || document.getElementsByTagName('head')[0]
     const style = document.createElement('style')

@@ -1,10 +1,8 @@
 export async function loadScript(config: {
   src: string
   dataset?: Record<string, any>
-  targetWindow: Window
 }): Promise<boolean> {
-  const { src, dataset, targetWindow } = config
-  const { document } = targetWindow
+  const { src, dataset } = config
   return new Promise((resolve, reject) => {
     const head = document.head || document.getElementsByTagName('head')[0]
     const script = document.createElement('script')
