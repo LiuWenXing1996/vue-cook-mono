@@ -1,4 +1,8 @@
-import { type IAliasComponent } from '@/schema/component'
+import {
+  type IAliasComponentSchema,
+  type IDepAliasComponentSchema,
+  type IInnerAliasComponentSchema
+} from '@/schema/component'
 import { fetchDeps, resolveDepVar, type IDeps, type IDepsEntry } from '@/utils/fetchDeps'
 import { type IDeepRequiredCookConfig } from '../utils/cookConfig'
 import { v4 as uuidv4 } from 'uuid'
@@ -8,129 +12,96 @@ import {
   type ILowcodeRunResult
 } from './lowcode-context'
 import type { IViewSchema } from '..'
-import { type IState } from '@/schema/state'
-import { type IAction } from '@/schema/action'
+import { type IStateSchema } from '@/schema/state'
+import { type IActionSchema } from '@/schema/action'
 import { Emitter } from '@/utils/emitter'
 import { dirname, resolve } from '@/utils/path'
 import type { IAttributeSchema } from '@/schema/attribute'
 import { createReactiveStore } from '@/utils/reactive'
 import type { MaybePromise } from '@/utils'
+import type { IComponentViewSchema, IViewFileSchema } from '@/schema/view'
+import type { IEventSchema } from '@/schema/template'
 
+// TODO:使用viewContext?那么何时初始化这个呢？
+export interface IViewContext {
+  getState: (name: string) => any
+  setState: (name: string, data: any) => void
+  getAction: (name: string) => Function | undefined
+}
+
+// 是否可以对象话，而不用类的方式
 export abstract class AbstractViewRenderer<View = any> {
-  #emitter = new Emitter()
-  #locale: string = 'zh'
-  #deps: IDeps = {}
-  #schema?: ILowcodeRunResult['schemaList'][0]
-  #jsFunctions: ILowcodeRunResult['jsFunctions'] = []
-  #allRenderers: Record<string, AbstractViewRenderer<View> | undefined> = {}
-  #states: Record<string, any> = {}
-  #actions: Record<string, Function> = {}
-  #components: Record<string, View> = {}
-  get components() {
-    return {
-      ...this.#components
+  #store = createReactiveStore<{
+    innerAliasComponents?: {
+      [aliasComponentFilePath: string]: View | undefined
     }
-  }
-  set components(value: Record<string, any>) {
-    this.#components = { ...value }
-    this.#emitter.emit('onComponentsChange', this.components)
-  }
-  onComponentsChange(listener: (value: AbstractViewRenderer['components']) => void) {
-    return this.#emitter.listen('onComponentsChange', listener)
-  }
+    locale?: string
+    deps?: IDeps
+    lowcodeRunResult?: ILowcodeRunResult
+  }>({})
   constructor() {
-    console.log('...fsfsfds')
-
-    this.onSchemaChange(() => {
-      this.states = this.transferStates()
-      this.actions = this.transferActions()
+    this.#store.watch(['lowcodeRunResult'], () => this.refreshInnerAliasComponents())
+  }
+  setLocale(data: string) {
+    this.#store.set('locale', data)
+  }
+  getLocale() {
+    return this.#store.get('locale')
+  }
+  onLocaleChange(listener: (data: string | undefined) => void) {
+    return this.#store.on('locale', listener)
+  }
+  setLowcodeRunResult(data: ILowcodeRunResult | undefined) {
+    this.#store.set('lowcodeRunResult', data)
+  }
+  onLowcodeRunResultChange(listener: (data: ILowcodeRunResult | undefined) => void) {
+    return this.#store.on('lowcodeRunResult', listener)
+  }
+  setDeps(deps?: IDeps) {
+    this.#store.set('deps', deps)
+  }
+  getDeps() {
+    return { ...(this.#store.get('deps') || {}) } as IDeps
+  }
+  refreshInnerAliasComponents() {
+    console.log('refreshInnerAliasComponents')
+    const { jsFunctions, schemaList = [], cookConfig } = this.#store.get('lowcodeRunResult') || {}
+    const innerAliasComponents: {
+      [viewSchemaFilePath: string]: View | undefined
+    } = {}
+    schemaList.map((schema) => {
+      if (schema.content.type === 'Component') {
+        innerAliasComponents[schema.path] = this.transferComponent(schema.content)
+      }
     })
-    this.onJsFunctionsChange(() => {
-      this.actions = this.transferActions()
-    })
-    this.onDepsChange(() => {
-      this.actions = this.transferActions()
-    })
-    this.onAllRenderersChange(() => {
-      this.components = this.transferComponents()
-    })
+    this.#store.set('innerAliasComponents', innerAliasComponents)
   }
-  get schema() {
-    return this.#schema ? { ...this.#schema } : undefined
+  getLowcodeRunResult() {
+    const res = this.#store.get('lowcodeRunResult')
+    return res ? ({ ...res } as ILowcodeRunResult) : undefined
   }
-  set schema(value: ILowcodeRunResult['schemaList'][0] | undefined) {
-    this.#schema = value
-    this.#emitter.emit('onSchemaChange', this.schema)
-  }
-  onSchemaChange(listener: (value: AbstractViewRenderer['schema']) => void) {
-    return this.#emitter.listen('onSchemaChange', listener)
-  }
-  get deps() {
-    return { ...this.#deps }
-  }
-  set deps(value: IDeps) {
-    this.#deps = value
-    this.#emitter.emit('onDepsChange')
-  }
-  onDepsChange(listener: (value: AbstractViewRenderer['deps']) => void) {
-    return this.#emitter.listen('onDepsChange', listener)
-  }
-  get states() {
-    return {
-      ...this.#states
-    }
-  }
-  set states(value: Record<string, any>) {
-    this.#states = { ...value }
-    this.#emitter.emit('onStatesChange', value)
-  }
-  onStatesChange(listener: (value: AbstractViewRenderer['states']) => void) {
-    return this.#emitter.listen('onStatesChange', listener)
-  }
-  get actions() {
-    return { ...this.#actions }
-  }
-  set actions(value: Record<string, any>) {
-    this.#actions = { ...value }
-    this.#emitter.emit('onActionsChange', value)
-  }
-  onActionsChange(listener: (value: AbstractViewRenderer['actions']) => void) {
-    return this.#emitter.listen('onActionsChange', listener)
-  }
-  get jsFunctions() {
-    return [...this.#jsFunctions]
-  }
-  set jsFunctions(value: ILowcodeRunResult['jsFunctions']) {
-    this.#jsFunctions = [...value]
-    this.#emitter.emit('onJsFunctionsChange', value)
-  }
-  onJsFunctionsChange(listener: (value: AbstractViewRenderer['jsFunctions']) => void) {
-    return this.#emitter.listen('onJsFunctionsChange', listener)
-  }
-
-  get allRenderers() {
-    return { ...this.#allRenderers }
-  }
-  set allRenderers(value: Record<string, AbstractViewRenderer<View> | undefined>) {
-    this.#allRenderers = { ...value }
-    this.#emitter.emit('onAllRenderersChange', value)
-  }
-  onAllRenderersChange(listener: (value: AbstractViewRenderer['allRenderers']) => void) {
-    return this.#emitter.listen('onAllRenderersChange', listener)
-  }
-
-  transferActions() {
+  transferActions(actions: IActionSchema[], viewFileSchema: IViewFileSchema) {
     const actionsObj: Record<string, Function | undefined> = {}
-    const { actions = [] } = this.schema?.content || {}
+    actions.map((action) => {
+      actionsObj[action.name] = this.transferAction(action, viewFileSchema).content
+    })
+    return actionsObj
+  }
+  transferAction(actionAchema: IActionSchema, viewFileSchema: IViewFileSchema) {
     const transferMap: Record<
-      IAction['type'],
-      undefined | ((data: IAction) => Function | undefined)
+      IActionSchema['type'],
+      undefined | ((data: IActionSchema) => Function | undefined)
     > = {
       JsFunction: (data) => {
         if (data.type === 'JsFunction') {
-          return this.jsFunctions.find((e) => {
-            return e.name === data.name && e.schemaPath === this.#schema?.path
+          const runResult = this.#store.get('lowcodeRunResult')
+          const method = runResult?.jsFunctions.find((e) => {
+            return e.name === data.name && e.schemaPath === viewFileSchema.path
           })?.content
+          const func = (...payload: any[]) => {
+            method?.(...payload)
+          }
+          return func
         }
       },
       LogicComposer: (data) => {
@@ -142,74 +113,60 @@ export abstract class AbstractViewRenderer<View = any> {
         }
       }
     }
-    actions.map((action) => {
-      actionsObj[action.name] = transferMap[action.type]?.(action)
-    })
-    return actionsObj
-  }
-
-  transferStates() {
-    const statesObj: Record<string, any> = {}
-    const { states = [] } = this.schema?.content || {}
-    const transferMap: Record<IState['type'], undefined | ((data: IState) => unknown)> = {
-      String: (data) => {
-        if (data.type === 'String') {
-          return String(data.content)
-        }
-      },
-      Number: (data) => {
-        if (data.type === 'Number') {
-          return Number(data.content)
-        }
-      },
-      Boolean: (data) => {
-        if (data.type === 'Boolean') {
-          return Boolean(data.content)
-        }
-      },
-      Json: (data) => {
-        if (data.type === 'Json') {
-          return data.content
-        }
-      }
+    return {
+      name: actionAchema.name,
+      content: transferMap[actionAchema.type]?.(actionAchema)
     }
+  }
+  transferStates(states: IStateSchema[]) {
+    const statesObj: Record<string, any> = {}
     states.map((e) => {
-      statesObj[e.name] = transferMap[e.type]?.(e)
+      statesObj[e.name] = this.transferState(e).content
     })
     return statesObj
   }
-
-  transferComponents() {
-    const { deps, schema } = this
-    const componentsObj: Record<string, View | undefined> = {}
-    if (schema) {
-      const { components = [] } = schema.content
-      const transferMap: Record<
-        IAliasComponent['type'],
-        undefined | ((data: IAliasComponent) => View | undefined)
-      > = {
-        Inner: (data) => {
-          if (data.type === 'Inner') {
-            const componentFileAbsolutePath = resolve(dirname(schema.path), data.componentFilePath)
-            return this.allRenderers[componentFileAbsolutePath]?.getView()
+  transferState(schema: IStateSchema) {
+    const transferMap: Record<IStateSchema['type'], undefined | ((data: IStateSchema) => unknown)> =
+      {
+        String: (data) => {
+          if (data.type === 'String') {
+            return String(data.content)
           }
         },
-        Dep: (data) => {
-          if (data.type === 'Dep') {
-            const lib = deps[data.packageName]
-            const cmpt = resolveDepVar<View>({ dep: lib, varName: data.varName })
-            return cmpt
+        Number: (data) => {
+          if (data.type === 'Number') {
+            return Number(data.content)
+          }
+        },
+        Boolean: (data) => {
+          if (data.type === 'Boolean') {
+            return Boolean(data.content)
+          }
+        },
+        Json: (data) => {
+          if (data.type === 'Json') {
+            return data.content
           }
         }
       }
-      components.map((e) => {
-        componentsObj[e.tag] = transferMap[e.type]?.(e)
-      })
+    return {
+      name: schema.name,
+      content: transferMap[schema.type]?.(schema)
     }
-    return componentsObj
   }
-
-  transferAttributeData(data: IAttributeSchema) {
+  transferAttribute(
+    schema: IAttributeSchema,
+    data: {
+      states: { [name: string]: any }
+      i18ns: {
+        name: string
+        content: {
+          [langKey: string]: string
+        }
+      }[]
+    }
+  ) {
+    const { states, i18ns } = data
     const transferMap: Record<IAttributeSchema['type'], (data: IAttributeSchema) => any> = {
       string: (data) => {
         if (data.type === 'string') {
@@ -253,14 +210,16 @@ export abstract class AbstractViewRenderer<View = any> {
       },
       state: (data) => {
         if (data.type === 'state') {
-          return this.#states[data.content]
+          return states[data.content]
         }
       },
       i18n: (data) => {
         if (data.type === 'i18n') {
-          const { i18ns = [] } = this.schema?.content || {}
           const i18n = i18ns.find((e) => e.name === data.content)
-          return i18n?.content[this.#locale]
+          const locale = this.#store.get('locale')
+          if (locale) {
+            return i18n?.content[locale]
+          }
         }
       },
       json: (data) => {
@@ -270,9 +229,52 @@ export abstract class AbstractViewRenderer<View = any> {
       }
     }
 
-    return transferMap[data.type]?.(data)
+    return transferMap[schema.type]?.(schema)
   }
-  abstract getView(): View
+  transferAliasComponents(
+    aliasComponents: IAliasComponentSchema[],
+    viewFileSchema: IViewFileSchema
+  ) {
+    const components: {
+      [tag: string]: View | undefined
+    } = {}
+    aliasComponents.map((e) => {
+      components[e.tag] = this.transferAliasComponent(e, viewFileSchema)
+    })
+    return components
+  }
+  transferAliasComponent(schema: IAliasComponentSchema, viewFileSchema: IViewFileSchema) {
+    const transferMap: Record<
+      IAliasComponentSchema['type'],
+      undefined | ((data: IAliasComponentSchema) => View | undefined)
+    > = {
+      Inner: (data) => {
+        if (data.type === 'Inner') {
+          const componentFileAbsolutePath = resolve(
+            dirname(viewFileSchema.path),
+            data.componentFilePath
+          )
+          return this.#store.get('innerAliasComponents')?.[componentFileAbsolutePath]
+        }
+      },
+      Dep: (data) => {
+        if (data.type === 'Dep') {
+          return this.transferDepAliasComponent(data)
+        }
+      }
+    }
+    return transferMap[schema.type]?.(schema)
+  }
+  transferDepAliasComponent(schema: IDepAliasComponentSchema) {
+    const deps = this.#store.get('deps')
+    const lib = deps?.[schema.packageName]
+    const cmpt = resolveDepVar<View>({ dep: lib, varName: schema.varName })
+    return cmpt
+  }
+  transferEvent(schema: IEventSchema) {
+    const action = this.transferAttribute(schema.content)
+  }
+  abstract transferComponent(schema: IComponentViewSchema): View
 }
 
 export type IViewRendererContext<View, Renderer extends AbstractViewRenderer<View>> = Awaited<
@@ -291,76 +293,41 @@ export const createViewRendererContext = async <
   const { depsEntry, lowcodeBundleData, externalLibs } = config
   const store = createReactiveStore<{
     RendererClass?: IRendererClass
-    renderers: {
-      [viewFilePath: string]: Renderer | undefined
-    }
-  }>({
-    renderers: {}
-  })
+    mainRenderer?: Renderer
+  }>({})
   const lowcodeContext = await createLowcodeContext({
     depsEntry,
     externalLibs
   })
   lowcodeContext.setBundleData(lowcodeBundleData)
-  const deps = lowcodeContext.getDeps()
 
-  const refreshRenderers = () => {
-    const renderers = { ...store.get('renderers') }
+  const refreshMainRenderer = () => {
     const RendererClass = store.get('RendererClass')
     if (!RendererClass) {
-      store.set('renderers', {})
+      store.set('mainRenderer', undefined)
       return
     }
+    const renderer = new RendererClass()
     const runResult = lowcodeContext.getRunResult()
-    const { schemaList = [], jsFunctions = [] } = runResult || {}
-    schemaList.map((schema) => {
-      let renderer = renderers[schema.path]
-      if (renderer) {
-        renderer.schema = schema
-        renderer.jsFunctions = jsFunctions
-      } else {
-        renderer = renderers[schema.path] = new RendererClass()
-        renderer.deps = deps
-        renderer.schema = schema
-        renderer.jsFunctions = jsFunctions
-      }
-    })
-    const allSchemaFiles = schemaList.map((e) => e.path)
-    Object.keys(renderers).map((key) => {
-      if (!allSchemaFiles.includes(key)) {
-        renderers[key] = undefined
-      }
-    })
-
-    Object.keys(renderers).map((key) => {
-      const renderer = renderers[key]
-      if (renderer) {
-        renderer.allRenderers = renderers
-      }
-    })
-    store.set('renderers', { ...renderers })
+    renderer.setLowcodeRunResult(runResult)
+    renderer.setDeps(lowcodeContext.getDeps())
+    store.set('mainRenderer', renderer)
   }
-  refreshRenderers()
-
-  lowcodeContext.onRunResultChange(() => refreshRenderers())
-  store.watch(['RendererClass'], () => refreshRenderers())
-
-  const getRenderers = () => {
-    const renderers = store.get('renderers')
-    return { ...renderers } as typeof renderers
-  }
+  refreshMainRenderer()
+  store.watch(['RendererClass'], () => refreshMainRenderer())
+  lowcodeContext.onRunResultChange((data) => {
+    console.log('====>onRunResultChange')
+    const mainRenderer = store.get('mainRenderer')
+    if (mainRenderer) {
+      mainRenderer.setLowcodeRunResult(data)
+    }
+  })
 
   return {
     getDeps: lowcodeContext.getDeps,
-    setRendererClass: (data: IRendererClass | undefined) => {
-      store.set('RendererClass', data)
-    },
-    getRenderers,
-    onRenderersChange: (listener: (data: ReturnType<typeof getRenderers>) => void) => {
-      return store.on('renderers', () => {
-        listener(getRenderers())
-      })
-    },
+    setRendererClass: store.getHandler('RendererClass').set,
+    getMainRenderer: () => store.get('mainRenderer'),
+    onMainRendererChange: store.getHandler('mainRenderer').on,
     setLowcodeBundleData: lowcodeContext.setBundleData,
     onLowcodeRunResultChange: lowcodeContext.onRunResultChange,
     getLowcodeRunResult: lowcodeContext.getRunResult

@@ -4,7 +4,7 @@ import type { JsonType, JsonTypeObject } from '@/utils/jsonType'
 import type { IRenderMode } from '@/render'
 import type { ISchemaData } from '@/design-mode/design-renderer-context'
 import { resolve } from '@/utils/path'
-import type { IAction } from './action'
+import type { IActionSchema } from './action'
 export interface IEditorType extends JsonTypeObject {
   name: string
   packageName: string
@@ -101,7 +101,7 @@ export interface IComponentConfig {
   style?: string
   states?: Record<string, string>
   props?: Record<string, unknown>
-  actions?: IAction[]
+  actions?: IActionSchema[]
   components?: Record<
     string,
     {
@@ -122,7 +122,7 @@ export interface OutterComponent<T> {
 }
 
 export type IComponentMap<T> = Map<string, InnerComponent | OutterComponent<T>>
-export type IStateMap = Map<string, unknown>
+export type IStateSchemaMap = Map<string, unknown>
 
 export const getComponetMap = <T>(params: { deps?: IDeps; data?: ISchemaData }) => {
   const { data, deps } = params
@@ -176,7 +176,7 @@ export const getStateMap = (params: { deps?: IDeps; data?: ISchemaData }) => {
     return
   }
   const { value: mainComponentConfig } = mainComponent
-  const map: IStateMap = new Map()
+  const map: IStateSchemaMap = new Map()
   const { states = {} } = mainComponentConfig || {}
   const genVarGetter = (code: string) => {
     const func = new Function(`return (states)=>${code}`)

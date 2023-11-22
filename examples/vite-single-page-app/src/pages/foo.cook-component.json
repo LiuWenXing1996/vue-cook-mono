@@ -2,6 +2,7 @@
     "name": "TestButton",
     "template": [
         {
+            "type": "Tag",
             "tag": "div",
             "class": [
                 "c",
@@ -10,36 +11,45 @@
                     "toggoleStateName": "a"
                 }
             ],
-            "events": {
-                "click": "alert"
-            },
             "slots": [
                 {
                     "name": "default",
                     "content": [
                         {
-                            "text": "11113ffffffffsdfsdffdsf fsdfjkhsdkjfhdskj"
+                            "type": "Text",
+                            "content": {
+                                "type": "state",
+                                "content": "msg"
+                            }
                         },
                         {
+                            "type": "Tag",
                             "tag": "el-button",
                             "v-for": {
                                 "key": "item",
                                 "data": {
                                     "type": "state",
-                                    "value": "forData"
+                                    "content": "forData"
                                 }
                             },
                             "v-if": {
                                 "bind": {
                                     "type": "state",
-                                    "value": "show"
+                                    "content": "show"
                                 }
                             },
                             "attributes": [
                                 {
                                     "name": "size",
                                     "type": "state",
-                                    "value": "msg"
+                                    "content": "msg"
+                                }
+                            ],
+                            "events": [
+                                {
+                                    "name": "click",
+                                    "type": "action",
+                                    "content": "alert"
                                 }
                             ],
                             "slots": [
@@ -47,7 +57,11 @@
                                     "name": "default",
                                     "content": [
                                         {
-                                            "text": "11113ff"
+                                            "type": "Text",
+                                            "content": {
+                                                "type": "state",
+                                                "content": "msg"
+                                            }
                                         }
                                     ]
                                 }

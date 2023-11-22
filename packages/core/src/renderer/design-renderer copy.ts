@@ -9,8 +9,8 @@ import {
   type ILowcodeRunResult
 } from './lowcode-context'
 import type { IViewSchema } from '..'
-import { type IState } from '@/schema/state'
-import { type IAction } from '@/schema/action'
+import { type IStateSchema } from '@/schema/state'
+import { type IActionSchema } from '@/schema/action'
 import { Emitter } from '@/utils/emitter'
 import { dirname, resolve } from '@/utils/path'
 import type { IAttributeSchema } from '@/schema/attribute'

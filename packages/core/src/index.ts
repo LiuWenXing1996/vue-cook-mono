@@ -64,9 +64,14 @@ export {
 //   transfer as exportSchemaTransfer
 // } from './schema/export'
 
-export { type IViewSchema } from './schema/view'
-export { type ITemplateTreeSchemaNode, templateSchemaToTree } from './schema/template'
-export { type IAction, type IJsFunctionAction } from './schema/action'
+export { type IViewSchema, type IViewFileSchema } from './schema/view'
+export {
+  type ITemplateTreeSchemaNode,
+  type ITemplateTextSchema,
+  type ITemplateTagSchema,
+  templateSchemaToTree
+} from './schema/template'
+export { type IActionSchema, type IJsFunctionActionSchema } from './schema/action'
 
 // export {
 //   type IComponentConfig as IComponentSchemaConfig,
@@ -78,7 +83,7 @@ export { type IAction, type IJsFunctionAction } from './schema/action'
 //   removeTemplatePid,
 //   type IEditor,
 //   type IComponentMap,
-//   type IStateMap,
+//   type IStateSchemaMap,
 //   type ITemplateConfigWithPid,
 //   type IComponentConfigWithTemplatePid
 //   // check as componentSchemaCheck,

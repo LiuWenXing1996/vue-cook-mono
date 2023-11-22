@@ -36,7 +36,25 @@ export const createReactiveStore = <T extends object>(data: T) => {
   }
   const set = <K extends IKeys>(key: K, value: T[K]) => {
     store[key] = value
-    emit(key, get(key))
+    emit(key, value)
+  }
+  const defaultProcessValue = <T>(value: T) => value
+  const getHandler = <K extends IKeys>(key: K, processValue?: (value: T[K]) => T[K]) => {
+    const _processValue = processValue || defaultProcessValue
+    return {
+      get: () => {
+        return _processValue(get(key))
+      },
+      set: (value: T[K]) => {
+        return set(key, _processValue(value))
+      },
+      on: (listener: (value: T[K]) => void) => {
+        return on(key, listener)
+      },
+      emit: (value: T[K]) => {
+        return emit(key, _processValue(value))
+      }
+    }
   }
   const on = <K extends IKeys>(key: K, listener: (data: T[K]) => void) => {
     const eventName = getEventName(key)
@@ -73,10 +91,10 @@ export const createReactiveStore = <T extends object>(data: T) => {
     emit,
     get,
     set,
-    watch
+    watch,
+    getHandler
   }
 }
-
 // const aa = createReactiveStore({
 //   a: 1,
 //   b: 'sss',

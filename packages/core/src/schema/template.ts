@@ -1,4 +1,9 @@
-import type { IActionAttributeSchema, IAttributeSchema } from './attribute'
+import type {
+  IActionAttributeSchema,
+  IAttributeSchema,
+  IStateAttributeSchema,
+  IStringAttributeSchema
+} from './attribute'
 
 export interface ISlotSchema {
   name: string
@@ -10,13 +15,24 @@ export interface IEventSchema {
   content: IActionAttributeSchema[]
 }
 
-export interface ITemplateSchema {
-  text?: string
-  tag?: string
+export interface ITemplateSchemaBase {
+  type: string
+}
+
+export interface ITemplateTextSchema extends ITemplateSchemaBase {
+  type: 'Text'
+  content: IStringAttributeSchema | IStateAttributeSchema
+}
+
+export interface ITemplateTagSchema extends ITemplateSchemaBase {
+  type: 'Tag'
+  tag: string
   attributes?: IAttributeSchema[]
   slots?: ISlotSchema[]
   events?: IEventSchema[]
 }
+
+export type ITemplateSchema = ITemplateTextSchema | ITemplateTagSchema
 
 export interface ITemplateTreeSchemaNode {
   id: string
@@ -46,8 +62,11 @@ export const templateSchemaToTree = (
     root: ITemplateTreeSchemaNode[]
   }) => {
     const { schema, parent, root, index } = params
-    const tag = (schema.text ? '#text' : schema.tag) || 'unknown-tag'
-    const slots = schema.slots || []
+    const tag = (schema.type === 'Text' ? '#text' : schema.tag) || 'unknown-tag'
+    let slots: ISlotSchema[] = []
+    if (schema.type === 'Tag') {
+      slots = schema.slots || []
+    }
     const node: ITemplateTreeSchemaNode = {
       id: `${parent?.id || '#root'}__${index}__${tag}`,
       parent,

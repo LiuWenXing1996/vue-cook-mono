@@ -5,7 +5,7 @@ import {
   type IComponentConfig,
   type IComponentConfigWithTemplatePid,
   type IComponentMap,
-  type IStateMap,
+  type IStateSchemaMap,
   type ITemplateConfigWithPid
 } from '@/schema/component'
 import { fetchDeps, resolveDepVar, type IDeps, type IDepsEntry } from '@/utils/fetchDeps'

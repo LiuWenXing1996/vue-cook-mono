@@ -1,22 +1,44 @@
-import type { IAction } from './action'
-import type { IState } from './state'
-import type { IAliasComponent } from './component'
+import type { IActionSchema } from './action'
+import type { IStateSchema } from './state'
 import type { IAttributeSchema } from './attribute'
 import type { ITemplateSchema } from './template'
+import type { IAliasComponentSchema } from './component'
 
-export interface IViewSchema {
+export interface IViewSchemaBase {
   name: string
-  type: 'Component' | 'Page' | 'Layout'
+  type: string
   template?: ITemplateSchema[]
   style?: string
-  states?: IState[]
+  states?: IStateSchema[]
   props?: Record<string, unknown>
-  actions?: IAction[]
-  components?: IAliasComponent[]
+  actions?: IActionSchema[]
+  components?: IAliasComponentSchema[]
   i18ns?: {
     name: string
     content: {
       [langKey: string]: string
     }
   }[]
+}
+
+export interface IComponentViewSchema extends IViewSchemaBase {
+  type: 'Component'
+}
+
+export interface ILayoutViewSchema extends IViewSchemaBase {
+  type: 'Layout'
+}
+
+export interface IPageViewSchema extends IViewSchemaBase {
+  type: 'Page'
+  router: {
+    path: string
+  }
+}
+
+export type IViewSchema = IComponentViewSchema | ILayoutViewSchema | IPageViewSchema
+
+export interface IViewFileSchema {
+  path: string
+  content: IViewSchema
 }

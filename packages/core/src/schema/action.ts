@@ -1,21 +1,19 @@
 import type { JsonTypeObject } from '@/utils/jsonType'
 
-export type IAction = IJsFunctionAction | ILogicComposerAction
+export type IActionSchema = IJsFunctionActionSchema | ILogicComposerActionSchema
 
-export interface IActionBase {
+export interface IActionSchemaBase {
   name: string
   type: string
 }
 
-export interface IJsFunctionAction extends IActionBase {
-  name: string
+export interface IJsFunctionActionSchema extends IActionSchemaBase {
   type: 'JsFunction'
   jsPath: string
   varName: string
 }
 
-export interface ILogicComposerAction extends IActionBase {
-  name: string
+export interface ILogicComposerActionSchema extends IActionSchemaBase {
   type: 'LogicComposer'
   content: JsonTypeObject
 }

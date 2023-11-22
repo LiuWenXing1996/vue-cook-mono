@@ -1,23 +1,17 @@
-import { type IViewSchema } from './view'
-
-export interface IComponentSchema extends IViewSchema {
-  type: 'Component'
-}
-
-export type IAliasComponent = IDepComponent | IInnerComponent
-
-export interface IAliasComponentBase {
+export interface IAliasComponentSchemaBase {
   tag: string
   type: string
 }
 
-export interface IDepComponent extends IAliasComponentBase {
+export interface IDepAliasComponentSchema extends IAliasComponentSchemaBase {
   type: 'Dep'
   packageName: string
   varName: string
 }
 
-export interface IInnerComponent extends IAliasComponentBase {
+export interface IInnerAliasComponentSchema extends IAliasComponentSchemaBase {
   type: 'Inner'
   componentFilePath: string
 }
+
+export type IAliasComponentSchema = IDepAliasComponentSchema | IInnerAliasComponentSchema

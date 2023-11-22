@@ -4,6 +4,7 @@ import { loadStyleByContent } from '@/utils/loadStyle'
 import sandbox, { globalModulesMapName } from '@/utils/sandbox'
 import type { IDeepRequiredCookConfig, IDeps, IViewSchema } from '..'
 import { createReactiveStore } from '@/utils/reactive'
+import type { IViewFileSchema } from '@/schema/view'
 
 export interface ILowcodeBundleData {
   js: string
@@ -33,11 +34,7 @@ export const fetchBundleData = async (entry: ILowcodeBundleDataEntry) => {
 }
 
 export interface ILowcodeRunResult {
-  schemaList: {
-    path: string
-    type: string
-    content: IViewSchema
-  }[]
+  schemaList: IViewFileSchema[]
   jsFunctions: {
     name: string
     schemaPath: string

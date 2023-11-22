@@ -1,4 +1,3 @@
-import { type IAliasComponent } from '@/schema/component'
 import {
   fetchDeps,
   resolveDepVar,
@@ -17,8 +16,8 @@ import {
   type ILowcodeRunResult
 } from './lowcode-context'
 import type { IViewSchema } from '..'
-import { type IState } from '@/schema/state'
-import { type IAction } from '@/schema/action'
+import { type IStateSchema } from '@/schema/state'
+import { type IActionSchema } from '@/schema/action'
 import { Emitter } from '@/utils/emitter'
 import { dirname, resolve } from '@/utils/path'
 import type { IAttributeSchema } from '@/schema/attribute'
@@ -33,7 +32,7 @@ import { createReactiveStore } from '@/utils/reactive'
 
 export abstract class AbstractDesignRenderer<View = any> extends AbstractViewRenderer<View> {
   abstract getComponetnOverlayFromElement(element: Element): IDesignComponentOverlay | undefined
-  abstract mount(mountElementId: string): Promise<void> | void
+  abstract mount(mountElementId: string, mainViewFilePath: string): Promise<void> | void
 }
 
 export interface IDesignComponentOverlay {
@@ -77,19 +76,10 @@ export const createDesignRendererContext = async <View = any>(
   const { depsEntry, externalLibs, mainViewFilePath } = config
   const store = createReactiveStore<{
     isMounted?: boolean
-    mainRenderer?: AbstractDesignRenderer<View>
   }>({})
   let viewRendererContext = await createViewRendererContext<View, AbstractDesignRenderer<View>>({
     depsEntry,
     externalLibs
-  })
-
-  const refreshMainRenderer = () => {
-    const mainRenderer = viewRendererContext.getRenderers()[mainViewFilePath]
-    store.set('mainRenderer', mainRenderer)
-  }
-  viewRendererContext.onRenderersChange(() => {
-    refreshMainRenderer()
   })
   const refreshRendererClass = () => {
     const runResult = viewRendererContext.getLowcodeRunResult()
@@ -112,20 +102,19 @@ export const createDesignRendererContext = async <View = any>(
   })
 
   refreshRendererClass()
-  refreshMainRenderer()
 
   let cancelListen: Function | undefined = undefined
   const tryMountApp = async (mountElementId: string) => {
     if (!store.get('isMounted')) {
-      const mainRenderer = store.get('mainRenderer')
+      const mainRenderer = viewRendererContext.getMainRenderer()
       if (!mainRenderer) {
         cancelListen?.()
-        cancelListen = store.on('mainRenderer', async () => {
+        cancelListen = viewRendererContext.onMainRendererChange(async () => {
           await tryMountApp(mountElementId)
         })
       } else {
         store.set('isMounted', true)
-        await mainRenderer.mount(mountElementId)
+        await mainRenderer.mount(mountElementId, mainViewFilePath)
       }
     }
   }
@@ -133,10 +122,6 @@ export const createDesignRendererContext = async <View = any>(
   const context = {
     setLowcodeBundleData: viewRendererContext.setLowcodeBundleData,
     onLowcodeRunResultChange: viewRendererContext.onLowcodeRunResultChange,
-    getMainRenderer: () => store.get('mainRenderer'),
-    onMainRendererChange: (listener: (data: AbstractDesignRenderer<View> | undefined) => void) => {
-      return store.on('mainRenderer', listener)
-    },
     tryMountApp
   }
 

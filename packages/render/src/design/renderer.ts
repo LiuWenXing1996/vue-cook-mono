@@ -13,17 +13,19 @@ import {
 } from 'vue'
 import App from './app.vue'
 import getComponentRect from './utils/getComponentRect'
+import type { IComponentViewSchema } from '@vue-cook/core/dist/schema/view'
 export class Renderer extends AbstractDesignRenderer<Component> {
-  getView() {
-    return ''
+  transferComponent(schema: IComponentViewSchema): Component {
+    throw new Error('Method not implemented.')
   }
   private app?: IApp<Element>
   elementToTreeSchemaNodeMap = new Map<Element, ITemplateTreeSchemaNode>()
   templateTreeSchemaNodeIdToInstanceMap = new Map<string, ComponentInternalInstance>()
-  mount(mountElementId: string): void | Promise<void> {
+  mount(mountElementId: string, mainViewFilePath: string): void | Promise<void> {
     this.app = createApp(
       h(App, {
-        renderer: this
+        renderer: this,
+        mainViewFilePath
       })
     )
     this.app.mount(mountElementId)

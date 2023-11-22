@@ -2,7 +2,7 @@ import {
   type IAttributeSchemaData,
   type IComponentConfigWithTemplatePid,
   type IComponentMap,
-  type IStateMap
+  type IStateSchemaMap
 } from '@/schema/component'
 import { type IDeps } from '@/utils/fetchDeps'
 import type { IDesignComponentOverlay, ISchemaData } from './design-renderer-context'
@@ -127,7 +127,7 @@ export abstract class AbstractDesignRenderer<Component = any> {
 export interface IDesignRendererData<Component> {
   schemaData?: ISchemaData
   componentMap?: IComponentMap<Component>
-  stateMap?: IStateMap
+  stateMap?: IStateSchemaMap
   mainComponentConfig?: IComponentConfigWithTemplatePid
 }
 

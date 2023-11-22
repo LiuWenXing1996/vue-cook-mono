@@ -1,7 +1,7 @@
 import {
   type IComponentConfigWithTemplatePid,
   type IComponentMap,
-  type IStateMap
+  type IStateSchemaMap
 } from '@/schema/component'
 import { type IDeps } from '@/utils/fetchDeps'
 import type { ISchemaData } from './editor-renderer-context'

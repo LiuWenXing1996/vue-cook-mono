@@ -6,7 +6,7 @@ import {
   getCookConfigFromFs,
   getPkgJsonFromFs,
   getViewFilesFromFs,
-  type IJsFunctionAction,
+  type IJsFunctionActionSchema,
   path
 } from '@vue-cook/core'
 import { virtualFsPlugin } from './plugins/virtual-fs-plugin'
@@ -63,13 +63,13 @@ export const build = async (params: { vfs: IVirtulFileSystem; esbuild: IEsbuild;
   const actionFiles: {
     viewFilePath: string
     viewFileIndex: number
-    action: IJsFunctionAction
+    action: IJsFunctionActionSchema
     actionIndex: number
   }[] = []
 
   viewFiles.map((viewFile, viewIndex) => {
     const actions = viewFile.content.actions || []
-    const jsFunctionActions = actions.filter((e) => e.type === 'JsFunction') as IJsFunctionAction[]
+    const jsFunctionActions = actions.filter((e) => e.type === 'JsFunction') as IJsFunctionActionSchema[]
     jsFunctionActions.map((action, actionIndex) => {
       actionFiles.push({
         viewFilePath: viewFile.path,
