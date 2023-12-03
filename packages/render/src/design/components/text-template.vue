@@ -4,23 +4,28 @@
     </template>
 </template>
 <script setup lang="ts">
-import type { ITemplateTextSchema } from '@vue-cook/core';
-import { computed, toRefs } from 'vue';
+import type { ITemplateTextSchema, IViewContext } from '@vue-cook/core';
+import { shallowRef, toRefs, watch } from 'vue';
 import type { Renderer } from '../renderer';
 
 const props = defineProps<{
     schema: ITemplateTextSchema
-    states: Record<string, any>,
+    viewContext: IViewContext
     renderer: Renderer,
 }>()
-const { schema, states, renderer } = toRefs(props)
-const text = computed(() => {
-    const textSchema = schema.value.content
-    return renderer.value.transferAttribute(textSchema, {
-        states: states.value,
-        i18ns: []
-    })
+const { schema, viewContext, renderer } = toRefs(props)
+const viewData = renderer.value.createViewData<string>(viewContext.value)
+const text = shallowRef<string | undefined>(viewData.getValue())
+viewData.onValueChange(() => {
+    text.value = viewData.getValue()
+})
+watch(schema, () => {
+    viewData.setSchema(schema.value.content)
+    text.value = viewData.getValue()
+}, {
+    immediate: true
 })
 
+
+
 </script>
-<style lang="less" scoped></style>

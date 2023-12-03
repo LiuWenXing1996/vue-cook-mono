@@ -45,15 +45,23 @@ export {
 //   type IRenderMode
 // } from './render/index'
 
+export { type IViewContext, type IViewData } from './renderer/base-renderer'
+
 export {
-  type IDesignRendererContext,
+  type IDesignRenderer,
   type IDesignComponentOverlay,
   type IDesignComponentPageSize,
-  createDesignRendererContext,
-  autoCreateDesignRendererContext,
-  getDesignRendererContext,
+  createDesignRenderer,
+  autoCreateDesignRenderer,
+  getDesignRenderer,
   AbstractDesignRenderer
 } from './renderer/design-renderer'
+
+export {
+  createRuntimeRenderer,
+  autoCreateRuntimeRenderer,
+  AbstractRuntimeRenderer
+} from './renderer/runtime-renderer'
 
 // export { emitEditorWindowSchemaChange, SchemaChanegeDataType } from './lowcode/schemaChange'
 
@@ -63,6 +71,9 @@ export {
 //   check as exportSchemaCheck,
 //   transfer as exportSchemaTransfer
 // } from './schema/export'
+export { type IAttributeSchema } from './schema/attribute'
+export { type ITemplateSchema, type IEventSchema } from './schema/template'
+export { type IActionDataSchema } from './schema/data'
 
 export { type IViewSchema, type IViewFileSchema } from './schema/view'
 export {
@@ -71,7 +82,7 @@ export {
   type ITemplateTagSchema,
   templateSchemaToTree
 } from './schema/template'
-export { type IActionSchema, type IJsFunctionActionSchema } from './schema/action'
+export { type IActionSchema, type IJsFunctionActionSchema, defineJsFunction } from './schema/action'
 
 // export {
 //   type IComponentConfig as IComponentSchemaConfig,

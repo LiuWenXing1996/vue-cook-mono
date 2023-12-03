@@ -20,7 +20,7 @@
 </template>
 <script setup lang="ts">
 import { shallowRef, ref, watch, toRefs, computed, onUnmounted } from 'vue';
-import { createDesignRendererContext, type IDesignComponentPageSize, type IDesignRendererContext } from "@vue-cook/core"
+import { createDesignRenderer, type IDesignComponentPageSize, type IDesignRenderer } from "@vue-cook/core"
 import { useInjectSudioState } from '@/hooks/useInjectStudioState';
 import { useComponentSchemaList } from '@/hooks/useComponentSchemaList';
 import { useRefHistory } from '@vueuse/core'
@@ -42,7 +42,7 @@ const size = ref<IDesignComponentPageSize>({
 })
 const designRendererIframeRef = ref<HTMLIFrameElement>()
 const editorRendererIframeRef = ref<HTMLIFrameElement>()
-const rendererContextRef = shallowRef<IDesignRendererContext>()
+const rendererContextRef = shallowRef<IDesignRenderer>()
 const toPx = (n: number) => `${n}px`
 const widthPx = computed(() => toPx(size.value.width * size.value.scale / 100))
 const heightPx = computed(() => toPx(size.value.height * size.value.scale / 100))
@@ -65,7 +65,7 @@ watch(designRendererIframeRef, async () => {
         const depsEntry = await services.value.getDesignDepsEntry({
             projectName: projectName.value
         })
-        const conext = await createDesignRendererContext({
+        const conext = await createDesignRenderer({
             depsEntry: depsEntry,
             iframeEl: designRendererIframeRef.value,
             cookConfig: cookConfig.value,

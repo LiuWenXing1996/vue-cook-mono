@@ -23,7 +23,152 @@ export class Reactive<T extends object> {
   }
 }
 
-export const createReactiveStore = <T extends object>(data: T) => {
+export interface IReactiveStoreData {
+  [key: string]: any
+}
+export type IReactiveStoreValueProcesser<T extends IReactiveStoreData> = {
+  [K in keyof T]?: (key: K, value: T[K], method: 'get' | 'set', store: ReactiveStore<T>) => T[K]
+}
+
+type IReactiveStoreWatchCallbackData<T extends IReactiveStoreData, KS extends (keyof T)[]> = {
+  [key in KS[number]]: T[key]
+}
+
+export class ReactiveStore<T extends IReactiveStoreData> {
+  #emitter = new Emitter()
+  #data: T
+  #valueProcesser: IReactiveStoreValueProcesser<T>
+  constructor(params: { data: T; valueProcesser?: IReactiveStoreValueProcesser<T> }) {
+    const { data, valueProcesser } = params
+    this.#valueProcesser = valueProcesser ? { ...valueProcesser } : {}
+    this.#data = { ...data }
+  }
+  #getEventName = <K extends keyof T>(key: K) => {
+    return `on_${key.toString()}_change`
+  }
+  #emit = <K extends keyof T>(key: K, data: T[K]) => {
+    const eventName = this.#getEventName(key)
+    this.#emitter.emit(eventName, data)
+  }
+  #on = <K extends keyof T>(key: K, listener: (data: T[K]) => void) => {
+    const eventName = this.#getEventName(key)
+    return this.#emitter.listen(eventName, listener)
+  }
+  get on() {
+    return this.#on
+  }
+  #get = <K extends keyof T>(key: K): T[K] => {
+    const valueProcesser = this.#valueProcesser[key]
+    let value = this.#data[key]
+    if (valueProcesser) {
+      value = valueProcesser(key, value, 'get', this)
+    }
+    return value
+  }
+  get get() {
+    return this.#get
+  }
+  #set = <K extends keyof T>(key: K, value: T[K]) => {
+    const valueProcesser = this.#valueProcesser[key]
+    if (valueProcesser) {
+      value = valueProcesser(key, value, 'set', this)
+    }
+    this.#data[key] = value
+    this.#emit(key, value)
+  }
+  get set() {
+    return this.#set
+  }
+  #reset = (data: T) => {
+    const { set, del } = this
+    const newKeys = Object.keys(data) as (keyof T)[]
+    const oldKeys = Object.keys(this.#data) as (keyof T)[]
+    const allKeys = Array.from(new Set([...newKeys, ...oldKeys]))
+    allKeys.map((key) => {
+      if (newKeys.includes(key)) {
+        set(key, data[key])
+      } else {
+        del(key)
+      }
+    })
+  }
+  get reset() {
+    return this.#reset
+  }
+  #del = <K extends keyof T>(key: K) => {
+    // @ts-ignore
+    this.#set(key, undefined)
+  }
+  get del() {
+    return this.#del
+  }
+  #watch = <KS extends (keyof T)[]>(
+    keys: KS,
+    listener: (data: IReactiveStoreWatchCallbackData<T, KS>) => void
+  ) => {
+    const { on, get } = this
+    const uniqueKeys = Array.from(new Set(keys))
+    const cancelMethods = uniqueKeys.map((key) => {
+      return on(key, () => {
+        const patialData: Partial<IReactiveStoreWatchCallbackData<T, KS>> = {}
+        uniqueKeys.map((e) => {
+          patialData[e] = get(e)
+        })
+        const data = patialData as IReactiveStoreWatchCallbackData<T, KS>
+        listener(data)
+      })
+    })
+    return () => {
+      cancelMethods.map((e) => e())
+    }
+  }
+  get watch() {
+    return this.#watch
+  }
+  #getHandler = <K extends keyof T>(key: K) => {
+    const get = () => {
+      return this.get(key)
+    }
+    const set = (value: T[K]) => {
+      return this.set(key, value)
+    }
+    const on = (listener: (value: T[K]) => void) => {
+      return this.on(key, listener)
+    }
+    return {
+      get get() {
+        return get
+      },
+      get set() {
+        return set
+      },
+      get on() {
+        return on
+      }
+    }
+  }
+  get getHandler() {
+    return this.#getHandler
+  }
+}
+
+const s = new ReactiveStore({
+  data: { ss: 'ss' },
+  valueProcesser: {
+    ss: (key, value, data) => {
+      return value
+    }
+  }
+})
+
+export type IReactiveStore<T extends object> = ReturnType<typeof createReactiveStore<T>>
+
+export const createReactiveStore = <T extends object>(
+  data: T,
+  handler?: {
+    get?: <K extends keyof T>(key: K, value: T[K]) => T[K]
+  }
+) => {
   type IKeys = keyof T
   const store: T = { ...data }
 
@@ -32,11 +177,16 @@ export const createReactiveStore = <T extends object>(data: T) => {
     return `on_${key.toString()}_change`
   }
   const get = <K extends IKeys>(key: K) => {
-    return store[key]
+    const value = store[key]
+    return handler?.get?.(key, value) || value
   }
   const set = <K extends IKeys>(key: K, value: T[K]) => {
     store[key] = value
     emit(key, value)
+  }
+  const del = <K extends IKeys>(key: K) => {
+    // @ts-ignore
+    set(key, undefined)
   }
   const defaultProcessValue = <T>(value: T) => value
   const getHandler = <K extends IKeys>(key: K, processValue?: (value: T[K]) => T[K]) => {
@@ -62,7 +212,7 @@ export const createReactiveStore = <T extends object>(data: T) => {
   }
   const emit = <K extends IKeys>(key: K, data: T[K]) => {
     const eventName = getEventName(key)
-    return emitter.emit(eventName, data)
+    emitter.emit(eventName, data)
   }
   type IWatchCallbackData<KS extends IKeys[]> = {
     [key in KS[number]]: T[key]
@@ -86,13 +236,26 @@ export const createReactiveStore = <T extends object>(data: T) => {
       cancelMethods.map((e) => e())
     }
   }
+  const reset = (object: T) => {
+    const newKeys = Object.keys(object) as IKeys[]
+    const oldKeys = Object.keys(store) as IKeys[]
+    const allKeys = Array.from(new Set([...newKeys, ...oldKeys]))
+    allKeys.map((key) => {
+      if (newKeys.includes(key)) {
+        set(key, object[key])
+      } else {
+        del(key)
+      }
+    })
+  }
   return {
     on,
     emit,
     get,
     set,
     watch,
-    getHandler
+    getHandler,
+    reset
   }
 }
 // const aa = createReactiveStore({

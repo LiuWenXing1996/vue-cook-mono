@@ -8,7 +8,7 @@ export interface IViewSchemaBase {
   name: string
   type: string
   template?: ITemplateSchema[]
-  style?: string
+  style?: string // 这个移除
   states?: IStateSchema[]
   props?: Record<string, unknown>
   actions?: IActionSchema[]
@@ -42,3 +42,21 @@ export interface IViewFileSchema {
   path: string
   content: IViewSchema
 }
+
+export interface IViewEntrySchema {
+  templateFilePath: string
+  stylePath: string
+  states: IStateSchema[]
+  actions?: IActionSchema[]
+  components?: IAliasComponentSchema[]
+}
+
+export interface IViewEntrySchemaFile {
+  path: string
+  name: string,
+  type: IViewSchema["type"]
+  content: IViewEntrySchema
+}
+
+
+// IViewEntrySchema ===> IViewSchema

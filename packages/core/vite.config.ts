@@ -49,6 +49,7 @@ export default defineConfig({
   build: {
     minify: false,
     sourcemap: true,
+    target: 'esnext',
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       formats: ['cjs', 'es'],

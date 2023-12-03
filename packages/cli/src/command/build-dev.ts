@@ -158,10 +158,10 @@ const buildAuto = async (options: {
   autoEntryJs.path = resolve(tempDir, `./entry.ts`)
   // TODO:此处的autoRunVueApp有问题
   autoEntryJs.content = `
-import { autoCreateDesignRendererContext, path } from '@vue-cook/core'
+import { autoCreateDesignRenderer, path } from '@vue-cook/core'
 import "./index.css"
 
-autoCreateDesignRendererContext({
+autoCreateDesignRenderer({
   depsEntry: {
     js:"../deps/design/index.js",
     css:"../deps/design/style.css"

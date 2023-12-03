@@ -1,22 +1,27 @@
-import { resolveDepVar, type IDepsEntry, genAbsoulteUrl } from "@/utils/fetchDeps"
+import { resolveDepVar, type IDeps, type IDepsEntry, genAbsoulteUrl } from "@/utils/fetchDeps"
 import { LowcodeContext, type ILowcodeContext, type ILowcodeBundleData, type ILowcodeBundleDataEntry, fetchBundleData } from "./lowcode-context"
 import type { MaybePromise } from "@/utils"
 import type { ITemplateSchema } from "@/schema/template"
-import { BaseRenderer } from "./base-renderer"
 
-export abstract class AbstractDesignRenderer extends BaseRenderer {
+export abstract class AbstractDesignContext {
+  #lowcodeContext: ILowcodeContext
   #mainViewFilePath: string
   constructor(params: {
     lowcodeContext: ILowcodeContext,
     mainViewFilePath: string
   }) {
-    super(params)
-    const { mainViewFilePath } = params
+    const { lowcodeContext, mainViewFilePath } = params
+    this.#lowcodeContext = lowcodeContext
     this.#mainViewFilePath = mainViewFilePath
   }
   get getMainViewFilePath() {
     return () => {
       return this.#mainViewFilePath
+    }
+  }
+  get getLowcodeContext() {
+    return () => {
+      return this.#lowcodeContext
     }
   }
   abstract getComponetnOverlayFromElement(element: Element): IDesignComponentOverlay | undefined
@@ -42,16 +47,10 @@ export interface IDesignComponentPageSize {
   scale: number
 }
 
-export type IDesignRendererClass = new (...params: ConstructorParameters<typeof AbstractDesignRenderer>) => AbstractDesignRenderer
-export type IDesignRenderer = InstanceType<IDesignRendererClass>
+export type IDesignContextClass = new (...params: ConstructorParameters<typeof AbstractDesignContext>) => AbstractDesignContext
+export type IDesignContext = InstanceType<IDesignContextClass>
 
-export const getDesignRenderer = (mountWindowId: string) => {
-  //@ts-ignore
-  const renderer = window[mountWindowId]()
-  return renderer as IDesignRenderer | undefined
-}
-
-export const createDesignRenderer = async (params: {
+export const createDesignContext = async (params: {
   depsEntry: IDepsEntry
   mainViewFilePath: string,
   bundleData: ILowcodeBundleData
@@ -67,35 +66,34 @@ export const createDesignRenderer = async (params: {
   }
   const deps = lowcodeContext.getDeps()
   const renderLib = deps?.[cookConfig.renderer.design.packageName]
-  const DesignRendererClass = resolveDepVar<IDesignRendererClass>({
+  const DesignContextClass = resolveDepVar<IDesignContextClass>({
     dep: renderLib,
     varName: cookConfig.renderer.design.varName
   })
-  if (!DesignRendererClass) {
-    throw new Error("undefind DesignRendererClass")
+  if (!DesignContextClass) {
+    throw new Error("undefind DesignContextClass")
   }
-  const renderer = new DesignRendererClass({ lowcodeContext, mainViewFilePath })
-  return renderer
+  const context = new DesignContextClass({ lowcodeContext, mainViewFilePath })
+  return context
 }
 
-export interface IAutoCreateDesignRendererConfig {
-  mountWindowId?: string
+export interface IAutoCreateDesignContextConfig {
   mountElementId: string
-  onContextCreated?: (conext: IDesignRenderer) => MaybePromise<void>
+  onContextCreated?: (conext: IDesignContext) => MaybePromise<void>
   bundleDataEntry: ILowcodeBundleDataEntry,
   depsEntry: IDepsEntry,
   mainViewFilePath: string
 }
 
-export const autoCreateDesignRenderer = async (config: IAutoCreateDesignRendererConfig) => {
-  let finallConfig: IAutoCreateDesignRendererConfig = {
+export const autoCreateDesignContext = async (config: IAutoCreateDesignContextConfig) => {
+  let finallConfig: IAutoCreateDesignContextConfig = {
     ...config
   }
   const script = document.currentScript
   const configVarName = script?.dataset?.configVarName || ''
   if (configVarName) {
     // @ts-ignore
-    const _config = window[configVarName] as IAutoCreateDesignRendererConfig
+    const _config = window[configVarName] as IAutoCreateDesignContextConfig
     finallConfig = {
       ...finallConfig,
       ..._config
@@ -115,25 +113,15 @@ export const autoCreateDesignRenderer = async (config: IAutoCreateDesignRenderer
     }
   }
 
-  const { bundleDataEntry, depsEntry, mainViewFilePath, onContextCreated, mountElementId, mountWindowId } = finallConfig
+  const { bundleDataEntry, depsEntry, mainViewFilePath, onContextCreated, mountElementId } = finallConfig
   const bundleData = await fetchBundleData(bundleDataEntry)
 
-  const conext = await createDesignRenderer({
+  const conext = await createDesignContext({
     bundleData,
     depsEntry,
     mainViewFilePath
   })
   onContextCreated?.(conext)
-  if (mountWindowId) {
-    // @ts-ignore
-    const oldValue = window[mountWindowId]
-    // @ts-ignore
-    window[mountWindowId] = () => {
-      // @ts-ignore
-      window[mountWindowId] = oldValue
-      return conext
-    }
-  }
   await conext.mount(mountElementId)
   return conext
 }

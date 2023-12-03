@@ -4,6 +4,7 @@ import type {
   IStateAttributeSchema,
   IStringAttributeSchema
 } from './attribute'
+import type { IActionDataSchema } from './data'
 
 export interface ISlotSchema {
   name: string
@@ -29,7 +30,7 @@ export interface ITemplateTagSchema extends ITemplateSchemaBase {
   tag: string
   attributes?: IAttributeSchema[]
   slots?: ISlotSchema[]
-  events?: IEventSchema[]
+  events?: IActionDataSchema[]
 }
 
 export type ITemplateSchema = ITemplateTextSchema | ITemplateTagSchema
