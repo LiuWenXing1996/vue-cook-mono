@@ -2,7 +2,7 @@ import type { ProjectManifest } from '@pnpm/types'
 import type { DeepRequired } from 'utility-types'
 import { createFsUtils, type IFsPromisesApi } from './fs'
 import type { IViewSchema } from '@/schema/view'
-import { resolve, dirname } from './path'
+import { resolve, dirname, basename } from './path'
 
 export interface ICookConfig {
   root?: string
@@ -11,6 +11,7 @@ export interface ICookConfig {
   minify?: boolean
   tempDir?: string
   sourcemap?: boolean
+  viewEntryFile: string
   viewFileSuffix: {
     component: string
     page: string
@@ -123,7 +124,6 @@ export const getCookConfigFromFs = async (fs: IFsPromisesApi) => {
 export const getViewFilesFromFs = async (fs: IFsPromisesApi) => {
   const viewFilesWithContent: {
     path: string
-    type: IViewSchema['type']
     content: IViewSchema
   }[] = []
 
@@ -131,37 +131,13 @@ export const getViewFilesFromFs = async (fs: IFsPromisesApi) => {
   if (cookConfig) {
     const fsUtils = createFsUtils(fs)
     const allFiles = await fsUtils.listFiles()
-    const viewFiles: {
-      path: string
-      type: IViewSchema['type']
-    }[] = []
-    allFiles.map((e) => {
-      if (e.endsWith(cookConfig.viewFileSuffix.page)) {
-        viewFiles.push({
-          path: e,
-          type: 'Page'
-        })
-      }
-      if (e.endsWith(cookConfig.viewFileSuffix.component)) {
-        viewFiles.push({
-          path: e,
-          type: 'Component'
-        })
-      }
-      if (e.endsWith(cookConfig.viewFileSuffix.layout)) {
-        viewFiles.push({
-          path: e,
-          type: 'Layout'
-        })
-      }
-    })
+    const viewFilePaths: string[] = allFiles.filter((e) => basename(e) === cookConfig.viewEntryFile)
     await Promise.all(
-      viewFiles.map(async (file) => {
+      viewFilePaths.map(async (filePath) => {
         try {
-          const schema = await fsUtils.readJson<IViewSchema>(file.path)
+          const schema = await fsUtils.readJson<IViewSchema>(filePath)
           viewFilesWithContent.push({
-            path: file.path,
-            type: file.type,
+            path: filePath,
             content: schema
           })
         } catch (error) {}
@@ -193,10 +169,11 @@ export const getCookConfigDefault = () => {
     sourcemap: true,
     deps: [],
     overrideCookMetas: [],
+    viewEntryFile: 'view.json',
     viewFileSuffix: {
-      component: '.cook-component.json',
-      page: '.cook-page.json',
-      layout: '.cook-layout.json'
+      component: '.component.html',
+      page: '.page.html',
+      layout: '.layout.html'
     },
     embed: [],
     renderer: {

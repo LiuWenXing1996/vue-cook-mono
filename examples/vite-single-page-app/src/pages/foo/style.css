@@ -1,3 +1,7 @@
-.a {
+.wrapper {
     color: red;
+}
+
+.wrapper-by-state {
+    color: blue;
 }

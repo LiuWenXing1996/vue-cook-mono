@@ -10,7 +10,7 @@ import type { MaybePromise } from '@/utils'
 import type { ITemplateSchema } from '@/schema/template'
 import { ReactiveStore, createReactiveStore } from '@/utils/reactive'
 import type { IAttributeSchema } from '@/schema/attribute'
-import type { IDataSchema } from '@/schema/data'
+import type { IDataMapSchema, IDataSchema } from '@/schema/data'
 import { Emitter } from '@/utils/emitter'
 import type { IStateSchema } from '@/schema/state'
 import type { IComponentViewSchema, IViewFileSchema } from '@/schema/view'
@@ -61,13 +61,13 @@ export interface IViewDataMapValue {
 export class ViewDataMap<V extends IViewDataMapValue> {
   #store = createReactiveStore<{
     value?: V
-    schema?: IDataSchema[]
+    schema?: IDataMapSchema
   }>(
     {},
     {
       get: (key, value) => {
         if (key === 'schema') {
-          return value ? ([...(value as any)] as any) : undefined
+          return value ? ({ ...(value as IDataMapSchema) } as any) : undefined
         }
         return value
       }
@@ -277,12 +277,13 @@ export abstract class BaseRenderer<View = any> {
     return viewDataMap
   }
   getDataMapDepWatcher = (
-    schemaList: IDataSchema[] | undefined,
+    dataMapSchema: IDataMapSchema | undefined,
     viewContext: IViewContext<View>
   ) => {
     const watcherList: ((listener: () => void) => () => void)[] = []
-    ;(schemaList || []).map((schema) => {
-      const watcher = this.getViewDataDepWatcher(schema, viewContext)
+    Object.keys(dataMapSchema || {}).map((dataName) => {
+      const dataSchema = dataMapSchema?.[dataName]
+      const watcher = this.getViewDataDepWatcher(dataSchema, viewContext)
       watcherList.push(watcher)
     })
     return (listener: () => void) => {
@@ -292,10 +293,11 @@ export abstract class BaseRenderer<View = any> {
       }
     }
   }
-  transferDataMap = (schemaArray: IDataSchema[] | undefined, viewContext: IViewContext<View>) => {
+  transferDataMap = (schemaMap: IDataMapSchema | undefined, viewContext: IViewContext<View>) => {
     const dataMap: IViewDataMapValue = {}
-    ;(schemaArray || []).map((schema) => {
-      dataMap[schema.name] = this.transferData(schema, viewContext)
+    Object.keys(schemaMap || {}).map((dataName) => {
+      const dataSchema = schemaMap?.[dataName]
+      dataMap[dataName] = this.transferData(dataSchema, viewContext)
     })
     return dataMap
   }

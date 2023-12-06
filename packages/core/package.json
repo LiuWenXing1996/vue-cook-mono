@@ -30,6 +30,7 @@
     "memfs": "^4.3.0",
     "pascal-case": "^3.1.2",
     "path-browserify": "^1.0.1",
+    "posthtml": "^0.16.6",
     "tiny-emitter": "^2.1.0",
     "uuid": "^9.0.0",
     "vue": "^3.3.4",

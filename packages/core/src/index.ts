@@ -72,14 +72,12 @@ export {
 //   transfer as exportSchemaTransfer
 // } from './schema/export'
 export { type IAttributeSchema } from './schema/attribute'
-export { type ITemplateSchema, type IEventSchema } from './schema/template'
-export { type IActionDataSchema } from './schema/data'
+export { type ITemplateSchema } from './schema/template'
+export { type IActionDataSchema, type IDataMapSchema } from './schema/data'
 
 export { type IViewSchema, type IViewFileSchema } from './schema/view'
 export {
-  type ITemplateTreeSchemaNode,
-  type ITemplateTextSchema,
-  type ITemplateTagSchema,
+  type ITemplateTreeTemplateNode as ITemplateTreeSchemaNode,
   templateSchemaToTree
 } from './schema/template'
 export { type IActionSchema, type IJsFunctionActionSchema, defineJsFunction } from './schema/action'

@@ -68,6 +68,14 @@ export class ReactiveStore<T extends IReactiveStoreData> {
   get get() {
     return this.#get
   }
+  #getAll() {
+    return {
+      ...this.#data
+    }
+  }
+  get getAll() {
+    return this.#getAll
+  }
   #set = <K extends keyof T>(key: K, value: T[K]) => {
     const valueProcesser = this.#valueProcesser[key]
     if (valueProcesser) {

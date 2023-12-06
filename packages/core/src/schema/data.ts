@@ -2,9 +2,11 @@ import type { JsonTypeObject } from '@/utils/jsonType'
 
 export interface IBaseDataSchema {
   type: string
-  // TODO： DATA其实是不需要名字的
-  name: string
   content: any
+}
+
+export interface IDataMapSchema {
+  [dataName: string]: IDataSchema
 }
 
 export type IDataSchema =

@@ -117,7 +117,6 @@ export const schemaList = [
     .map((viewFile, index) => {
       return `{
         path:"${viewFile.path}",
-        type:"${viewFile.type}",
         content:Schema${index}
       }`
     })

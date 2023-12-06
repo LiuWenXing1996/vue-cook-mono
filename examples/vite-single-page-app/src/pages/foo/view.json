@@ -1,0 +1,112 @@
+{
+    "tag": "page-foo",
+    "type": "page",
+    "router": {
+        "path": "/foo"
+    },
+    "template": [
+        {
+            "tag": "div",
+            "attributes": {
+                "class": {
+                    "wrapper": {
+                        "type": "boolean",
+                        "content": true
+                    },
+                    "wrapper-by-state": {
+                        "type": "state",
+                        "content": "wrapperClassState"
+                    }
+                },
+                "events": {
+                    "click": {
+                        "type": "action",
+                        "content": "toggleButtonSize"
+                    }
+                }
+            },
+            "slots": [
+                {
+                    "name": "default",
+                    "content": [
+                        {
+                            "tag": "text",
+                            "attributes": {
+                                "props": {
+                                    "content": {
+                                        "type": "state",
+                                        "content": "buttenSize"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "tag": "el-button",
+                            "attributes": {
+                                "props": {
+                                    "size": {
+                                        "type": "state",
+                                        "content": "buttenSize"
+                                    }
+                                }
+                            },
+                            "slots": [
+                                {
+                                    "name":"default",
+                                    "content": [
+                                        {
+                                            "tag": "text",
+                                            "attributes": {
+                                                "props": {
+                                                    "content": {
+                                                        "type": "state",
+                                                        "content": "buttenSize"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "style": "./style.css",
+    "states": [
+        {
+            "name": "buttenSize",
+            "type": "String",
+            "content": "large"
+        },
+        {
+            "name": "wrapperClassState",
+            "type": "Boolean",
+            "content": true
+        }
+    ],
+    "actions": [
+        {
+            "name": "toggleButtonSize",
+            "type": "JsFunction",
+            "jsPath": "./actions.ts",
+            "varName": "toggleButtonSize"
+        },
+        {
+            "name": "toggleWrapperClassState",
+            "type": "JsFunction",
+            "jsPath": "./actions.ts",
+            "varName": "toggleWrapperClassState"
+        }
+    ],
+    "components": [
+        {
+            "tag": "el-button",
+            "type": "Dep",
+            "packageName": "@vue-cook/element-plus-materials",
+            "varName": "ElButton"
+        }
+    ]
+}

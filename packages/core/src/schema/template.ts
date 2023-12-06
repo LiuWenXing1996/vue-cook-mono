@@ -1,44 +1,30 @@
-import type {
-  IActionAttributeSchema,
-  IAttributeSchema,
-  IStateAttributeSchema,
-  IStringAttributeSchema
-} from './attribute'
-import type { IActionDataSchema } from './data'
+import type { IActionDataSchema, IBooleanDataSchema, IDataSchema, IStateDataSchema } from './data'
+
+export interface ITemplateSchema {
+  tag: string
+  attributes?: {
+    class?: {
+      [className: string]: IBooleanDataSchema | IStateDataSchema
+    }
+    events?: {
+      [eventName: string]: IActionDataSchema
+    }
+    props?: {
+      [propName: string]: IDataSchema
+    }
+  }
+  slots?: ISlotSchema[]
+}
 
 export interface ISlotSchema {
   name: string
-  content: ITemplateSchema[]
+  content: ITemplateSchema[] | undefined
 }
 
-export interface IEventSchema {
-  name: string
-  content: IActionAttributeSchema[]
-}
-
-export interface ITemplateSchemaBase {
-  type: string
-}
-
-export interface ITemplateTextSchema extends ITemplateSchemaBase {
-  type: 'Text'
-  content: IStringAttributeSchema | IStateAttributeSchema
-}
-
-export interface ITemplateTagSchema extends ITemplateSchemaBase {
-  type: 'Tag'
-  tag: string
-  attributes?: IAttributeSchema[]
-  slots?: ISlotSchema[]
-  events?: IActionDataSchema[]
-}
-
-export type ITemplateSchema = ITemplateTextSchema | ITemplateTagSchema
-
-export interface ITemplateTreeSchemaNode {
+export interface ITemplateTreeTemplateNode {
   id: string
   parent: ITemplateTreeSlotNode | undefined
-  root: ITemplateTreeSchemaNode[]
+  root: ITemplateTreeTemplateNode[]
   isLeaf: boolean
   content: ITemplateSchema
   children?: ITemplateTreeSlotNode[]
@@ -46,33 +32,31 @@ export interface ITemplateTreeSchemaNode {
 
 export interface ITemplateTreeSlotNode {
   id: string
-  parent: ITemplateTreeSchemaNode
-  root: ITemplateTreeSchemaNode[]
+  parent: ITemplateTreeTemplateNode
+  root: ITemplateTreeTemplateNode[]
   isLeaf: boolean
   content: ISlotSchema
-  children?: ITemplateTreeSchemaNode[]
+  children?: ITemplateTreeTemplateNode[]
 }
+// TODO:实现新的templateSchemaToTree
 
 export const templateSchemaToTree = (
   templateList: ITemplateSchema[]
-): ITemplateTreeSchemaNode[] => {
+): ITemplateTreeTemplateNode[] => {
   const transferTemplateSchema = (params: {
     schema: ITemplateSchema
     index: number
     parent: ITemplateTreeSlotNode | undefined
-    root: ITemplateTreeSchemaNode[]
+    root: ITemplateTreeTemplateNode[]
   }) => {
     const { schema, parent, root, index } = params
-    const tag = (schema.type === 'Text' ? '#text' : schema.tag) || 'unknown-tag'
-    let slots: ISlotSchema[] = []
-    if (schema.type === 'Tag') {
-      slots = schema.slots || []
-    }
-    const node: ITemplateTreeSchemaNode = {
+    const tag = schema.tag
+    const slots = schema.slots || []
+    const node: ITemplateTreeTemplateNode = {
       id: `${parent?.id || '#root'}__${index}__${tag}`,
       parent,
       root,
-      isLeaf: !(slots.length > 1),
+      isLeaf: !(slots.length > 0),
       content: schema,
       children: []
     }
@@ -88,11 +72,11 @@ export const templateSchemaToTree = (
 
   const transferSlotSchema = (params: {
     schema: ISlotSchema
-    parent: ITemplateTreeSchemaNode
-    root: ITemplateTreeSchemaNode[]
+    parent: ITemplateTreeTemplateNode
+    root: ITemplateTreeTemplateNode[]
   }) => {
     const { schema, parent, root } = params
-    const content = schema.content
+    const content = schema.content || []
     const node: ITemplateTreeSlotNode = {
       id: `${parent.id}__${schema.name}`,
       parent,
@@ -112,7 +96,7 @@ export const templateSchemaToTree = (
     return node
   }
 
-  const tree: ITemplateTreeSchemaNode[] = []
+  const tree: ITemplateTreeTemplateNode[] = []
 
   templateList.map((l, i) => {
     const node = transferTemplateSchema({

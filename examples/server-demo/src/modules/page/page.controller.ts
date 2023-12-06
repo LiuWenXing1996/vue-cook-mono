@@ -107,7 +107,7 @@ export class PageController {
           console.log("context",context)
         },
         // TODO:先暂时使用design的auto来预览，后面会换成runtime的auto
-        mainViewFilePath:"/src/pages/foo.cook-component.json",
+        mainViewFilePath:"/src/pages/foo/view.json",
         mountElementId:"#app"
     }
     </script>
