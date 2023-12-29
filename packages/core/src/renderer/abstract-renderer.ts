@@ -17,145 +17,11 @@ import type { IComponentViewSchema, IViewFileSchema } from '@/schema/view'
 import type { IAliasComponentSchema, IDepAliasComponentSchema } from '@/schema/component'
 import { dirname, resolve } from '@/utils/path'
 import type { IActionSchema } from '@/schema/action'
+import { ViewContext, type IViewContext } from './view-context'
+import { ViewData, type IViewDataMapValue, ViewDataMap } from './view-data'
+import type { AbstractRendererApp, IRendererApp } from './abstract-renderer-app'
 
-export class ViewData<V = any> {
-  #store = createReactiveStore<{
-    value?: V
-    schema?: IDataSchema
-  }>(
-    {},
-    {
-      get: (key, value) => {
-        if (key === 'schema') {
-          return value ? { ...(value as any) } : undefined
-        }
-        return value
-      }
-    }
-  )
-  get getValue() {
-    return this.#store.getHandler('value').get
-  }
-  get setValue() {
-    return this.#store.getHandler('value').set
-  }
-  get onValueChange() {
-    return this.#store.getHandler('value').on
-  }
-  get setSchema() {
-    return this.#store.getHandler('schema').set
-  }
-  get getSchema() {
-    return this.#store.getHandler('schema').get
-  }
-  get onSchemaChange() {
-    return this.#store.getHandler('schema').on
-  }
-}
-export type IViewData<V = any> = ViewData<V>
-
-export interface IViewDataMapValue {
-  [dataName: string]: any
-}
-
-export class ViewDataMap<V extends IViewDataMapValue> {
-  #store = createReactiveStore<{
-    value?: V
-    schema?: IDataMapSchema
-  }>(
-    {},
-    {
-      get: (key, value) => {
-        if (key === 'schema') {
-          return value ? ({ ...(value as IDataMapSchema) } as any) : undefined
-        }
-        return value
-      }
-    }
-  )
-  get getValue() {
-    return this.#store.getHandler('value').get
-  }
-  get setValue() {
-    return this.#store.getHandler('value').set
-  }
-  get onValueChange() {
-    return this.#store.getHandler('value').on
-  }
-  get setSchema() {
-    return this.#store.getHandler('schema').set
-  }
-  get getSchema() {
-    return this.#store.getHandler('schema').get
-  }
-  get onSchemaChange() {
-    return this.#store.getHandler('schema').on
-  }
-}
-
-export class ViewContext<View> {
-  #lowcodeContext: ILowcodeContext
-  constructor(params: { lowcodeContext: ILowcodeContext }) {
-    const { lowcodeContext } = params
-    this.#lowcodeContext = lowcodeContext
-  }
-  get getDeps() {
-    return () => {
-      return this.#lowcodeContext.getDeps
-    }
-  }
-  #components = new ReactiveStore<{
-    [cmptName: string]: View | undefined
-  }>({ data: {} })
-  get components() {
-    return this.#components
-  }
-  #states = new ReactiveStore<{
-    [stateName: string]: any
-  }>({ data: {} })
-  get states() {
-    return this.#states
-  }
-  get getState() {
-    return this.#states.get
-  }
-  get setState() {
-    return this.#states.set
-  }
-  get resetState() {
-    return this.#states.reset
-  }
-  get onStateChange() {
-    return this.#states.on
-  }
-  get watchState() {
-    return this.#states.watch
-  }
-  #actions = new ReactiveStore<{
-    [actionName: string]: any
-  }>({ data: {} })
-  get actions() {
-    return this.#actions
-  }
-  get getAction() {
-    return this.#actions.get
-  }
-  get setAction() {
-    return this.#actions.set
-  }
-  get onActionChange() {
-    return this.#actions.on
-  }
-  get watchAction() {
-    return this.#actions.watch
-  }
-}
-
-// ViewContext和transfer应该拆开，tranfer应该是单独的一个类目，或者放到BaseRender里面？
-
-export type IViewContext<View = any> = ViewContext<View>
-
-export abstract class BaseRenderer<View = any> {
+export abstract class AbstractRenderer<View = any> {
   #lowcodeContext: ILowcodeContext
   constructor(params: { lowcodeContext: ILowcodeContext }) {
     const { lowcodeContext } = params
@@ -171,6 +37,7 @@ export abstract class BaseRenderer<View = any> {
       return new ViewContext({ lowcodeContext: this.getLowcodeContext() })
     }
   }
+  abstract createApp(): MaybePromise<IRendererApp<View, IRenderer<View>>>
   createViewData = <T>(viewContext: IViewContext<View>) => {
     const viewData = new ViewData<T>()
     let currentWatcher: (() => void) | undefined = undefined
@@ -432,4 +299,80 @@ export abstract class BaseRenderer<View = any> {
       content: transferMap[schema.type]?.(schema)
     }
   }
+}
+export type IRendererClass<View = any> = new (
+  ...params: ConstructorParameters<typeof AbstractRenderer<View>>
+) => AbstractRenderer<View>
+export type IRenderer<View = any> = InstanceType<IRendererClass<View>>
+
+export const createRenderer = async (params: {
+  depsEntry: IDepsEntry
+  bundleData: ILowcodeBundleData
+}) => {
+  const { depsEntry, bundleData } = params
+  const lowcodeContext = new LowcodeContext()
+  await lowcodeContext.setDepsByEntry({ entry: depsEntry })
+  await lowcodeContext.setRunResultByBundleData({ bundleData })
+  const runResult = lowcodeContext.getRunResult()
+  const { cookConfig } = runResult || {}
+  if (!cookConfig) {
+    throw new Error('undefind cookConfig')
+  }
+  const deps = lowcodeContext.getDeps()
+  const renderLib = deps?.[cookConfig.renderer.design.packageName]
+  const RendererClass = resolveDepVar<IRendererClass>({
+    dep: renderLib,
+    varName: cookConfig.renderer.design.varName
+  })
+  if (!RendererClass) {
+    throw new Error('undefind RendererClass')
+  }
+  const renderer = new RendererClass({ lowcodeContext })
+  return renderer
+}
+
+export interface IAutoCreateRendererConfig {
+  mountElementId: string
+  onCreated?: (renderer: IRenderer) => MaybePromise<void>
+  bundleDataEntry: ILowcodeBundleDataEntry
+  depsEntry: IDepsEntry
+}
+
+export const autoCreateRenderer = async (config: IAutoCreateRendererConfig) => {
+  let finallConfig: IAutoCreateRendererConfig = {
+    ...config
+  }
+  const script = document.currentScript
+  const configVarName = script?.dataset?.configVarName || ''
+  if (configVarName) {
+    // @ts-ignore
+    const _config = window[configVarName] as IAutoCreateRendererConfig
+    finallConfig = {
+      ...finallConfig,
+      ..._config
+    }
+  }
+  finallConfig = {
+    ...finallConfig,
+    depsEntry: {
+      ...finallConfig.depsEntry,
+      js: genAbsoulteUrl(finallConfig.depsEntry.js),
+      css: genAbsoulteUrl(finallConfig.depsEntry.css)
+    },
+    bundleDataEntry: {
+      ...finallConfig.bundleDataEntry,
+      jsUrl: genAbsoulteUrl(finallConfig.bundleDataEntry.jsUrl),
+      cssUrl: genAbsoulteUrl(finallConfig.bundleDataEntry.cssUrl)
+    }
+  }
+
+  const { bundleDataEntry, depsEntry, onCreated } = finallConfig
+  const bundleData = await fetchBundleData(bundleDataEntry)
+
+  const conext = await createRenderer({
+    bundleData,
+    depsEntry
+  })
+  await onCreated?.(conext)
+  return conext
 }

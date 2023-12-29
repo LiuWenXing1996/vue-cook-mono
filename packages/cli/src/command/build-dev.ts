@@ -156,12 +156,11 @@ const buildAuto = async (options: {
     content: ''
   }
   autoEntryJs.path = resolve(tempDir, `./entry.ts`)
-  // TODO:此处的autoRunVueApp有问题
   autoEntryJs.content = `
-import { autoCreateDesignRenderer, path } from '@vue-cook/core'
+import { autoCreateRenderer, path } from '@vue-cook/core'
 import "./index.css"
 
-autoCreateDesignRenderer({
+autoCreateRenderer({
   depsEntry: {
     js:"../deps/design/index.js",
     css:"../deps/design/style.css"
@@ -213,17 +212,17 @@ const buildDev = async (options: IBuildDepsOptions) => {
   await remove(tempDir)
   await remove(outDir)
 
-  await buildDevDeps({
-    cookConfig,
-    packageJson,
-    outDir: resolve(outDir, './deps'),
-    tempDir: resolve(tempDir, './deps')
-  })
-  await buildAuto({
-    cookConfig,
-    outDir: resolve(outDir, './auto'),
-    tempDir: resolve(tempDir, './auto')
-  })
+  // await buildDevDeps({
+  //   cookConfig,
+  //   packageJson,
+  //   outDir: resolve(outDir, './deps'),
+  //   tempDir: resolve(tempDir, './deps')
+  // })
+  // await buildAuto({
+  //   cookConfig,
+  //   outDir: resolve(outDir, './auto'),
+  //   tempDir: resolve(tempDir, './auto')
+  // })
 
   await buildSchema({
     cookConfig,

@@ -7,7 +7,8 @@ import {
   getPkgJsonFromFs,
   getViewFilesFromFs,
   type IJsFunctionActionSchema,
-  path
+  path,
+  templateParser
 } from '@vue-cook/core'
 import { virtualFsPlugin } from './plugins/virtual-fs-plugin'
 import { generateExternal } from '../utils/external'
@@ -66,10 +67,20 @@ export const build = async (params: { vfs: IVirtulFileSystem; esbuild: IEsbuild;
     action: IJsFunctionActionSchema
     actionIndex: number
   }[] = []
+  await Promise.all(
+    viewFiles.map(async (viewFile) => {
+      const templateHtmlPath = resolve(dirname(viewFile.path), 'template.html')
+      const templateHtmlContent = await vfs.readFile(templateHtmlPath, 'utf-8')
+      const templateSchema = await templateParser(templateHtmlContent)
+      debugger
+    })
+  )
 
   viewFiles.map((viewFile, viewIndex) => {
     const actions = viewFile.content.actions || []
-    const jsFunctionActions = actions.filter((e) => e.type === 'JsFunction') as IJsFunctionActionSchema[]
+    const jsFunctionActions = actions.filter(
+      (e) => e.type === 'JsFunction'
+    ) as IJsFunctionActionSchema[]
     jsFunctionActions.map((action, actionIndex) => {
       actionFiles.push({
         viewFilePath: viewFile.path,

@@ -27,6 +27,7 @@ export {
   ElementDataLowcodeContextIdKey,
   ElementDataCoreLibOnceGetterIdIdKey
 } from './lowcode'
+export { type ILowcodeRunResult } from './renderer/lowcode-context'
 
 export { exportDeps, type IDepMeta, type IDeps, type IDep, fetchDeps } from './utils/fetchDeps'
 
@@ -37,67 +38,38 @@ export {
   type IMaterialWithDep
 } from './design-mode/material'
 
-// export {
-//   createRenderContext,
-//   type IRenderContext,
-//   defineRender,
-//   type IRenderData,
-//   type IRenderMode
-// } from './render/index'
-
-export { type IViewContext, type IViewData } from './renderer/base-renderer'
+export { type IViewData } from './renderer/view-data'
+export { type IViewContext } from './renderer/view-context'
+export {
+  type IRenderer,
+  createRenderer,
+  autoCreateRenderer,
+  AbstractRenderer
+} from './renderer/abstract-renderer'
 
 export {
-  type IDesignRenderer,
-  type IDesignComponentOverlay,
-  type IDesignComponentPageSize,
-  createDesignRenderer,
-  autoCreateDesignRenderer,
-  getDesignRenderer,
-  AbstractDesignRenderer
-} from './renderer/design-renderer'
+  type IRendererApp,
+  type IViewOverlay,
+  type IViewRect,
+  AbstractRendererApp
+} from './renderer/abstract-renderer-app'
 
-export {
-  createRuntimeRenderer,
-  autoCreateRuntimeRenderer,
-  AbstractRuntimeRenderer
-} from './renderer/runtime-renderer'
-
-// export { emitEditorWindowSchemaChange, SchemaChanegeDataType } from './lowcode/schemaChange'
-
-// export { createVueRenderContext, autoRunVueApp } from './lowcode/vueRender'
-// export {
-//   type IExportConfig as IExportSchemaConfig,
-//   check as exportSchemaCheck,
-//   transfer as exportSchemaTransfer
-// } from './schema/export'
 export { type IAttributeSchema } from './schema/attribute'
 export { type ITemplateSchema } from './schema/template'
 export { type IActionDataSchema, type IDataMapSchema } from './schema/data'
 
-export { type IViewSchema, type IViewFileSchema } from './schema/view'
+export {
+  type IViewSchema,
+  type IViewFileSchema,
+  type IPageViewSchema,
+  type IComponentViewSchema,
+  type ILayoutViewSchema
+} from './schema/view'
 export {
   type ITemplateTreeTemplateNode as ITemplateTreeSchemaNode,
-  templateSchemaToTree
+  templateSchemaToTree,
+  templateParser
 } from './schema/template'
 export { type IActionSchema, type IJsFunctionActionSchema, defineJsFunction } from './schema/action'
-
-// export {
-//   type IComponentConfig as IComponentSchemaConfig,
-//   type ITemplateConfig,
-//   type IView,
-//   getEditorTypeUniName,
-//   getComponetMap,
-//   getStateMap,
-//   removeTemplatePid,
-//   type IEditor,
-//   type IComponentMap,
-//   type IStateSchemaMap,
-//   type ITemplateConfigWithPid,
-//   type IComponentConfigWithTemplatePid
-//   // check as componentSchemaCheck,
-//   // transformComponent as componentSchemaTransfer,
-//   // transformComponentEntryTs
-// } from './schema/component'
 
 export { getLowcodeContextFromScript, type ILowcodeBundleData } from './renderer/lowcode-context'

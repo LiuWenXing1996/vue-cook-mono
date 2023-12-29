@@ -1,55 +1,19 @@
-import {
-  AbstractDesignRenderer,
-  type IDesignComponentOverlay,
-  type ITemplateTreeSchemaNode
-} from '@vue-cook/core'
-import {
-  createApp,
-  h,
-  type Component,
-  ref,
-  type App as IApp,
-  type ComponentInternalInstance
-} from 'vue'
-import App from './app.vue'
-import getComponentRect from './utils/getComponentRect'
-export class Renderer extends AbstractDesignRenderer {
-  private app?: IApp<Element>
-  elementToTreeSchemaNodeMap = new Map<Element, ITemplateTreeSchemaNode>()
-  templateTreeSchemaNodeIdToInstanceMap = new Map<string, ComponentInternalInstance>()
-  mount(mountElementId: string): void | Promise<void> {
-    this.app = createApp(
-      h(App, {
-        renderer: this,
-        mainViewFilePath: this.getMainViewFilePath()
-      })
-    )
-    this.app.mount(mountElementId)
+import { AbstractRenderer, type IRendererApp, type IViewFileSchema } from '@vue-cook/core'
+import { RendererApp } from './renderer-app'
+import { type Component, defineComponent, h } from 'vue'
+import ViewRender from './components/view-render.vue'
+export class Renderer extends AbstractRenderer {
+  createApp(): IRendererApp {
+    return new RendererApp({ renderer: this })
   }
-  getComponetnOverlayFromElement(element: Element): IDesignComponentOverlay | undefined {
-    let currentEl: Element | null = element
-    let node: ITemplateTreeSchemaNode | undefined = undefined
-    while (currentEl) {
-      node = this.elementToTreeSchemaNodeMap.get(currentEl)
-      if (node) {
-        break
+  transferView(schema: IViewFileSchema): Component {
+    const { template } = schema.content
+    // TODO:实现transferView
+    return defineComponent((props, ctx) => {
+      return () => {
+        // 渲染函数或 JSX
+        return h(ViewRender, props)
       }
-      currentEl = currentEl.parentElement
-    }
-    if (!node) {
-      return
-    }
-    const componentInstance = this.templateTreeSchemaNodeIdToInstanceMap.get(node.id)
-    if (!componentInstance) {
-      return
-    }
-    const rect = getComponentRect(componentInstance)
-    const overlay: IDesignComponentOverlay = {
-      rect: rect,
-      templateSchema: node.content
-    }
-    return overlay
+    })
   }
 }
-
-// TODO:拆分为designRender和runtimeRender？

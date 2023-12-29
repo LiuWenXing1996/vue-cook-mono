@@ -1,17 +1,18 @@
 import { shallowRef, type Ref, computed, watch, onUnmounted } from 'vue'
 import { type IDataMapSchema, type IViewContext } from '@vue-cook/core'
 import type { Renderer } from '../renderer'
+import type { RendererApp } from '../renderer-app'
 
 export const useViewDataMap = (params: {
   schema: Ref<IDataMapSchema | undefined>
   viewContext: Ref<IViewContext>
-  renderer: Ref<Renderer>
+  rendererApp: Ref<RendererApp>
 }) => {
-  const { schema, viewContext, renderer } = params
+  const { schema, viewContext, rendererApp } = params
   let cancelDataMapWatcher: undefined | (() => void) = undefined
   const computedViewDataMap = computed(() => {
     cancelDataMapWatcher?.()
-    const viewDataMap = renderer.value.createViewDataMap(viewContext.value)
+    const viewDataMap = rendererApp.value.renderer.createViewDataMap(viewContext.value)
     cancelDataMapWatcher = viewDataMap.onValueChange(() => {
       dataMap.value = viewDataMap.getValue() || {}
     })
