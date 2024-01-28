@@ -8,7 +8,8 @@ export const getLanguage = (extName: string) => {
     ts: 'typescript',
     js: 'javascript',
     map: 'json',
-    vue: 'html'
+    vue: 'html',
+    // tsx: 'typescript'
   }
 
   return map[extName] || extName

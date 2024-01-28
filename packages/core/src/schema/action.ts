@@ -1,24 +1,52 @@
 import type { JsonTypeObject } from '@/utils/jsonType'
-import type { IViewContext } from '..'
+import type { ViewContext } from '..'
 
-export type IActionSchema = IJsFunctionActionSchema | ILogicComposerActionSchema
+export type IAction<C extends ViewContext = ViewContext, R = any, P extends any[] = any[]> = (
+  ctx: C,
+  params: P
+) => R
+export type IAsyncAction<
+  C extends ViewContext = ViewContext,
+  R = any,
+  P extends any[] = any[]
+> = (ctx: C, params: P) => Promise<R>
 
-export interface IActionSchemaBase {
-  name: string
-  type: string
+const actionIsAsyncMap = new WeakMap<Function, boolean>()
+
+// TODO:利用infer来判断返回的action是否是async
+export const bindAction = <C extends ViewContext, R, P extends any[]>(
+  action: IAction<C, R, P> | IAsyncAction<C, R, P>,
+  ctx: C
+) => {
+  const isAsync = actionIsAsyncMap.get(action)
+  if (isAsync) {
+    return async (...rest: P) => {
+      return await action(ctx, rest)
+    }
+  }
+  return (...rest: P) => {
+    return action(ctx, rest)
+  }
 }
 
-export interface IJsFunctionActionSchema extends IActionSchemaBase {
-  type: 'JsFunction'
-  jsPath: string
-  varName: string
+export const defineAction = <
+  C extends ViewContext = ViewContext,
+  R = any,
+  P extends any[] = any[]
+>(
+  value: IAction<C, R, P>
+) => {
+  actionIsAsyncMap.set(value, false)
+  return value
 }
 
-export type IJsFunction<R, P extends any[]> = (ctx: IViewContext, params: P) => R
-
-export const defineJsFunction = <R, P extends any[]>(value: IJsFunction<R, P>) => value
-
-export interface ILogicComposerActionSchema extends IActionSchemaBase {
-  type: 'LogicComposer'
-  content: JsonTypeObject
+export const defineAsyncAction = <
+  C extends ViewContext = ViewContext,
+  R = any,
+  P extends any[] = any[]
+>(
+  value: IAsyncAction<C, R, P>
+) => {
+  actionIsAsyncMap.set(value, true)
+  return value
 }

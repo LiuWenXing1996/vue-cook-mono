@@ -37,7 +37,7 @@ export const generateExternal = () => {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    dts({ tsconfigPath: resolve(__dirname, './tsconfig.dts.json'), rollupTypes: true }),
+    dts({ tsconfigPath: resolve(__dirname, './tsconfig.dts.json'), rollupTypes: false }),
     vue(),
     vueJsx()
   ],

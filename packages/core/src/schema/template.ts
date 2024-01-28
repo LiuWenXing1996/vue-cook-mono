@@ -1,11 +1,11 @@
 import type { IActionDataSchema, IBooleanDataSchema, IDataSchema, IStateDataSchema } from './data'
-import posthtml, { type Node as IPostHtmlNode } from 'posthtml'
 import {
   parser as posthtmlParser,
   type Node as IPosthtmlNode,
   type NodeTag as IPosthtmlNodeTag,
   type Content as IPosthtmlNodeContent
 } from 'posthtml-parser'
+import { render as posthtmlRender } from 'posthtml-render'
 import { isArray } from 'lodash'
 
 export interface ITemplateSchema {
@@ -21,7 +21,7 @@ export interface ITemplateSchema {
       [propName: string]: IDataSchema
     }
   }
-  slots?: ISlotSchema[]
+  children?: ITemplateSchema[]
 }
 
 export interface ISlotSchema {
@@ -127,7 +127,6 @@ const isNodeTag = (node: IPosthtmlNode): node is IPosthtmlNodeTag => {
 }
 
 export const templateParser = async (template: string): Promise<ITemplateSchema[]> => {
-  const result: ITemplateSchema[] = []
   const posthtmlNodeList = posthtmlParser(template)
   console.log(posthtmlNodeList)
   const posthtmlNodeToTemplateSchema = (node: IPosthtmlNode): ITemplateSchema | undefined => {
@@ -167,7 +166,7 @@ export const templateParser = async (template: string): Promise<ITemplateSchema[
         }
       }
     })
-    const slots: ISlotSchema[] = []
+    let children: ITemplateSchema[] = []
     if (content) {
       if (isArray(content)) {
         const nodeTagList = content.filter((e) => {
@@ -179,58 +178,90 @@ export const templateParser = async (template: string): Promise<ITemplateSchema[
           }
           return false
         }) as IPosthtmlNodeTag[]
-        for (const nodeTag of nodeTagList) {
-          if (!nodeTag.tag) {
-            return
-          }
-          if (nodeTag.tag === 'template') {
-          }
-        }
+        children = nodeTagList
+          .map((e) => posthtmlNodeToTemplateSchema(e))
+          .filter((e) => e) as ITemplateSchema[]
       }
     }
     return {
       tag,
       attributes,
-      slots
+      children
     }
   }
-  const nodeContentToSlotSchemaList = (content: IPosthtmlNodeContent): ISlotSchema[] => {
-    const slotsObj:{
-      [slotName:string]:ISlotSchema["content"]
-    } ={}
-    if (content) {
-      if (isArray(content)) {
-        const nodeTagList = content.filter((e) => {
-          if (isArray(e)) {
-            return false
-          }
-          if (isNodeTag(e)) {
-            return true
-          }
-          return false
-        }) as IPosthtmlNodeTag[]
-        for (const tagNode of nodeTagList) {
-          const { tag, attrs = {}, content } = tagNode
-          if (tag === 'template') {
-            const slotName = attrs['data-slot-name']
-            if (slotName && typeof slotName === 'string') {
-              
-              slotsObj[slotName]=[...(slotsObj[slotName]||[]),]
-            }
-          }
-        }
-      }
-    }
-    const slots:ISlotSchema[] = Object.keys(slotsObj).map(name=>{
-      return {
-        name,
-        content:slotsObj[name]
-      }
+  const result = posthtmlNodeList
+    .map((node) => {
+      return posthtmlNodeToTemplateSchema(node)
     })
-
-    return slots
-  }
-  posthtmlNodeList.map((node) => {})
-  debugger
+    .filter((e) => e) as ITemplateSchema[]
   return result
+}
+
+export const templateSchemaToPosthtmlNode = (schema: ITemplateSchema): IPosthtmlNode => {
+  if (schema.tag === 'text') {
+    const value = schema.attributes?.props?.content
+    if (value) {
+      let content = `{{`
+      if (value.type === 'boolean') {
+        content += `${value.content}`
+      }
+      if (value.type === 'state') {
+        content += `states.${value.content}`
+      }
+      content += `}}`
+      return content
+    }
+    return ""
+  }
+
+  const attrs: IPosthtmlNodeTag['attrs'] = {}
+  const classAttrObject: Record<string, string> = {}
+  Object.entries(schema.attributes?.class || {}).map(([key, value]) => {
+    let content = `{{`
+    if (value.type === 'boolean') {
+      content += `${value.content}`
+    }
+    if (value.type === 'state') {
+      content += `states.${value.content}`
+    }
+    content += `}}`
+    classAttrObject[key] = content
+  })
+  if (Object.keys(classAttrObject).length > 0) {
+    attrs.class = `{{
+${Object.entries(classAttrObject)
+  .map(([key, value]) => {
+    return `${key}:${value}`
+  })
+  .join(',\n')}
+}}`
+  }
+
+  Object.entries(schema.attributes?.props || {}).map(([key, value]) => {
+    let content = ``
+    if (value.type === 'boolean') {
+      content += `${value.content}`
+    }
+    if (value.type === 'state') {
+      content += `states.${value.content}`
+    }
+    content += ``
+    attrs[`:${key}`] = content
+  })
+
+  const node: IPosthtmlNode = {
+    tag: schema.tag,
+    attrs: attrs,
+    content: schema.children?.map((e) => templateSchemaToPosthtmlNode(e))
+  }
+
+  return node
+}
+
+export const templateSchemaToTsxTemplate = async (schema: ITemplateSchema[]) => {
+  const posthtmlNodeList = schema.map((e) => templateSchemaToPosthtmlNode(e))
+  const html = posthtmlRender(posthtmlNodeList, {
+    // quoteAllAttributes: false
+  })
+  return html
 }

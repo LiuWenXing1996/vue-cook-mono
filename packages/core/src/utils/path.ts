@@ -41,6 +41,11 @@ const trimExtname = (path: string, extnames?: string[]) => {
   }
 }
 
+const replaceExtname = (path: string, extname: string) => {
+  let newPath = trimExtname(path)
+  return `${newPath}.${extname}`
+}
+
 const rootName = () => {
   return resolve()
 }
@@ -57,5 +62,6 @@ export {
   format,
   parse,
   trimExtname,
+  replaceExtname,
   rootName
 }

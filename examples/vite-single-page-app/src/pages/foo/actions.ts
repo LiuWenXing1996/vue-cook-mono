@@ -1,9 +1,10 @@
 import * as vue from "vue";
 import * as A from "@vue-cook/element-plus-materials/runtime";
-import { defineJsFunction } from "@vue-cook/core";
+import { defineAction, defineAsyncAction } from "@vue-cook/core";
+import Context from "./context";
 
-export const toggleButtonSize = defineJsFunction(
-  (ctx, params: [string, number]) => {
+export const toggleButtonSize = defineAction(
+  (ctx: Context, params: [string, number]) => {
     console.log("toggleButtonSize");
     console.log(vue);
     console.log(A);
@@ -16,13 +17,18 @@ export const toggleButtonSize = defineJsFunction(
   }
 );
 
-export const toggleWrapperClassState = defineJsFunction(
+
+export const toggleWrapperClassState = defineAction(
   (ctx, params: [string, number]) => {
     console.log("toggleWrapperClassState");
     const wrapperClassState = ctx.states.get("wrapperClassState");
     ctx.setState("wrapperClassState", !wrapperClassState);
   }
 );
+
+export const as = defineAsyncAction(async (ctx, params: [string, number]) => {
+  return "sss";
+});
 
 // const aaa = {} as any;
 

@@ -159,7 +159,6 @@ const buildAuto = async (options: {
   autoEntryJs.content = `
 import { autoCreateRenderer, path } from '@vue-cook/core'
 import "./index.css"
-
 autoCreateRenderer({
   depsEntry: {
     js:"../deps/design/index.js",
@@ -212,17 +211,17 @@ const buildDev = async (options: IBuildDepsOptions) => {
   await remove(tempDir)
   await remove(outDir)
 
-  // await buildDevDeps({
-  //   cookConfig,
-  //   packageJson,
-  //   outDir: resolve(outDir, './deps'),
-  //   tempDir: resolve(tempDir, './deps')
-  // })
-  // await buildAuto({
-  //   cookConfig,
-  //   outDir: resolve(outDir, './auto'),
-  //   tempDir: resolve(tempDir, './auto')
-  // })
+  await buildDevDeps({
+    cookConfig,
+    packageJson,
+    outDir: resolve(outDir, './deps'),
+    tempDir: resolve(tempDir, './deps')
+  })
+  await buildAuto({
+    cookConfig,
+    outDir: resolve(outDir, './auto'),
+    tempDir: resolve(tempDir, './auto')
+  })
 
   await buildSchema({
     cookConfig,

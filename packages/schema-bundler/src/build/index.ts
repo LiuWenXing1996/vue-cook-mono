@@ -12,6 +12,7 @@ import {
 } from '@vue-cook/core'
 import { virtualFsPlugin } from './plugins/virtual-fs-plugin'
 import { generateExternal } from '../utils/external'
+import { viewSchemaPlugin } from './plugins/view-schema-plugin'
 const { resolve, dirname, relative, trimExtname } = path
 
 export type IEsbuild = typeof esbuild
@@ -67,29 +68,7 @@ export const build = async (params: { vfs: IVirtulFileSystem; esbuild: IEsbuild;
     action: IJsFunctionActionSchema
     actionIndex: number
   }[] = []
-  await Promise.all(
-    viewFiles.map(async (viewFile) => {
-      const templateHtmlPath = resolve(dirname(viewFile.path), 'template.html')
-      const templateHtmlContent = await vfs.readFile(templateHtmlPath, 'utf-8')
-      const templateSchema = await templateParser(templateHtmlContent)
-      debugger
-    })
-  )
 
-  viewFiles.map((viewFile, viewIndex) => {
-    const actions = viewFile.content.actions || []
-    const jsFunctionActions = actions.filter(
-      (e) => e.type === 'JsFunction'
-    ) as IJsFunctionActionSchema[]
-    jsFunctionActions.map((action, actionIndex) => {
-      actionFiles.push({
-        viewFilePath: viewFile.path,
-        viewFileIndex: viewIndex,
-        action,
-        actionIndex
-      })
-    })
-  })
 
   const entryCss = {
     path: `/index.css`,
@@ -148,6 +127,7 @@ export const jsFunctions = [
 `
   await vfs.outputFile(entryCss.path, entryCss.content)
   await vfs.outputFile(entryTs.path, entryTs.content)
+  console.log(entryTs.content)
   const outputFiles = {
     js: '',
     css: ''
@@ -164,7 +144,7 @@ export const jsFunctions = [
       external: generateExternal(pkgJson),
       outdir: '/',
       sourcemap: cookConfig.sourcemap ? 'inline' : false,
-      plugins: [virtualFsPlugin({ vfs })]
+      plugins: [viewSchemaPlugin({ vfs, cookConfig }), virtualFsPlugin({ vfs, cookConfig })]
     })
 
     outputFiles.js = (bundleRes.outputFiles || []).find((e) => e.path.endsWith('.js'))?.text || ''

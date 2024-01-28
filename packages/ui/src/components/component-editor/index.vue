@@ -28,12 +28,12 @@
             </n-space>
         </div>
         <div class="design-view-wrapper">
-            <design-view :path="filePath"></design-view>
+            <!-- <design-view :path="filePath"></design-view> -->
         </div>
     </div>
 </template>
 <script setup lang="ts">
-import DesignView from "./components/design-view.vue"
+// import DesignView from "./components/design-view.vue"
 import { NIcon, NPopover, NSpace } from "naive-ui"
 import { ArrowUndoOutline, ArrowRedoOutline, DocumentOutline } from "@vicons/ionicons5"
 

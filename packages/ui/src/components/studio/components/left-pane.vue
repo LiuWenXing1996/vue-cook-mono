@@ -23,6 +23,7 @@ import type { MenuOption } from "naive-ui"
 import FileTree from "@/components/file-tree/index.vue"
 import MaterialPane from "@/components/material-pane/index.vue"
 import ComponentTree from "@/components/component-tree/index.vue"
+import CodeFileTree from "@/components/code-file-tree/index.vue"
 import {
     DocumentsOutline,
     SearchOutline,
@@ -30,6 +31,7 @@ import {
     GridOutline
 } from '@vicons/ionicons5'
 import ComponentTreeIcon from "@/icons/component-tree.svg?component"
+import CodeViewIcon from "@/icons/code-view.svg?component"
 
 const selectedKey = ref('resource-manager')
 const selectedContent = computed(() => {
@@ -67,6 +69,12 @@ const menuOptions: (MenuOption & {
             key: 'search',
             icon: renderIcon(SearchOutline),
             content: () => h('div', "搜索")
+        },
+        {
+            label: '出码',
+            key: 'code',
+            icon: renderIcon(CodeViewIcon),
+            content: CodeFileTree
         }
     ]
 </script>

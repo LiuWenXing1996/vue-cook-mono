@@ -1,4 +1,4 @@
-import type { IActionSchema } from './action'
+import type { IAction, IActionSchema } from './action'
 import type { IStateSchema } from './state'
 import type { IAttributeSchema } from './attribute'
 import type { ITemplateSchema } from './template'
@@ -7,10 +7,10 @@ import type { IAliasComponentSchema } from './component'
 export interface IViewSchemaBase {
   tag: string
   type: string
-  template?: ITemplateSchema[]
-
+  templateFile: string
+  actionsFile?: string
+  styleFile?: string
   states?: IStateSchema[]
-  actions?: IActionSchema[]
   components?: IAliasComponentSchema[]
 }
 
@@ -33,5 +33,9 @@ export type IViewSchema = IComponentViewSchema | ILayoutViewSchema | IPageViewSc
 
 export interface IViewFileSchema {
   path: string
-  content: IViewSchema
+  content: {
+    view: IViewSchema
+    actions: Record<string, IAction>
+    template: ITemplateSchema[]
+  }
 }

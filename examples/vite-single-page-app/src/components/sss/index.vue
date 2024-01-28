@@ -1,57 +1,23 @@
 
-  <template>
-      <div class="ref">ref:{{states.ref}}</div>
-<div>raw:{{states.raw}}</div>
-<button @click="methods.change">更改值</button>
-  </template>
+<template>
+  <div>{states.buttenSize}{states.buttenSize}<el-button size={states.buttenSize}>
+      <slot></slot>{states.buttenSize}<template></template>
+    </el-button></div>
+</template>
+<script setup lang="ts">
+import { useViewContext } from "@vue-cook/render";
+import * as actions from "./actions.ts";
 
-  <script setup lang="ts">
-  import { ref, markRaw, watch, reactive} from "vue"
-  
-  
-  const states = reactive({
-        ref:ref({
-  a: "aa",
-  b: {
-    c: "cccc",
-    d: {
-      e: "eeee"
-    }
-  }
-}),
-  raw:markRaw({
-  a: "aa",
-  b: {
-    c: "cccc",
-    d: {
-      e: "eeee"
-    }
+import "./style.css";
+
+
+const viewContext = useViewContext({
+  states: {
+    buttenSize: "large",
+    wrapperClassState: true
   }
 })
-  })
-  const methods = {
-      change:() => {
-  states.ref.b.c = "refaaaa"
-  states.raw.a = "rawssss"
-  states.raw.b.c = "rawssss"
-  functions.a(states)
-  console.log(states)
-}
-  }
-  const watchers = {
-  watchStatesRef:watch(states.ref,(newValue,oldValue)=>{
-  console.log('watchStatesRef',newValue)
-}),
-watchStatesRaw:watch(states.raw,(newValue,oldValue)=>{
-  console.log('watchStatesRaw',newValue)
-})
-    }
-  </script>
+const { states } = viewContext
 
-  <style scoped >
-      .ref{
-  color:red
-}
-  </style>
-
+</script>
   

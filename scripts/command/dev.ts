@@ -18,6 +18,13 @@ export const dev = async () => {
       )}' && pnpm --filter '@vue-cook/schema-bundler' dev`,
     },
     {
+      name: "@vue-cook/bundler",
+      command: `wait-on '${join(
+        process.cwd(),
+        "/packages/schema-bundler/dist"
+      )}' && pnpm --filter '@vue-cook/bundler' dev`,
+    },
+    {
       name: "@vue-cook/render",
       command: `wait-on '${join(
         process.cwd(),
@@ -25,10 +32,17 @@ export const dev = async () => {
       )}' && pnpm --filter '@vue-cook/render' dev`,
     },
     {
-      name: "@vue-cook/element-plus-materials",
+      name: "@vue-cook/base-dom",
       command: `wait-on '${join(
         process.cwd(),
         "/packages/render/dist"
+      )}' && pnpm --filter '@vue-cook/base-dom' dev`,
+    },
+    {
+      name: "@vue-cook/element-plus-materials",
+      command: `wait-on '${join(
+        process.cwd(),
+        "/packages/base-dom/dist"
       )}' && pnpm --filter '@vue-cook/element-plus-materials' dev`,
     },
     {

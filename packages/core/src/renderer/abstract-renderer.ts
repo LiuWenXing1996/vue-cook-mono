@@ -16,7 +16,7 @@ import type { IStateSchema } from '@/schema/state'
 import type { IComponentViewSchema, IViewFileSchema } from '@/schema/view'
 import type { IAliasComponentSchema, IDepAliasComponentSchema } from '@/schema/component'
 import { dirname, resolve } from '@/utils/path'
-import type { IActionSchema } from '@/schema/action'
+import type { IAction, IActionSchema } from '@/schema/action'
 import { ViewContext, type IViewContext } from './view-context'
 import { ViewData, type IViewDataMapValue, ViewDataMap } from './view-data'
 import type { AbstractRendererApp, IRendererApp } from './abstract-renderer-app'
@@ -216,52 +216,11 @@ export abstract class AbstractRenderer<View = any> {
     return cmpt
   }
   abstract transferView(schema: IViewFileSchema): View
-  transferActions(
-    actions: IActionSchema[],
-    viewFileSchema: IViewFileSchema,
-    viewContext: IViewContext
-  ) {
-    const actionsObj: Record<string, Function | undefined> = {}
-    actions.map((action) => {
-      actionsObj[action.name] = this.transferAction(action, viewFileSchema, viewContext).content
-    })
-    return actionsObj
-  }
-  transferAction(
-    actionAchema: IActionSchema,
-    viewFileSchema: IViewFileSchema,
-    viewContext: IViewContext
-  ) {
-    const transferMap: Record<
-      IActionSchema['type'],
-      undefined | ((data: IActionSchema) => Function | undefined)
-    > = {
-      JsFunction: (data) => {
-        if (data.type === 'JsFunction') {
-          const lowcodeContext = this.getLowcodeContext()
-          const runResult = lowcodeContext.getRunResult()
-          const method = runResult?.jsFunctions.find((e) => {
-            return e.name === data.name && e.schemaPath === viewFileSchema.path
-          })?.content
-          const func = async (...payload: any[]) => {
-            return await method?.(viewContext, payload)
-          }
-          return func
-        }
-      },
-      LogicComposer: (data) => {
-        if (data.type === 'LogicComposer') {
-          return () => {
-            // TODO:LogicComposer 还未实现
-            console.error('LogicComposer 还未实现')
-          }
-        }
-      }
+  transferAction(action: IAction, viewContext: IViewContext) {
+    const func = async (...payload: any[]) => {
+      return await action(viewContext, payload)
     }
-    return {
-      name: actionAchema.name,
-      content: transferMap[actionAchema.type]?.(actionAchema)
-    }
+    return func
   }
   transferStates(states: IStateSchema[]) {
     const statesObj: Record<string, any> = {}

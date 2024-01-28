@@ -25,29 +25,33 @@ export const createStudioState = async (config: {
   )
 
   const fs = vfs.getFs()
-  const buildRes = await build({
-    vfs,
-    esbuild,
-    swc
-  })
-  console.log('buildRes', buildRes)
+  // const buildRes = await build({
+  //   vfs,
+  //   esbuild,
+  //   swc
+  // })
+  // console.log('buildRes', buildRes)
+  // const lowcodeBundleData = {
+  //   js: buildRes?.js || '',
+  //   css: buildRes?.css || ''
+  // }
   const lowcodeBundleData = {
-    js: buildRes?.js || '',
-    css: buildRes?.css || ''
+    js: '',
+    css: ''
   }
 
-  fs.watch('/', {}, async () => {
-    const buildRes = await build({
-      vfs,
-      esbuild,
-      swc
-    })
-    console.log('buildRes', buildRes)
-    state.lowcodeBundleData = {
-      js: buildRes?.js || '',
-      css: buildRes?.css || ''
-    }
-  })
+  // fs.watch('/', {}, async () => {
+  //   const buildRes = await build({
+  //     vfs,
+  //     esbuild,
+  //     swc
+  //   })
+  //   console.log('buildRes', buildRes)
+  //   state.lowcodeBundleData = {
+  //     js: buildRes?.js || '',
+  //     css: buildRes?.css || ''
+  //   }
+  // })
 
   const cookConfig = await getCookConfigFromFs(vfs)
 

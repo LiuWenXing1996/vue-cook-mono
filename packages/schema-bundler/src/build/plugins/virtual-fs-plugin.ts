@@ -6,7 +6,7 @@ const { isAbsolute, join, rootName, extname, dirname, relative } = path
 // https://esbuild.github.io/api/#resolve-extensions
 const RESOLVE_EXTENSIONS = ['.tsx', '.ts', '.jsx', '.js', '.css', '.json']
 
-function inferLoader(p: string): Loader {
+export function inferLoader(p: string): Loader {
   const ext = extname(p)
   if (RESOLVE_EXTENSIONS.includes(ext)) {
     return ext.slice(1) as Loader

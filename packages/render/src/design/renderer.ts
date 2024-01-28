@@ -14,6 +14,6 @@ export class Renderer extends AbstractRenderer {
         // 渲染函数或 JSX
         return h(ViewRender, props)
       }
-    })
+    }) 
   }
 }

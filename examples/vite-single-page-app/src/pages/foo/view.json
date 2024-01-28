@@ -4,77 +4,9 @@
     "router": {
         "path": "/foo"
     },
-    "template": [
-        {
-            "tag": "div",
-            "attributes": {
-                "class": {
-                    "wrapper": {
-                        "type": "boolean",
-                        "content": true
-                    },
-                    "wrapper-by-state": {
-                        "type": "state",
-                        "content": "wrapperClassState"
-                    }
-                },
-                "events": {
-                    "click": {
-                        "type": "action",
-                        "content": "toggleButtonSize"
-                    }
-                }
-            },
-            "slots": [
-                {
-                    "name": "default",
-                    "content": [
-                        {
-                            "tag": "text",
-                            "attributes": {
-                                "props": {
-                                    "content": {
-                                        "type": "state",
-                                        "content": "buttenSize"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "tag": "el-button",
-                            "attributes": {
-                                "props": {
-                                    "size": {
-                                        "type": "state",
-                                        "content": "buttenSize"
-                                    }
-                                }
-                            },
-                            "slots": [
-                                {
-                                    "name":"default",
-                                    "content": [
-                                        {
-                                            "tag": "text",
-                                            "attributes": {
-                                                "props": {
-                                                    "content": {
-                                                        "type": "state",
-                                                        "content": "buttenSize"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-    ],
-    "style": "./style.css",
+    "templateFile": "./template.html",
+    "actionsFile": "./actions.ts",
+    "styleFile": "./style.css",
     "states": [
         {
             "name": "buttenSize",
@@ -87,26 +19,18 @@
             "content": true
         }
     ],
-    "actions": [
-        {
-            "name": "toggleButtonSize",
-            "type": "JsFunction",
-            "jsPath": "./actions.ts",
-            "varName": "toggleButtonSize"
-        },
-        {
-            "name": "toggleWrapperClassState",
-            "type": "JsFunction",
-            "jsPath": "./actions.ts",
-            "varName": "toggleWrapperClassState"
-        }
-    ],
     "components": [
         {
             "tag": "el-button",
             "type": "Dep",
             "packageName": "@vue-cook/element-plus-materials",
             "varName": "ElButton"
+        },
+        {
+            "tag": "text",
+            "type": "Dep",
+            "packageName": "@vue-cook/base-dom",
+            "varName": "Text"
         }
     ]
 }

@@ -34,7 +34,7 @@ type IReactiveStoreWatchCallbackData<T extends IReactiveStoreData, KS extends (k
   [key in KS[number]]: T[key]
 }
 
-export class ReactiveStore<T extends IReactiveStoreData> {
+export class ReactiveStore<T extends IReactiveStoreData = IReactiveStoreData> {
   #emitter = new Emitter()
   #data: T
   #valueProcesser: IReactiveStoreValueProcesser<T>

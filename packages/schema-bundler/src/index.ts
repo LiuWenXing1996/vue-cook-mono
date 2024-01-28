@@ -9,3 +9,4 @@ export { createVfs, type IVirtulFileSystem } from './utils/fs'
 export type { ISchemaParser } from './lowcode/plugins/schemaToCode'
 // TODO:测试build 是否成功
 export { build, type IEsbuild, type ISwc } from './build/index'
+export { transform } from './transform/index'

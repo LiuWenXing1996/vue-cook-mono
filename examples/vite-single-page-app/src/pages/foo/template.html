@@ -3,17 +3,6 @@
         "type": "state",
         "content": "buttenSize"
     }'></text>
-    <el-button data-prop-size='{
-        "type": "state",
-        "content": "buttenSize"
-    }'>
-        <text data-prop-content='{
-            "type": "state",
-            "content": "buttenSize"
-        }'></text>
-    </el-button>
-</div>
-<div>
     <text data-prop-content='{
         "type": "state",
         "content": "buttenSize"
@@ -21,10 +10,18 @@
     <el-button data-prop-size='{
         "type": "state",
         "content": "buttenSize"
+    }' data-prop-plain='{
+        "type": "boolean",
+        "content": "false"
+    }' data-event-click='{
+        "type": "action",
+        "content": "toggleButtonSize"
     }'>
+        <slot></slot>
         <text data-prop-content='{
             "type": "state",
             "content": "buttenSize"
         }'></text>
+        <template></template>
     </el-button>
 </div>

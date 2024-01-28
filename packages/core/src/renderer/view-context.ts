@@ -1,26 +1,23 @@
-import { ReactiveStore } from '@/utils/reactive'
+import { ReactiveStore, type IReactiveStoreData } from '@/utils/reactive'
 import type { ILowcodeContext } from './lowcode-context'
+import type { IAction, IAsyncAction } from '@/schema/action'
 
-export class ViewContext<View> {
-  #lowcodeContext: ILowcodeContext
-  constructor(params: { lowcodeContext: ILowcodeContext }) {
-    const { lowcodeContext } = params
-    this.#lowcodeContext = lowcodeContext
+export interface IStates {
+  [stateName: string]: any
+}
+
+export interface IActions {
+  [actionName: string]: IAction | IAsyncAction
+}
+
+export class ViewContext<S extends IStates = IStates, A extends IActions = IActions> {
+  #states: ReactiveStore<S>
+  #actions: ReactiveStore<A>
+  constructor(params: { states: S; actions: A }) {
+    const { states, actions } = params
+    this.#states = new ReactiveStore<S>({ data: states })
+    this.#actions = new ReactiveStore<A>({ data: actions })
   }
-  get getDeps() {
-    return () => {
-      return this.#lowcodeContext.getDeps
-    }
-  }
-  #components = new ReactiveStore<{
-    [cmptName: string]: View | undefined
-  }>({ data: {} })
-  get components() {
-    return this.#components
-  }
-  #states = new ReactiveStore<{
-    [stateName: string]: any
-  }>({ data: {} })
   get states() {
     return this.#states
   }
@@ -39,9 +36,6 @@ export class ViewContext<View> {
   get watchState() {
     return this.#states.watch
   }
-  #actions = new ReactiveStore<{
-    [actionName: string]: any
-  }>({ data: {} })
   get actions() {
     return this.#actions
   }
@@ -59,4 +53,29 @@ export class ViewContext<View> {
   }
 }
 
-export type IViewContext<View = any> = ViewContext<View>
+export type IViewContext = ViewContext
+
+export type IDefineViewContextOptions<
+  S extends IStates = IStates,
+  A extends IActions = IActions
+> = {
+  setup: () => {
+    states: S
+    actions: A
+  }
+} & ThisType<{
+  ctx: ViewContext<S, A>
+}>
+
+export const defineViewContext = <S extends IStates = IStates, A extends IActions = IActions>(
+  options: IDefineViewContextOptions<S, A>
+) => {
+  return () => {
+    const { setup } = options
+    const ctx = new ViewContext({ states: {}, actions: {} }) as unknown as ViewContext<S, A>
+    const { states, actions } = setup.apply(ctx)
+    ctx.states.reset(states)
+    ctx.actions.reset(actions)
+    return ctx
+  }
+}

@@ -1,0 +1,12 @@
+materialsVarName: default
+viewsVarName: default
+runtimeEntry:
+  import: import * as Lib from "@vue-cook/base-dom/runtime";
+    export * from "@vue-cook/base-dom/runtime";
+    const defaultValue = Lib.default||{};
+    export default defaultValue;
+designerEntry:
+  import: import * as Lib from "@vue-cook/base-dom/design";
+    export * from "@vue-cook/base-dom/design";
+    const defaultValue = Lib.default||{};
+    export default defaultValue;

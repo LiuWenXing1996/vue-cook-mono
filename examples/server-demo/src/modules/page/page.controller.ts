@@ -103,7 +103,10 @@ export class PageController {
     <title>dev-page:{{projectName}}</title>
     <script>
     var autoRunConfig = {
-        onContextCreated(context){
+        onCreated:async (context)=>{
+          debugger;
+          const app =await context.createApp()
+          await app.preview("#app","/src/pages/foo/view.json")
           console.log("context",context)
         },
         // TODO:先暂时使用design的auto来预览，后面会换成runtime的auto
