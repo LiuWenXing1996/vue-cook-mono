@@ -1,4 +1,5 @@
 tag: page-bar
+type: page
 imports:
   - path: vue
     aliasName: vue

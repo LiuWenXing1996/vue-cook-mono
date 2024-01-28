@@ -8,7 +8,6 @@ export interface IStateSchemaBase {
 }
 
 export interface IStringState extends IStateSchemaBase {
-
   type: 'String'
   content: string
 }
