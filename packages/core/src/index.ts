@@ -68,15 +68,16 @@ export { type IAction, bindAction, defineAction, defineAsyncAction } from './sch
 
 export {
   type IViewSchema,
-  type IViewFileSchema,
+  type IViewSchemaFile,
   type IPageViewSchema,
   type IComponentViewSchema,
   type ILayoutViewSchema
 } from './schema/view'
+export { type IContext, Context, defineContext } from './schema/context'
 export {
   type ITemplateTreeTemplateNode as ITemplateTreeSchemaNode,
   templateSchemaToTree,
-  templateParser,
+  templateSchemaParser,
   templateSchemaToTsxTemplate
 } from './schema/template'
 // export { type IActionSchema, type IJsFunctionActionSchema } from './schema/action'

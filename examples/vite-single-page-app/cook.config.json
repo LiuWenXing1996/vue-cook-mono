@@ -8,6 +8,7 @@
     "minify": false,
     "sourcemap": false,
     "outdir": "./dist",
+    "viewSchemaFileSuffix": "view.yaml",
     "renderer": {
         "runtime": {
             "packageName": "@vue-cook/render",

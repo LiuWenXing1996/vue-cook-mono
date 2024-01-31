@@ -1,5 +1,5 @@
 import type { Plugin, Loader } from 'esbuild'
-import { path, type IViewEntrySchema, templateParser } from '@vue-cook/core'
+import { path, type IViewEntrySchema, templateSchemaParser } from '@vue-cook/core'
 import { defineEsbuildPlugin } from '@/utils/define-esbuild-plugin'
 import { inferLoader } from './virtual-fs-plugin'
 const { isAbsolute, join, rootName, extname, dirname, relative, trimExtname } = path
@@ -81,7 +81,7 @@ export default {
         let contents = ''
         try {
           const templateContent = await vfs.readFile(realPath, 'utf-8')
-          const templateSchemaList = await templateParser(templateContent)
+          const templateSchemaList = await templateSchemaParser(templateContent)
           contents = JSON.stringify(templateSchemaList, null, 2)
         } catch (error) {
           debugger

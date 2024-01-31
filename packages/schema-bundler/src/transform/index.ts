@@ -3,9 +3,8 @@ import {
   getCookConfigFromFs,
   getPkgJsonFromFs,
   getViewFilesFromFs,
-  type IJsFunctionActionSchema,
   path,
-  templateParser,
+  templateSchemaParser,
   templateSchemaToTsxTemplate
 } from '@vue-cook/core'
 export const transform = async (params: { vfs: IVirtulFileSystem }) => {
@@ -22,7 +21,7 @@ export const transform = async (params: { vfs: IVirtulFileSystem }) => {
       const { styleFile, actionsFile, templateFile, states } = viewFile.content
       const templateHtmlPath = path.resolve(path.dirname(viewFile.path), templateFile)
       const templateHtmlContent = await vfs.readFile(templateHtmlPath, 'utf-8')
-      const templateSchema = await templateParser(templateHtmlContent)
+      const templateSchema = await templateSchemaParser(templateHtmlContent)
       console.log(templateSchema)
       const tsxTpl = await templateSchemaToTsxTemplate(templateSchema)
       console.log(tsxTpl)

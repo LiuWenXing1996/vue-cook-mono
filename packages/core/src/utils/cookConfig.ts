@@ -12,6 +12,7 @@ export interface ICookConfig {
   tempDir?: string
   sourcemap?: boolean
   viewEntryFile: string
+  viewSchemaFileSuffix: string
   viewFileSuffix: {
     component: string
     page: string
@@ -131,7 +132,9 @@ export const getViewFilesFromFs = async (fs: IFsPromisesApi) => {
   if (cookConfig) {
     const fsUtils = createFsUtils(fs)
     const allFiles = await fsUtils.listFiles()
-    const viewFilePaths: string[] = allFiles.filter((e) => basename(e) === cookConfig.viewEntryFile)
+    const viewFilePaths: string[] = allFiles.filter((e) => {
+      return e.endsWith(cookConfig.viewSchemaFileSuffix)
+    })
     await Promise.all(
       viewFilePaths.map(async (filePath) => {
         try {

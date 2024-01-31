@@ -1,25 +1,72 @@
-import type { JsonTypeArray, JsonTypeObject } from '@/utils/jsonType'
-
-export type IStateSchema = IStringState | INumberState | IBooleanState | IJsonState
+export type IStateSchema =
+  | IStringStateSchema
+  | INumberStateSchema
+  | IBooleanStateSchema
+  | IObjectStateSchema
+  | IListStateSchema
 
 export interface IStateSchemaBase {
-  name: string
   type: string
 }
 
-export interface IStringState extends IStateSchemaBase {
-  type: 'String'
+export interface IStringStateSchema extends IStateSchemaBase {
+  type: 'string'
   content: string
 }
-export interface INumberState extends IStateSchemaBase {
-  type: 'Number'
+export interface INumberStateSchema extends IStateSchemaBase {
+  type: 'number'
   content: number
 }
-export interface IBooleanState extends IStateSchemaBase {
-  type: 'Boolean'
+export interface IBooleanStateSchema extends IStateSchemaBase {
+  type: 'boolean'
   content: boolean
 }
-export interface IJsonState extends IStateSchemaBase {
-  type: 'Json'
-  content: JsonTypeObject | JsonTypeArray
+
+export interface IObjectStateSchema extends IStateSchemaBase {
+  type: 'object'
+  content: {
+    [key: string]: IStateSchema
+  }
+}
+
+export interface IListStateSchema extends IStateSchemaBase {
+  type: 'list'
+  content: IListStateItemSchema[]
+}
+
+export type IStateSchemaToIListStateItemSchema<S extends IStateSchema> = S extends IStateSchema
+  ? {
+      type: S['type']
+      list: S['content'][]
+    }
+  : never
+
+export type IListStateItemSchema = IStateSchemaToIListStateItemSchema<IStateSchema>
+
+const a: IStateSchema = {
+  type: 'object',
+  content: {
+    a: {
+      type: 'boolean',
+      content: false
+    },
+    s: {
+      type: 'object',
+      content: {
+        aa: {
+          type: 'number',
+          content: 1
+        }
+      }
+    },
+    ls: {
+      type: 'list',
+      content: [
+        {
+          type: 'string',
+          list: ['1', '2', 'false']
+        }
+      ]
+    }
+  }
 }

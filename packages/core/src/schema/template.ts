@@ -126,7 +126,7 @@ const isNodeTag = (node: IPosthtmlNode): node is IPosthtmlNodeTag => {
   return false
 }
 
-export const templateParser = async (template: string): Promise<ITemplateSchema[]> => {
+export const templateSchemaParser = async (template: string): Promise<ITemplateSchema[]> => {
   const posthtmlNodeList = posthtmlParser(template)
   console.log(posthtmlNodeList)
   const posthtmlNodeToTemplateSchema = (node: IPosthtmlNode): ITemplateSchema | undefined => {

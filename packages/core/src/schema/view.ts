@@ -1,4 +1,5 @@
-import type { ITemplateSchema } from './template'
+import { templateSchemaParser, type ITemplateSchema } from './template'
+import { parse as YamlParser } from 'yaml'
 
 export interface IImportSchema {
   path: string
@@ -69,7 +70,25 @@ export interface IPageViewSchema extends IViewSchemaBase {
 
 export type IViewSchema = IComponentViewSchema | ILayoutViewSchema | IPageViewSchema
 
+export type IViewSchemaToIViewSchemaYaml<V extends IViewSchema> = V extends IViewSchema
+  ? {
+      [key in Exclude<keyof V, 'template'>]: V[key]
+    } & {
+      template: string
+    }
+  : never
+
+export type IViewSchemaYaml = IViewSchemaToIViewSchemaYaml<IViewSchema>
 export interface IViewSchemaFile {
   path: string
   content: IViewSchema
+}
+
+export const viewSchemaParser = async (content: string): Promise<IViewSchema> => {
+  const viewSchemaYaml: IViewSchemaYaml = YamlParser(content)
+  const viewSchema: IViewSchema = {
+    ...viewSchemaYaml,
+    template: await templateSchemaParser(viewSchemaYaml.template)
+  }
+  return viewSchema
 }

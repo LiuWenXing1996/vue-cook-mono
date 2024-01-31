@@ -6,9 +6,8 @@ import {
   getCookConfigFromFs,
   getPkgJsonFromFs,
   getViewFilesFromFs,
-  type IJsFunctionActionSchema,
   path,
-  templateParser
+  templateSchemaParser
 } from '@vue-cook/core'
 import { virtualFsPlugin } from './plugins/virtual-fs-plugin'
 import { generateExternal } from '../utils/external'
