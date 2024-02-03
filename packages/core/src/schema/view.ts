@@ -1,54 +1,13 @@
+import type { IContextSchema, IImportSchema } from './context'
 import { templateSchemaParser, type ITemplateSchema } from './template'
 import { parse as YamlParser } from 'yaml'
-
-export interface IImportSchema {
-  path: string
-  aliasName?: string
-  exportName?: string
-  importAll?: boolean
-  destructuring?: boolean
-}
-
-export interface IActionSchema {
-  name: string
-  content: string
-}
-
-export type IStateSchema =
-  | {
-      type: 'string'
-      content: string
-    }
-  | {
-      type: 'number'
-      content: number
-    }
-  | {
-      type: 'boolean'
-      content: boolean
-    }
-  | {
-      type: 'json-array'
-      content: string
-    }
-  | {
-      type: 'json-object'
-      content: string
-    }
 
 export interface IViewSchemaBase {
   tag: string
   type: string
   template: ITemplateSchema[]
-  context: {
-    imports?: IImportSchema[]
-    styles?: {
-      content: string
-      module?: boolean
-    }
-    states?: IStateSchema[]
-    actions?: IActionSchema[]
-  }
+  styles: string
+  context: IContextSchema
   components?: IImportSchema[]
 }
 

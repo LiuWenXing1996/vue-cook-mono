@@ -1,5 +1,6 @@
 import { ReactiveStore } from '@/utils/reactive'
-import type { IStateSchema } from './state'
+import { stateSchemaToCode, type IStateSchema } from './state'
+import { importSchemaListToCode, type IImportSchema } from './import'
 
 export interface IContextSchema {
   imports?: IImportSchema[]
@@ -11,14 +12,6 @@ export interface IContextSchema {
     name: string
     schema: string
   }[]
-}
-
-export interface IImportSchema {
-  path: string
-  aliasName?: string
-  exportName?: string
-  importAll?: boolean
-  destructuring?: boolean
 }
 
 export interface IContextStates {
@@ -94,3 +87,43 @@ export const defineContext = <
 >(
   options: IContextOptions<S, A>
 ) => options
+
+export const contextSchemaToCode = async (schema: IContextSchema) => {
+  const { imports = [], states = [], actions = [] } = schema
+  imports.push({
+    path: '@vue-cook/core',
+    type: 'destructuring',
+    names: [
+      {
+        exportName: 'defineContext'
+      }
+    ]
+  })
+  let content = `
+${importSchemaListToCode(imports)}
+export default defineContext({
+  states() {
+    const { ctx } = this;
+    return {
+      ${states
+        .map((state) => {
+          return `${state.name}:${stateSchemaToCode(state.schema)}`
+        })
+        .join(',\n')}
+    };
+  },
+  actions() {
+    const { ctx } = this;
+    return {
+      ${actions
+        .map((action) => {
+          return `${action.name}:${action.schema}`
+        })
+        .join(',\n')}
+    };
+  },
+});
+`
+
+  return content
+}

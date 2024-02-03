@@ -16,6 +16,7 @@ export {
   getCookConfigFromFs,
   getPkgJsonFromFs,
   getViewFilesFromFs,
+  getViewSchemaFilePathListFromFs,
   type IPkgJson,
   type IDeepRequiredCookConfig,
   type ICookMaterialConfig,
@@ -71,9 +72,10 @@ export {
   type IViewSchemaFile,
   type IPageViewSchema,
   type IComponentViewSchema,
-  type ILayoutViewSchema
+  type ILayoutViewSchema,
+  viewSchemaParser
 } from './schema/view'
-export { type IContext, Context, defineContext } from './schema/context'
+export { type IContext, Context, defineContext, contextSchemaToCode } from './schema/context'
 export {
   type ITemplateTreeTemplateNode as ITemplateTreeSchemaNode,
   templateSchemaToTree,

@@ -1,29 +1,29 @@
-import { defineViewContext } from "@vue-cook/core";
+import { defineContext } from "@vue-cook/core";
 
-// TODO:实现转码后的context
-export default defineViewContext({
-  setup() {
+export default defineContext({
+  states() {
     const { ctx } = this;
     return {
-      states: {
-        buttenSize: "large",
-        wrapperClassState: true,
+      buttenSize: "large",
+      wrapperClassState: true,
+    };
+  },
+  actions() {
+    const { ctx } = this;
+    return {
+      toggleButtonSize: () => {
+        console.log("toggleButtonSize");
+        const btnSize = ctx.getState("buttenSize");
+        if (btnSize === "large") {
+          ctx.setState("buttenSize", "small");
+        } else {
+          ctx.setState("buttenSize", "large");
+        }
       },
-      actions: {
-        toggleButtonSize: () => {
-          console.log("toggleButtonSize");
-          const btnSize = ctx.states.get("buttenSize");
-          if (btnSize === "large") {
-            ctx.setState("buttenSize", "small");
-          } else {
-            ctx.setState("buttenSize", "large");
-          }
-        },
-        toggleWrapperClassState: async () => {
-          console.log("toggleWrapperClassState");
-          const wrapperClassState = ctx.states.get("wrapperClassState");
-          ctx.setState("wrapperClassState", !wrapperClassState);
-        },
+      toggleWrapperClassState: async () => {
+        console.log("toggleWrapperClassState");
+        const wrapperClassState = ctx.getState("wrapperClassState");
+        ctx.setState("wrapperClassState", !wrapperClassState);
       },
     };
   },

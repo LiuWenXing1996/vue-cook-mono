@@ -143,12 +143,29 @@ export const getViewFilesFromFs = async (fs: IFsPromisesApi) => {
             path: filePath,
             content: schema
           })
-        } catch (error) {}
+        } catch (error) {
+          console.log(error)
+        }
       })
     )
   }
 
   return viewFilesWithContent
+}
+
+export const getViewSchemaFilePathListFromFs = async (fs: IFsPromisesApi) => {
+  let filePathList: string[] = []
+
+  const { content: cookConfig } = (await getCookConfigFromFs(fs)) || {}
+  if (cookConfig) {
+    const fsUtils = createFsUtils(fs)
+    const allFiles = await fsUtils.listFiles()
+    const viewFilePaths: string[] = allFiles.filter((e) => {
+      return e.endsWith(cookConfig.viewSchemaFileSuffix)
+    })
+    filePathList = [...viewFilePaths]
+  }
+  return filePathList
 }
 
 export const fillConfig = (config: ICookConfig): IDeepRequiredCookConfig => {

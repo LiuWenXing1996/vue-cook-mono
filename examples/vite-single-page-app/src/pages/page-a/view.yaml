@@ -1,0 +1,63 @@
+tag: page-a
+type: page
+template: |
+  <div>
+    <text x-prop-content-state="buttenSize"></text>
+    <text x-prop-content-state="buttenSize"></text>
+    <el-button
+      x-prop-size-state="buttenSize"
+      x-prop-plain-boolean="false"
+      x-event-click-boolean="false"
+      x-class-a-boolean="false"
+      x-event-click-action="toggleButtonSize"
+    >
+      <slot></slot>
+      <text x-prop-content-state="buttenSize"></text>
+      <template></template>
+    </el-button>
+  </div>
+styles: |
+  .wrapper {
+      color: red;
+  }
+  .wrapper-by-state {
+      color: blue;
+  }
+context:
+  imports:
+    - path: vue
+      type: all
+      name: vue
+    - path: "@vue-cook/element-plus-materials/runtime"
+      type: all
+      name: A
+  states:
+    - name: buttenSize
+      schema:
+        type: string
+        content: large
+    - name: wrapperClassState
+      schema:
+        type: boolean
+        content: true
+  actions:
+    - name: toggleButtonSize
+      schema: |
+        () => {
+          console.log("toggleButtonSize");
+          console.log(A);
+          console.log(vue);
+          const btnSize = ctx.states.get("buttenSize");
+          if (btnSize === "large") {
+            ctx.setState("buttenSize", "small");
+          } else {
+            ctx.setState("buttenSize", "large");
+          }
+        }
+    - name: toggleWrapperClassState
+      schema: |
+        () => {
+          console.log("toggleWrapperClassState");
+          const wrapperClassState = ctx.states.get("wrapperClassState");
+          ctx.setState("wrapperClassState", !wrapperClassState);
+        }
