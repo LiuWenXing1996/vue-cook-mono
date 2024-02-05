@@ -6,12 +6,14 @@ import {
   getCookConfigFromFs,
   getPkgJsonFromFs,
   getViewFilesFromFs,
+  getViewSchemaFilePathListFromFs,
   path,
-  templateSchemaParser
+  templateSchemaParser,
+  viewSchemaParser
 } from '@vue-cook/core'
 import { virtualFsPlugin } from './plugins/virtual-fs-plugin'
 import { generateExternal } from '../utils/external'
-import { viewSchemaPlugin } from './plugins/view-schema-plugin'
+import { vueSfcPlugin } from './plugins/vue-sfc-plugin'
 const { resolve, dirname, relative, trimExtname } = path
 
 export type IEsbuild = typeof esbuild
@@ -59,6 +61,17 @@ export const build = async (params: { vfs: IVirtulFileSystem; esbuild: IEsbuild;
     return
   }
   const { content: cookConfig, path: cookConfigPath } = cookConfigObj
+  const viewSchemaFilePathList = await getViewSchemaFilePathListFromFs(vfs)
+  const viewSchemaFiles = await Promise.all(
+    viewSchemaFilePathList.map(async (filePath) => {
+      const viewSchemaString = await vfs.readFile(filePath, 'utf-8')
+      const viewSchema = await viewSchemaParser(viewSchemaString)
+      return {
+        path: filePath,
+        schema: viewSchema
+      }
+    })
+  )
 
   const viewFiles = await getViewFilesFromFs(vfs)
   const actionFiles: {
@@ -67,7 +80,6 @@ export const build = async (params: { vfs: IVirtulFileSystem; esbuild: IEsbuild;
     action: IJsFunctionActionSchema
     actionIndex: number
   }[] = []
-
 
   const entryCss = {
     path: `/index.css`,
@@ -80,14 +92,14 @@ export const build = async (params: { vfs: IVirtulFileSystem; esbuild: IEsbuild;
 
   entryTs.content = `
 import "./index.css"
-import {fillConfig} from "@vue-cook/core"
-import CookConfig from "${cookConfigPath}"
-export const cookConfig = fillConfig(CookConfig)
 
-${viewFiles
-  .map((viewFile, index) => {
-    let realtivePath = './' + relative(dirname(entryTs.path), viewFile.path)
+
+
+${viewSchemaFiles
+  .map((viewSchemaFile, index) => {
+    let realtivePath = './' + relative(dirname(entryTs.path), viewSchemaFile.path)
     realtivePath = trimExtname(realtivePath, ['.ts', '.js'])
+    const { schema } = viewSchemaFile
     return `import Schema${index} from "${realtivePath}"`
   })
   .join('\n')}
@@ -143,7 +155,7 @@ export const jsFunctions = [
       external: generateExternal(pkgJson),
       outdir: '/',
       sourcemap: cookConfig.sourcemap ? 'inline' : false,
-      plugins: [viewSchemaPlugin({ vfs, cookConfig }), virtualFsPlugin({ vfs, cookConfig })]
+      plugins: [vueSfcPlugin({ vfs, cookConfig }), virtualFsPlugin({ vfs, cookConfig })]
     })
 
     outputFiles.js = (bundleRes.outputFiles || []).find((e) => e.path.endsWith('.js'))?.text || ''

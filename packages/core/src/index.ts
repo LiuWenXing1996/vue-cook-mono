@@ -73,7 +73,8 @@ export {
   type IPageViewSchema,
   type IComponentViewSchema,
   type ILayoutViewSchema,
-  viewSchemaParser
+  viewSchemaParser,
+  viewSchemaToCode
 } from './schema/view'
 export { type IContext, Context, defineContext, contextSchemaToCode } from './schema/context'
 export {

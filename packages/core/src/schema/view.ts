@@ -1,10 +1,15 @@
-import type { IContextSchema, IImportSchema } from './context'
-import { templateSchemaParser, type ITemplateSchema } from './template'
+import { contextSchemaToCode, type IContextSchema } from './context'
+import { importSchemaListToCode, type IImportSchema } from './import'
+import { templateSchemaParser, type ITemplateSchema, templateSchemaToCode } from './template'
 import { parse as YamlParser } from 'yaml'
 
 export interface IViewSchemaBase {
   tag: string
   type: string
+  export: {
+    isExport: boolean
+    exportName: string
+  }
   template: ITemplateSchema[]
   styles: string
   context: IContextSchema
@@ -50,4 +55,75 @@ export const viewSchemaParser = async (content: string): Promise<IViewSchema> =>
     template: await templateSchemaParser(viewSchemaYaml.template)
   }
   return viewSchema
+}
+
+export interface ICodeFile {
+  content: string
+  path: string
+}
+
+export const viewSchemaToCode = async (viewSchema: IViewSchema): Promise<ICodeFile[]> => {
+  const contextFile: ICodeFile = {
+    content: await contextSchemaToCode(viewSchema.context),
+    path: './context.ts'
+  }
+  const stylesFile: ICodeFile = {
+    content: viewSchema.styles,
+    path: './style.css'
+  }
+  const indexVueFile: ICodeFile = {
+    content: '',
+    path: './index.vue'
+  }
+  const indexVueImports: IImportSchema[] = [
+    {
+      path: './context',
+      type: 'default',
+      name: 'context'
+    },
+    {
+      path: '@vue-cook/render',
+      type: 'destructuring',
+      names: [
+        {
+          exportName: 'useViewContext'
+        }
+      ]
+    },
+    {
+      path: './style.css',
+      type: 'sideEffect'
+    }
+  ]
+
+  indexVueFile.content = `
+<script setup lang="ts">  
+${importSchemaListToCode(indexVueImports)}
+
+const { states, actions } = useViewContext(context);
+</script>
+<template>
+  ${await templateSchemaToCode(viewSchema.template)}
+</template>
+  `
+
+  const indexTsFile: ICodeFile = {
+    content: '',
+    path: './index.ts'
+  }
+
+  const indexTsImports: IImportSchema[] = [
+    {
+      path: './index.vue',
+      type: 'default',
+      name: 'View'
+    }
+  ]
+
+  indexTsFile.content = `
+${importSchemaListToCode(indexTsImports)}
+export default View
+`
+
+  return [contextFile, stylesFile, indexVueFile, indexTsFile]
 }

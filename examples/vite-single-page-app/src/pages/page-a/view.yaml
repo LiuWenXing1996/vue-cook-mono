@@ -2,17 +2,50 @@ tag: page-a
 type: page
 template: |
   <div>
-    <text x-prop-content-state="buttenSize"></text>
-    <text x-prop-content-state="buttenSize"></text>
+    <text
+      data-prop-content='{
+          "type": "state",
+          "content": "buttenSize"
+      }'
+    ></text>
+    <text
+      data-prop-content='{
+          "type": "string",
+          "content": "buttenSize"
+      }'
+    ></text>
+    <div
+      data-class-wrapper='{
+        "type": "boolean",
+        "content": "false"
+      }'
+      data-class-wrapper-by-state='{
+          "type": "state",
+          "content": "buttenSize"
+      }'
+    >
+    </div>
     <el-button
-      x-prop-size-state="buttenSize"
-      x-prop-plain-boolean="false"
-      x-event-click-boolean="false"
-      x-class-a-boolean="false"
-      x-event-click-action="toggleButtonSize"
+      data-prop-size='{
+          "type": "state",
+          "content": "buttenSize"
+      }'
+      data-prop-plain='{
+          "type": "boolean",
+          "content": "false"
+      }'
+      data-event-click='{
+          "type": "action",
+          "content": "toggleButtonSize"
+      }'
     >
       <slot></slot>
-      <text x-prop-content-state="buttenSize"></text>
+      <text
+        data-prop-content='{
+              "type": "state",
+              "content": "buttenSize"
+          }'
+      ></text>
       <template></template>
     </el-button>
   </div>

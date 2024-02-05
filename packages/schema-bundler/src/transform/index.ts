@@ -8,7 +8,8 @@ import {
   path,
   templateSchemaParser,
   templateSchemaToTsxTemplate,
-  viewSchemaParser
+  viewSchemaParser,
+  viewSchemaToCode
 } from '@vue-cook/core'
 export const transform = async (params: { vfs: IVirtulFileSystem }) => {
   const { vfs: orginVfs } = params
@@ -19,11 +20,23 @@ export const transform = async (params: { vfs: IVirtulFileSystem }) => {
     viewSchemaFilePathList.map(async (filePath) => {
       const viewSchemaString = await vfs.readFile(filePath, 'utf-8')
       const viewSchema = await viewSchemaParser(viewSchemaString)
-      const contextFile = {
-        content: await contextSchemaToCode(viewSchema.context),
-        path: path.join(path.dirname(filePath), './context.ts')
-      }
-      await vfs.outputFile(contextFile.path, contextFile.content)
+      const codeFileList = await viewSchemaToCode(viewSchema)
+      await Promise.all(
+        codeFileList.map(async (codeFile) => {
+          const absolutePath = path.join(path.dirname(filePath), codeFile.path)
+          await vfs.outputFile(absolutePath, codeFile.content)
+        })
+      )
+      // const contextFile = {
+      //   content: await contextSchemaToCode(viewSchema.context),
+      //   path: path.join(path.dirname(filePath), './context.ts')
+      // }
+      // await vfs.outputFile(contextFile.path, contextFile.content)
+      // const stylesFile = {
+      //   content: viewSchema.styles,
+      //   path: path.join(path.dirname(filePath), './style.css')
+      // }
+      // await vfs.outputFile(stylesFile.path, stylesFile.content)
     })
   )
 
