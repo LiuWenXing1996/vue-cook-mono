@@ -11,17 +11,22 @@ export const createCoreLibOnceGetterId = () => {
   const oldValue = window[uid]
   const getter = () => {
     // @ts-ignore
-    window[uid] = oldValue
-    if (isGet) {
-      return
-    }
-    isGet = true
+    // window[uid] = oldValue
+    // if (isGet) {
+    //   return
+    // }
+    // isGet = true
     return self
   }
   // @ts-ignore
   window[uid] = getter
 
   return uid
+}
+
+export interface ICodeFile {
+  content: string
+  path: string
 }
 
 export type DeepRequired<T> = {

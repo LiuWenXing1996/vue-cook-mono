@@ -2,6 +2,8 @@ import { contextSchemaToCode, type IContextSchema } from './context'
 import { importSchemaListToCode, type IImportSchema } from './import'
 import { templateSchemaParser, type ITemplateSchema, templateSchemaToCode } from './template'
 import { parse as YamlParser } from 'yaml'
+import { resolve, dirname, relative, trimExtname } from '@/utils/path'
+import type { ICodeFile } from '@/utils'
 
 export interface IViewSchemaBase {
   tag: string
@@ -57,11 +59,6 @@ export const viewSchemaParser = async (content: string): Promise<IViewSchema> =>
   return viewSchema
 }
 
-export interface ICodeFile {
-  content: string
-  path: string
-}
-
 export const viewSchemaToCode = async (viewSchema: IViewSchema): Promise<ICodeFile[]> => {
   const contextFile: ICodeFile = {
     content: await contextSchemaToCode(viewSchema.context),
@@ -76,6 +73,7 @@ export const viewSchemaToCode = async (viewSchema: IViewSchema): Promise<ICodeFi
     path: './index.vue'
   }
   const indexVueImports: IImportSchema[] = [
+    ...(viewSchema.components || []),
     {
       path: './context',
       type: 'default',
@@ -122,6 +120,15 @@ const { states, actions } = useViewContext(context);
 
   indexTsFile.content = `
 ${importSchemaListToCode(indexTsImports)}
+${
+  viewSchema.type === 'page'
+    ? `
+View.router = {
+  path:"${viewSchema.router.path}"
+}
+`
+    : ''
+}
 export default View
 `
 

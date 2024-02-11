@@ -24,7 +24,7 @@ export {
 } from './utils/cookConfig'
 export {
   createLowcodeContext,
-  getLowcodeContext,
+  // getLowcodeContext,
   ElementDataLowcodeContextIdKey,
   ElementDataCoreLibOnceGetterIdIdKey
 } from './lowcode'
@@ -83,9 +83,14 @@ export {
   templateSchemaParser,
   templateSchemaToTsxTemplate
 } from './schema/template'
+export { exportSchemaToCode } from './schema/export'
 // export { type IActionSchema, type IJsFunctionActionSchema } from './schema/action'
 
 export { getLowcodeContextFromScript, type ILowcodeBundleData } from './renderer/lowcode-context'
+
+export { cjsWrapperLoadWrapperJs, CjsWrapperBanner, CjsWrapperFooter } from './utils/cjs-wrapper'
+
+export { autoLoadSchema, loadSchema } from './utils/schema-loader'
 
 // 设计态是一个Render：tpl+css
 // 预览态是一个Render：tpl+css+js（这个地方走的也是前端构建，那源码的sourcemap怎么注入呢？，不然不好调试的）

@@ -91,7 +91,7 @@ export class PageController {
       },
     });
   }
-  @Get('preview/:projectName')
+  @Get('preview/:projectName/**')
   preview(@Param('projectName') projectName: string) {
     const compiled = template(
       `
@@ -103,15 +103,28 @@ export class PageController {
     <title>dev-page:{{projectName}}</title>
     <script>
     var autoRunConfig = {
-        onCreated:async (context)=>{
-          debugger;
-          const app =await context.createApp()
-          await app.preview("#app","/src/pages/foo/view.json")
-          console.log("context",context)
+        loadSchemaConfig:{
+          depsEntryList: {
+            jsUrl: "{{deps.jsUrl}}",
+            cssUrl: "{{deps.cssUrl}}"
+          },
+          schemaEntryList: {
+            jsUrl: "{{schema.jsUrl}}",
+            cssUrl: "{{schema.cssUrl}}"
+          }
         },
-        // TODO:先暂时使用design的auto来预览，后面会换成runtime的auto
-        mainViewFilePath:"/src/pages/foo/view.json",
-        mountElementId:"#app"
+        onSucess(schemaModules){
+          const { mountApp } = schemaModules;
+          mountApp({
+            routerBase:"/page/preview/{{projectName}}",
+            contaienr:"#app"
+          })
+          debugger;
+          console.log("schemaModules",schemaModules)
+        },
+        onFail(error){
+          console.log("error",error)
+        }
     }
     </script>
     <script src="{{auto.jsUrl}}" data-config-var-name="autoRunConfig"></script>
@@ -128,12 +141,20 @@ export class PageController {
         interpolate: /{{([\s\S]+?)}}/g,
       },
     );
-    const autoEntry = this.pageAssetsModule.getDesignAutoEntry(projectName);
+    const devEntry = this.pageAssetsModule.getDevEntry(projectName);
     return compiled({
       projectName,
       auto: {
-        jsUrl: autoEntry.js,
-        cssUrl: autoEntry.css,
+        jsUrl: devEntry.auto.js,
+        cssUrl: devEntry.auto.css,
+      },
+      deps: {
+        jsUrl: devEntry.deps.js,
+        cssUrl: devEntry.deps.css,
+      },
+      schema: {
+        jsUrl: devEntry.schema.js,
+        cssUrl: devEntry.schema.css,
       },
     });
   }

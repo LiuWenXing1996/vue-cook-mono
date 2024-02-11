@@ -33,7 +33,7 @@ export type IReactiveStoreValueProcesser<T extends IReactiveStoreData> = {
 type IReactiveStoreWatchCallbackData<T extends IReactiveStoreData, KS extends (keyof T)[]> = {
   [key in KS[number]]: T[key]
 }
-
+// TODO：使用createReactiveStore替代？不然不好调试，这样影响还挺大的
 export class ReactiveStore<T extends IReactiveStoreData = IReactiveStoreData> {
   #emitter = new Emitter()
   #data: T
@@ -42,6 +42,9 @@ export class ReactiveStore<T extends IReactiveStoreData = IReactiveStoreData> {
     const { data, valueProcesser } = params
     this.#valueProcesser = valueProcesser ? { ...valueProcesser } : {}
     this.#data = { ...data }
+  }
+  #getAllChangeEventName = () => {
+    return 'on_change_all'
   }
   #getEventName = <K extends keyof T>(key: K) => {
     return `on_${key.toString()}_change`
@@ -68,7 +71,7 @@ export class ReactiveStore<T extends IReactiveStoreData = IReactiveStoreData> {
   get get() {
     return this.#get
   }
-  #getAll() {
+  #getAll = () => {
     return {
       ...this.#data
     }
@@ -83,6 +86,7 @@ export class ReactiveStore<T extends IReactiveStoreData = IReactiveStoreData> {
     }
     this.#data[key] = value
     this.#emit(key, value)
+    this.#emitter.emit(this.#getAllChangeEventName(), this.#data)
   }
   get set() {
     return this.#set
@@ -133,6 +137,15 @@ export class ReactiveStore<T extends IReactiveStoreData = IReactiveStoreData> {
   get watch() {
     return this.#watch
   }
+
+  #watchAll = (listener: (data: T) => void) => {
+    const eventName = this.#getAllChangeEventName()
+    return this.#emitter.listen(eventName, listener)
+  }
+  get watchAll() {
+    return this.#watchAll
+  }
+
   #getHandler = <K extends keyof T>(key: K) => {
     const get = () => {
       return this.get(key)

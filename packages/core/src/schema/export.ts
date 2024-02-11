@@ -1,84 +1,106 @@
+import type { ICodeFile } from '@/utils'
+import { importSchemaListToCode, type IImportSchema } from './import'
+import type { IViewSchema } from './view'
+import { relative, dirname, join } from '@/utils/path'
 import { groupBy } from 'lodash'
-import { z } from 'zod'
-import { trimExtname } from '../utils/path'
-import { pascalCase } from 'pascal-case'
 
-export interface IExportItemConfig {
-  path: string
+export interface IExportSchema {
+  imports?: IImportSchema[]
+  exports?: IExportItemSchema[]
+}
+
+export interface IExportItemSchema {
   category: string
   name: string
+  importName: string
 }
 
-const pascalCaseRule = {
-  check: (val: string) => {
-    const normalizeName = pascalCase(val)
-    if (normalizeName !== val) {
-      return false
-    }
-    return true
-  },
-  message: (val: string) => {
-    const normalizeName = pascalCase(val)
-    return {
-      message: ` ${val}的格式不正确，应为${normalizeName}`
-    }
+export const exportSchemaToCode = async (
+  exportSchema: IExportSchema,
+  options?: {
+    viewSchemaFiles?: {
+      path: string
+      schema: IViewSchema
+    }[]
+    targetPath?: string
   }
-}
+): Promise<ICodeFile[]> => {
+  const { viewSchemaFiles = [], targetPath } = options || {}
+  const { imports = [], exports = [] } = exportSchema
 
-const exportItemConfigSchema = z.object({
-  path: z.string(),
-  category: z.string().refine(pascalCaseRule.check, pascalCaseRule.message),
-  name: z.string().refine(pascalCaseRule.check, pascalCaseRule.message)
-})
-
-export type IExportConfig = IExportItemConfig[]
-
-const exportConfigSchema = exportItemConfigSchema.array()
-
-export const checkItem = (item: Partial<IExportItemConfig>) => {
-  if (item.name) {
-    throw new Error('')
+  const indexCssFile: ICodeFile = {
+    path: `./index.css`,
+    content: `/* schema css content */`
   }
-}
+  indexCssFile.path = targetPath ? join(targetPath, indexCssFile.path) : indexCssFile.path
 
-export const check = (config: IExportConfig) => {
-  exportConfigSchema.parse(config)
-}
-
-export const transfer = (config: IExportConfig, targetPath: string) => {
-  config = config || []
-  const categorys = groupBy(config, (e) => e.category)
-  let content = `${Object.keys(categorys)
-    .map((categoryName) => {
-      const items = categorys[categoryName]
-      return items
-        .map((item) => {
-          const realtivePath = trimExtname(item.path, ['.ts', '.js'])
-          return `import ${categoryName}${item.name} from '${realtivePath}';`
-        })
-        .join('\n')
-    })
-    .join('\n')}
-    ${Object.keys(categorys)
-      .map((categoryName) => {
-        const items = categorys[categoryName]
-        return `const ${categoryName}s = {
-${items
-  .map((item) => {
-    return `  ${item.name}:${categoryName}${item.name}`
+  const viewsEntryTsFile: ICodeFile = {
+    content: '',
+    path: './views.ts'
+  }
+  viewsEntryTsFile.path = targetPath
+    ? join(targetPath, viewsEntryTsFile.path)
+    : viewsEntryTsFile.path
+  viewsEntryTsFile.content = `
+import { useAppMountFunc } from "@vue-cook/render";
+${viewSchemaFiles
+  .map((viewSchemaFile, index) => {
+    let realtivePath = './' + relative(dirname(viewsEntryTsFile.path), dirname(viewSchemaFile.path))
+    return `import View${index} from "${realtivePath}"`
   })
-  .join(',\n')}
-}`
-      })
-      .join('\n')}
-export {
+  .join('\n;')}
+  
+const designViews = {
+${viewSchemaFiles
+  .map((viewSchemaFile, index) => {
+    return `"${viewSchemaFile.path}":View${index}`
+  })
+  .join('\n,')}
+}
+const pages = [
+  ${viewSchemaFiles
+    .map((viewSchemaFile, index) => {
+      if (viewSchemaFile.schema.type === 'page') {
+        return `View${index}`
+      }
+      return ``
+    })
+    .filter((e) => e)
+    .join('\n,')}
+]
+export const getDesignViews = () => {
+  return { ...designViews }
+}
+export const getPages = () => {
+  return [...pages]
+}
+export const mountApp = useAppMountFunc({pages})
+`
+
+  const indexTsFile: ICodeFile = {
+    path: `./index.ts`,
+    content: ``
+  }
+  indexTsFile.path = targetPath ? join(targetPath, indexTsFile.path) : indexTsFile.path
+  const categorys = groupBy(exports, (e) => e.category)
+  indexTsFile.content = `
+import "./index.css"
+${importSchemaListToCode(imports)}
+export * from "./views"
+
+export default {
   ${Object.keys(categorys)
     .map((categoryName) => {
-      return `  ${categoryName}s`
+      const items = categorys[categoryName]
+      return `"${categoryName}":{
+        ${items.map((item) => {
+          return `"${item.name}":${item.name}`
+        })}
+    }`
     })
-    .join(',\n')}
+    .join('\n,')}
 }
-      `
+`
 
-  return content
+  return [indexTsFile, indexCssFile, viewsEntryTsFile]
 }

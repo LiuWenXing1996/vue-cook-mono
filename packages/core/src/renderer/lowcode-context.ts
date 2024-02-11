@@ -1,4 +1,3 @@
-import type { IViewFileSchema } from "@/schema/view"
 import type { IDeepRequiredCookConfig } from "@/utils/cookConfig"
 import { fetchDeps, type IDeps, type IDepsEntry } from "@/utils/fetchDeps"
 import { loadStyleByContent } from "@/utils/loadStyle"
@@ -133,7 +132,7 @@ export const fetchBundleData = async (entry: ILowcodeBundleDataEntry) => {
   return data
 }
 export interface ILowcodeRunResult {
-  schemaList: IViewFileSchema[]
+  schemaList: any[]
   jsFunctions: {
     name: string
     schemaPath: string

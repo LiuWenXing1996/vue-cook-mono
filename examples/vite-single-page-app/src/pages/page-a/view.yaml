@@ -1,5 +1,7 @@
 tag: page-a
 type: page
+router:
+  path: /hello
 template: |
   <div>
     <text
@@ -80,7 +82,7 @@ context:
           console.log("toggleButtonSize");
           console.log(A);
           console.log(vue);
-          const btnSize = ctx.states.get("buttenSize");
+          const btnSize = ctx.getState("buttenSize");
           if (btnSize === "large") {
             ctx.setState("buttenSize", "small");
           } else {
@@ -91,6 +93,11 @@ context:
       schema: |
         () => {
           console.log("toggleWrapperClassState");
-          const wrapperClassState = ctx.states.get("wrapperClassState");
+          const wrapperClassState = ctx.getState("wrapperClassState");
           ctx.setState("wrapperClassState", !wrapperClassState);
         }
+components:
+  - path: "@vue-cook/element-plus-materials"
+    type: destructuring
+    names:
+      - exportName: ElButton

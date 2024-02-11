@@ -1,19 +1,23 @@
 import { createVfs, type IVirtulFileSystem } from '../utils/fs'
 import type * as esbuild from 'esbuild'
-import type { Plugin as IEsbuildPlugin, Loader } from 'esbuild'
+import type { Plugin as IEsbuildPlugin, Loader, BuildOptions } from 'esbuild'
 import type * as swc from '@swc/core'
 import {
+  ElementDataCoreLibOnceGetterIdIdKey,
   getCookConfigFromFs,
   getPkgJsonFromFs,
   getViewFilesFromFs,
   getViewSchemaFilePathListFromFs,
   path,
   templateSchemaParser,
-  viewSchemaParser
+  viewSchemaParser,
+  CjsWrapperBanner,
+  CjsWrapperFooter
 } from '@vue-cook/core'
 import { virtualFsPlugin } from './plugins/virtual-fs-plugin'
 import { generateExternal } from '../utils/external'
 import { vueSfcPlugin } from './plugins/vue-sfc-plugin'
+import { transform } from '@/transform'
 const { resolve, dirname, relative, trimExtname } = path
 
 export type IEsbuild = typeof esbuild
@@ -45,11 +49,13 @@ export const getOutFilesByType = <T extends IOutFile = IOutFile>(
 }
 
 export const build = async (params: { vfs: IVirtulFileSystem; esbuild: IEsbuild; swc: ISwc }) => {
+  // TODO:实现build
   const { esbuild, vfs: orginVfs, swc } = params
-  // console.log(await orginVfs.listFiles())
+  const codeVfs = await transform({
+    vfs: orginVfs
+  })
   const vfs = createVfs()
-  await vfs.copyFromFs('/', orginVfs)
-  // console.log(await vfs.listFiles())
+  await vfs.copyFromFs('/', codeVfs)
   const pkgJsonObj = await getPkgJsonFromFs(vfs)
   if (!pkgJsonObj) {
     return
@@ -60,94 +66,19 @@ export const build = async (params: { vfs: IVirtulFileSystem; esbuild: IEsbuild;
   if (!cookConfigObj) {
     return
   }
-  const { content: cookConfig, path: cookConfigPath } = cookConfigObj
-  const viewSchemaFilePathList = await getViewSchemaFilePathListFromFs(vfs)
-  const viewSchemaFiles = await Promise.all(
-    viewSchemaFilePathList.map(async (filePath) => {
-      const viewSchemaString = await vfs.readFile(filePath, 'utf-8')
-      const viewSchema = await viewSchemaParser(viewSchemaString)
-      return {
-        path: filePath,
-        schema: viewSchema
-      }
-    })
-  )
+  const { content: cookConfig } = cookConfigObj
 
-  const viewFiles = await getViewFilesFromFs(vfs)
-  const actionFiles: {
-    viewFilePath: string
-    viewFileIndex: number
-    action: IJsFunctionActionSchema
-    actionIndex: number
-  }[] = []
-
-  const entryCss = {
-    path: `/index.css`,
-    content: `/* schema css content */`
-  }
-  const entryTs = {
-    content: '',
-    path: '/index.ts'
-  }
-
-  entryTs.content = `
-import "./index.css"
-
-
-
-${viewSchemaFiles
-  .map((viewSchemaFile, index) => {
-    let realtivePath = './' + relative(dirname(entryTs.path), viewSchemaFile.path)
-    realtivePath = trimExtname(realtivePath, ['.ts', '.js'])
-    const { schema } = viewSchemaFile
-    return `import Schema${index} from "${realtivePath}"`
-  })
-  .join('\n')}
-
-${actionFiles
-  .map((actionFile) => {
-    let absolutePath = resolve(dirname(actionFile.viewFilePath), actionFile.action.jsPath)
-    let realtivePath = './' + relative(dirname(entryTs.path), absolutePath)
-    realtivePath = trimExtname(realtivePath, ['.ts', '.js'])
-    return `import { ${actionFile.action.varName} as View${actionFile.viewFileIndex}Action${actionFile.actionIndex}} from "${realtivePath}"`
-  })
-  .join('\n')}
-
-export const schemaList = [
-  ${viewFiles
-    .map((viewFile, index) => {
-      return `{
-        path:"${viewFile.path}",
-        content:Schema${index}
-      }`
-    })
-    .join(',\n')}
-]
-
-export const jsFunctions = [
-  ${actionFiles
-    .map((actionFile) => {
-      return `{
-        name:"${actionFile.action.name}",
-        schemaPath:"${actionFile.viewFilePath}",
-        content: View${actionFile.viewFileIndex}Action${actionFile.actionIndex}
-      }`
-    })
-    .join(',\n')}
-]
-`
-  await vfs.outputFile(entryCss.path, entryCss.content)
-  await vfs.outputFile(entryTs.path, entryTs.content)
-  console.log(entryTs.content)
   const outputFiles = {
     js: '',
     css: ''
   }
+  const files = await vfs.listFiles()
+  console.log(files)
 
   {
     // bundle
     const bundleRes = await esbuild.build({
-      entryPoints: [entryTs.path],
+      entryPoints: ['/src/index.ts'],
       bundle: true,
       target: ['es2015'],
       format: 'cjs',
@@ -155,7 +86,13 @@ export const jsFunctions = [
       external: generateExternal(pkgJson),
       outdir: '/',
       sourcemap: cookConfig.sourcemap ? 'inline' : false,
-      plugins: [vueSfcPlugin({ vfs, cookConfig }), virtualFsPlugin({ vfs, cookConfig })]
+      plugins: [vueSfcPlugin({ vfs, cookConfig }), virtualFsPlugin({ vfs, cookConfig })],
+      banner: {
+        js: CjsWrapperBanner
+      },
+      footer: {
+        js: CjsWrapperFooter
+      }
     })
 
     outputFiles.js = (bundleRes.outputFiles || []).find((e) => e.path.endsWith('.js'))?.text || ''

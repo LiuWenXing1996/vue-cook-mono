@@ -4,12 +4,10 @@ import { build, type InlineConfig } from 'vite'
 import {
   createFsUtils,
   path,
-  ElementDataCoreLibOnceGetterIdIdKey,
   fillConfig,
   type IPkgJson,
   type IDeepRequiredCookConfig,
   type ICookConfig,
-  ElementDataLowcodeContextIdKey,
   createVfs
 } from '@vue-cook/core'
 import * as esbuild from 'esbuild'
@@ -157,18 +155,9 @@ const buildAuto = async (options: {
   }
   autoEntryJs.path = resolve(tempDir, `./entry.ts`)
   autoEntryJs.content = `
-import { autoCreateRenderer, path } from '@vue-cook/core'
+import { autoLoadSchema } from '@vue-cook/core'
 import "./index.css"
-autoCreateRenderer({
-  depsEntry: {
-    js:"../deps/design/index.js",
-    css:"../deps/design/style.css"
-  },
-  bundleDataEntry:{
-    jsUrl:"../schema/index.js",
-    cssUrl:"../schema/index.css"
-  },
-})
+autoLoadSchema()
 `
   await outputFile(autoEntryJs.path, autoEntryJs.content)
   await outputFile(autoEntryCss.path, autoEntryCss.content)

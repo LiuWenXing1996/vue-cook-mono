@@ -39,8 +39,12 @@ export class Context<
   #states: ReactiveStore<S>
   #actions: ReactiveStore<A>
   constructor(options: IContextOptions<S, A>) {
-    const states = options.states.apply(this)
-    const actions = options.actions.apply(this)
+    const states = options.states.apply({
+      ctx: this
+    })
+    const actions = options.actions.apply({
+      ctx: this
+    })
     this.#states = new ReactiveStore<S>({ data: states })
     this.#actions = new ReactiveStore<A>({ data: actions })
   }
@@ -62,6 +66,9 @@ export class Context<
   get watchState() {
     return this.#states.watch
   }
+  get watchAllStates() {
+    return this.#states.watchAll
+  }
   get getAllActions() {
     return this.#actions.getAll
   }
@@ -76,6 +83,9 @@ export class Context<
   }
   get watchAction() {
     return this.#actions.watch
+  }
+  get watchAllActions() {
+    return this.#actions.watchAll
   }
 }
 

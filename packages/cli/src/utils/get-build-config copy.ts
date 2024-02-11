@@ -17,26 +17,23 @@ export const getBuildConfig = (params: {
   entry: string
 }) => {
   let { externals, cookConfig, outDir, entry } = params
-  // externals = externals
-  //   .filter((e) => e.packageName !== '@vue-cook/core')
-  //   .concat({
-  //     packageName: '@vue-cook/core',
-  //     injectName: 'VueCookCore'
-  //   })
+  externals = externals
+    .filter((e) => e.packageName !== '@vue-cook/core')
+    .concat({
+      packageName: '@vue-cook/core',
+      injectName: 'VueCookCore'
+    })
   const buildConfig: InlineConfig = {
     publicDir: false,
-    // FIX:有commonJs会造成cjsWrapperLoader加载失败
-    // plugins: [nodeResolve(), commonjs(), nodePolyfills()],
-    plugins: [nodeResolve(), nodePolyfills()],
+    plugins: [nodeResolve(), commonjs(), nodePolyfills()],
     build: {
       minify: cookConfig.minify,
       outDir: outDir,
       sourcemap: cookConfig.sourcemap,
-      target:"esnext",
       lib: {
         entry,
         name: 'deps',
-        formats: ['cjs'],
+        formats: ['iife'],
         fileName: () => {
           return 'index.js'
         }
@@ -48,8 +45,29 @@ export const getBuildConfig = (params: {
             .some((pkg) => id === pkg || id.startsWith(`${pkg}/`))
         },
         output: {
-          banner: CjsWrapperBanner,
-          footer: CjsWrapperFooter,
+          banner: `(function(){
+              ${externals
+                .map((e) => {
+                  return `var ${e.injectName}`
+                })
+                .join(';\n')}
+(function(){
+  var script = document.currentScript
+  var coreLibGetterUid = script.dataset.${ElementDataCoreLibOnceGetterIdIdKey}
+  VueCookCore = window[coreLibGetterUid]()
+  var lowcodeContext = VueCookCore.getLowcodeContextFromScript(script)
+  // var externalLibs = lowcodeContext.getExternalLibs()
+  ${externals
+    .filter((e) => e.packageName !== '@vue-cook/core')
+    .map((e) => {
+      return `  ${e.injectName} = externalLibs["${e.packageName}"]`
+    })
+    .join(';\n')}
+}());
+
+`,
+          footer: `
+    }())`,
           globals: (id) => {
             const pkg = externals.find((e) => {
               return id === e.packageName || id.startsWith(`${e.packageName}/`)

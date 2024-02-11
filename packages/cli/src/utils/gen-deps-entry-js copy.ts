@@ -50,6 +50,7 @@ export default defaultValue
   }
   depsEntryJs.path = resolve(tempDir, `./deps-entry.ts`)
   depsEntryJs.content = `
+  import { exportDeps } from "@vue-cook/core"
   import "./index.css"
 
   ${depEntryList
@@ -59,6 +60,7 @@ export default defaultValue
       realtivePath = trimExtname(realtivePath, ['.ts', '.js'])
       return `
 import * as Lib${index} from "${realtivePath}"
+import Lib${index}Meta from "${realtiveMetaPath}"
       `
     })
     .join('\n')}
@@ -66,11 +68,15 @@ import * as Lib${index} from "${realtivePath}"
   const deps = {
     ${depEntryList
       .map((dep, index) => {
-        return `"${dep.name}":Lib${index}`
+        return `"${dep.name}":{
+          value:Lib${index},
+          meta:Lib${index}Meta
+      }`
       })
       .join(',\n')}
   };
-export default deps
+
+  exportDeps({deps,targetWindow:window})
   `
   await remove(tempDir)
   await Promise.all(
