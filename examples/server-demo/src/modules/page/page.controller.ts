@@ -100,7 +100,80 @@ export class PageController {
 
 <head>
     <meta charset="utf-8">
-    <title>dev-page:{{projectName}}</title>
+    <title>preview-page:{{projectName}}</title>
+    <script>
+    var autoRunConfig = {
+        loadSchemaConfig: {
+          depsEntryList: {
+            jsUrl: "{{deps.jsUrl}}",
+            cssUrl: "{{deps.cssUrl}}"
+          },
+          schemaEntryList: {
+            jsUrl: "{{schema.jsUrl}}",
+            cssUrl: "{{schema.cssUrl}}"
+          }
+        },
+        onSucess(schemaModules){
+          const { mountApp } = schemaModules;
+          mountApp({
+            routerBase:"/page/preview/{{projectName}}",
+            contaienr:"#app"
+          })
+          debugger;
+          console.log("schemaModules",schemaModules)
+        },
+        onFail(error){
+          
+          console.log("error",error)
+        }
+    }
+    </script>
+    <script src="{{auto.jsUrl}}" data-config-var-name="autoRunConfig"></script>
+    <link href="{{auto.cssUrl}}"></link>
+</head>
+
+<body>
+    <div id="app"></div>
+</body>
+
+</html>
+      `,
+      {
+        interpolate: /{{([\s\S]+?)}}/g,
+      },
+    );
+    const devEntry = this.pageAssetsModule.getDevEntry(projectName);
+    return compiled({
+      projectName,
+      auto: {
+        jsUrl: devEntry.auto.js,
+        cssUrl: devEntry.auto.css,
+      },
+      deps: {
+        jsUrl: devEntry.deps.js,
+        cssUrl: devEntry.deps.css,
+      },
+      schema: {
+        jsUrl: devEntry.schema.js,
+        cssUrl: devEntry.schema.css,
+      },
+    });
+  }
+
+  @Get('design/:projectName/:componentPathBase64')
+  design(
+    @Param('projectName') projectName: string,
+    @Param('componentPathBase64') componentPathBase64: string,
+  ) {
+    const componentPath = atob(componentPathBase64);
+    const compiled = template(
+      `
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>design-page:{{projectName}}</title>
     <script>
     var autoRunConfig = {
         loadSchemaConfig:{

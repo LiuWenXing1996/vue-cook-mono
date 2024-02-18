@@ -135,6 +135,54 @@ const buildDevDeps = async (options: {
   )
 }
 
+const buildDesignViewContainer = async (options: {
+  cookConfig: IDeepRequiredCookConfig
+  outDir: string
+  tempDir: string
+}) => {
+  const { cookConfig, outDir, tempDir } = options
+
+  await remove(tempDir)
+
+  const entryCss = {
+    path: resolve(tempDir, `./index.css`),
+    content: `/* css content */`
+  }
+
+  const entryJs = {
+    path: '',
+    content: ''
+  }
+  entryJs.path = resolve(tempDir, `./entry.ts`)
+  entryJs.content = `
+import { createViewPreview } from '@vue-cook/vue'
+import "./index.css"
+autoLoadSchema()
+`
+  await outputFile(entryJs.path, entryJs.content)
+  await outputFile(entryCss.path, entryCss.content)
+
+  await build({
+    publicDir: false,
+    plugins: [nodePolyfills()],
+    build: {
+      minify: false,
+      outDir: outDir,
+      sourcemap: cookConfig.sourcemap,
+      lib: {
+        entry: entryJs.path,
+        name: 'auto',
+        formats: ['iife'],
+        fileName: () => {
+          return 'index.js'
+        }
+      }
+    }
+  })
+
+  return true
+}
+
 const buildAuto = async (options: {
   cookConfig: IDeepRequiredCookConfig
   outDir: string
@@ -164,7 +212,7 @@ autoLoadSchema()
 
   await build({
     publicDir: false,
-    plugins: [ nodePolyfills()],
+    plugins: [nodePolyfills()],
     build: {
       minify: false,
       outDir: outDir,

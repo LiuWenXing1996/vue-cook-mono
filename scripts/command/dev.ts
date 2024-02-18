@@ -32,10 +32,17 @@ export const dev = async () => {
       )}' && pnpm --filter '@vue-cook/render' dev`,
     },
     {
-      name: "@vue-cook/base-dom",
+      name: "@vue-cook/vue",
       command: `wait-on '${join(
         process.cwd(),
         "/packages/render/dist"
+      )}' && pnpm --filter '@vue-cook/vue' dev`,
+    },
+    {
+      name: "@vue-cook/base-dom",
+      command: `wait-on '${join(
+        process.cwd(),
+        "/packages/vue/dist"
       )}' && pnpm --filter '@vue-cook/base-dom' dev`,
     },
     {
