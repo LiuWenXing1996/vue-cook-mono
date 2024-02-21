@@ -2,7 +2,7 @@ import { relative, resolve } from 'node:path'
 import { emptyDir, outputFile } from 'fs-extra'
 import * as esbuild from 'esbuild'
 import * as swc from '@swc/core'
-import { getFielsContent, getFiles, resolveConfig, resolvePkgJson } from '../utils'
+import { getFielsContent, resolveConfig, resolvePkgJson } from '../utils'
 import { createVfs } from '@vue-cook/core'
 
 export interface IBuildDepsOptions {
@@ -10,6 +10,7 @@ export interface IBuildDepsOptions {
   pkgJsonPath: string
   __dirname: string
 }
+
 
 const buildSchema = async (options: IBuildDepsOptions) => {
   console.log("buildSchema 需要重新实现")

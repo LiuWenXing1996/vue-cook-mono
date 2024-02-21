@@ -2,8 +2,11 @@ import { contextSchemaToCode, type IContextSchema } from './context'
 import { importSchemaListToCode, type IImportSchema } from './import'
 import { templateSchemaParser, type ITemplateSchema, templateSchemaToCode } from './template'
 import { parse as YamlParser } from 'yaml'
-import { resolve, dirname, relative, trimExtname } from '@/utils/path'
 import type { ICodeFile } from '@/utils'
+import {
+  aliasComponentSchemasToImportSchemas,
+  type IAliasComponentSchema
+} from './alias-component'
 
 export interface IViewSchemaBase {
   tag: string
@@ -15,7 +18,7 @@ export interface IViewSchemaBase {
   template: ITemplateSchema[]
   styles: string
   context: IContextSchema
-  components?: IImportSchema[]
+  components?: IAliasComponentSchema[]
 }
 
 export interface IComponentViewSchema extends IViewSchemaBase {
@@ -72,8 +75,9 @@ export const viewSchemaToCode = async (viewSchema: IViewSchema): Promise<ICodeFi
     content: '',
     path: './index.vue'
   }
+  const aliasComponentImports = aliasComponentSchemasToImportSchemas(viewSchema.components || [])
   const indexVueImports: IImportSchema[] = [
-    ...(viewSchema.components || []),
+    ...aliasComponentImports,
     {
       path: './context',
       type: 'default',

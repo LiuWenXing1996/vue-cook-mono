@@ -432,7 +432,6 @@ importers:
       globby: ^13.2.2
       jsdom: ^22.1.0
       lodash: ^4.17.21
-      minimatch: ^9.0.3
       npm-run-all: ^4.1.5
       prettier: ^3.0.3
       typescript: ~5.1.6
@@ -456,7 +455,6 @@ importers:
       fs-extra: 11.1.1
       globby: 13.2.2
       lodash: 4.17.21
-      minimatch: 9.0.3
       vite-plugin-node-polyfills: 0.14.1_vite@4.4.9
       vue: 3.3.4
     devDependencies:
@@ -678,6 +676,63 @@ importers:
       vitest: 0.34.4_jsdom@22.1.0+less@4.2.0
       vue-tsc: 1.8.11_typescript@5.1.6
 
+  packages/loader:
+    specifiers:
+      '@pnpm/types': ^9.2.0
+      '@rushstack/eslint-patch': ^1.3.3
+      '@tsconfig/node18': ^18.2.2
+      '@types/node': ^18.17.15
+      '@types/uuid': ^9.0.2
+      '@vitejs/plugin-vue': ^4.3.4
+      '@vitejs/plugin-vue-jsx': ^3.0.2
+      '@vue/compiler-sfc': ^3.3.4
+      '@vue/eslint-config-prettier': ^8.0.0
+      '@vue/eslint-config-typescript': ^12.0.0
+      '@vue/test-utils': ^2.4.1
+      '@vue/tsconfig': ^0.4.0
+      esbuild: ^0.17.13
+      eslint: ^8.49.0
+      eslint-plugin-vue: ^9.17.0
+      jsdom: ^22.1.0
+      npm-run-all: ^4.1.5
+      prettier: ^3.0.3
+      tsc-alias: ^1.8.8
+      typescript: ~5.1.6
+      utility-types: ^3.10.0
+      uuid: ^9.0.0
+      vite: ^4.4.9
+      vite-plugin-dts: ^3.5.3
+      vitest: ^0.34.4
+      vue-tsc: ^1.8.11
+    dependencies:
+      uuid: 9.0.0
+    devDependencies:
+      '@pnpm/types': 9.2.0
+      '@rushstack/eslint-patch': 1.4.0
+      '@tsconfig/node18': 18.2.2
+      '@types/node': 18.17.18
+      '@types/uuid': 9.0.2
+      '@vitejs/plugin-vue': 4.3.4_vite@4.4.9
+      '@vitejs/plugin-vue-jsx': 3.0.2_vite@4.4.9
+      '@vue/compiler-sfc': 3.3.4
+      '@vue/eslint-config-prettier': 8.0.0_celo3ywbkwugusnwrip6fhdozu
+      '@vue/eslint-config-typescript': 12.0.0_vwr2edbge6y4hdavowaaz4l7jq
+      '@vue/test-utils': 2.4.1
+      '@vue/tsconfig': 0.4.0
+      esbuild: 0.17.13
+      eslint: 8.49.0
+      eslint-plugin-vue: 9.17.0_eslint@8.49.0
+      jsdom: 22.1.0
+      npm-run-all: 4.1.5
+      prettier: 3.0.3
+      tsc-alias: 1.8.8
+      typescript: 5.1.6
+      utility-types: 3.10.0
+      vite: 4.4.9_@types+node@18.17.18
+      vite-plugin-dts: 3.5.3_jejtljcbknqre2jcprl4xofs7y
+      vitest: 0.34.4_jsdom@22.1.0
+      vue-tsc: 1.8.11_typescript@5.1.6
+
   packages/render:
     specifiers:
       '@daybrush/drag': ^0.19.3
@@ -716,6 +771,7 @@ importers:
       monaco-editor: ^0.43.0
       naive-ui: ^2.34.4
       npm-run-all: ^4.1.5
+      pascal-case: ^3.1.2
       prettier: ^3.0.3
       splitpanes: ^3.1.5
       typescript: ~5.1.6
@@ -743,6 +799,7 @@ importers:
       memfs: 4.3.0
       monaco-editor: 0.43.0
       naive-ui: 2.34.4_vue@3.3.4
+      pascal-case: 3.1.2
       splitpanes: 3.1.5
       uuid: 9.0.0
       vue: 3.3.4
@@ -973,6 +1030,7 @@ importers:
       monaco-editor: ^0.43.0
       naive-ui: ^2.34.4
       npm-run-all: ^4.1.5
+      pascal-case: ^3.1.2
       prettier: ^3.0.3
       splitpanes: ^3.1.5
       typescript: ~5.1.6
@@ -1002,6 +1060,7 @@ importers:
       memfs: 4.3.0
       monaco-editor: 0.43.0
       naive-ui: 2.34.4_vue@3.3.4
+      pascal-case: 3.1.2
       splitpanes: 3.1.5
       uuid: 9.0.0
       vue: 3.3.4
@@ -2910,6 +2969,7 @@ packages:
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
     requiresBuild: true
     optional: true
 
@@ -2918,6 +2978,7 @@ packages:
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
     requiresBuild: true
     optional: true
 
@@ -2926,6 +2987,7 @@ packages:
     engines: {node: '>=10'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
     requiresBuild: true
     optional: true
 
@@ -2934,6 +2996,7 @@ packages:
     engines: {node: '>=10'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
     requiresBuild: true
     optional: true
 
@@ -3510,6 +3573,21 @@ packages:
     resolution: {integrity: sha512-Iy1EUVRpX0WWxeu1VIReR1zsZLMc4fqpt223czR+Rpnrwu7pt46nbnC2ycO7ItI/uqDLJxnbcMC7FujKs9IfFA==}
     dev: false
 
+  /@vitejs/plugin-vue-jsx/3.0.2_vite@4.4.9:
+    resolution: {integrity: sha512-obF26P2Z4Ogy3cPp07B4VaW6rpiu0ue4OT2Y15UxT5BZZ76haUY9guOsZV3uWh/I6xc+VeiW+ZVabRE82FyzWw==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    peerDependencies:
+      vite: ^4.0.0
+      vue: ^3.0.0
+    dependencies:
+      '@babel/core': 7.22.10
+      '@babel/plugin-transform-typescript': 7.22.11_@babel+core@7.22.10
+      '@vue/babel-plugin-jsx': 1.1.5_@babel+core@7.22.10
+      vite: 4.4.9_@types+node@18.17.18
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
   /@vitejs/plugin-vue-jsx/3.0.2_vite@4.4.9+vue@3.3.4:
     resolution: {integrity: sha512-obF26P2Z4Ogy3cPp07B4VaW6rpiu0ue4OT2Y15UxT5BZZ76haUY9guOsZV3uWh/I6xc+VeiW+ZVabRE82FyzWw==}
     engines: {node: ^14.18.0 || >=16.0.0}
@@ -3520,10 +3598,20 @@ packages:
       '@babel/core': 7.22.10
       '@babel/plugin-transform-typescript': 7.22.11_@babel+core@7.22.10
       '@vue/babel-plugin-jsx': 1.1.5_@babel+core@7.22.10
-      vite: 4.4.9_5mc7cazrbgggrp366jrhv5m4he
+      vite: 4.4.9_@types+node@18.17.18
       vue: 3.3.4
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /@vitejs/plugin-vue/4.3.4_vite@4.4.9:
+    resolution: {integrity: sha512-ciXNIHKPriERBisHFBvnTbfKa6r9SAesOYXeGDzgegcvy9Q4xdScSHAmKbNT0M3O0S9LKhIf5/G+UYG4NnnzYw==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    peerDependencies:
+      vite: ^4.0.0
+      vue: ^3.2.25
+    dependencies:
+      vite: 4.4.9_@types+node@18.17.18
     dev: true
 
   /@vitejs/plugin-vue/4.3.4_vite@4.4.9+vue@3.3.4:
@@ -3533,7 +3621,7 @@ packages:
       vite: ^4.0.0
       vue: ^3.2.25
     dependencies:
-      vite: 4.4.9_5mc7cazrbgggrp366jrhv5m4he
+      vite: 4.4.9_@types+node@18.17.18
       vue: 3.3.4
     dev: true
 
@@ -3792,6 +3880,19 @@ packages:
 
   /@vue/shared/3.3.4:
     resolution: {integrity: sha512-7OjdcV8vQ74eiz1TZLzZP4JwqM5fA94K6yntPS5Z25r9HDuGNzaGdgvwKYq6S+MxwF0TFRwe50fIR/MYnakdkQ==}
+
+  /@vue/test-utils/2.4.1:
+    resolution: {integrity: sha512-VO8nragneNzUZUah6kOjiFmD/gwRjUauG9DROh6oaOeFwX1cZRUNHhdeogE8635cISigXFTtGLUQWx5KCb0xeg==}
+    peerDependencies:
+      '@vue/server-renderer': ^3.0.1
+      vue: ^3.0.1
+    peerDependenciesMeta:
+      '@vue/server-renderer':
+        optional: true
+    dependencies:
+      js-beautify: 1.14.9
+      vue-component-type-helpers: 1.8.4
+    dev: true
 
   /@vue/test-utils/2.4.1_vue@3.3.4:
     resolution: {integrity: sha512-VO8nragneNzUZUah6kOjiFmD/gwRjUauG9DROh6oaOeFwX1cZRUNHhdeogE8635cISigXFTtGLUQWx5KCb0xeg==}
@@ -8009,6 +8110,7 @@ packages:
     engines: {node: '>=16 || 14 >=14.17'}
     dependencies:
       brace-expansion: 2.0.1
+    dev: true
 
   /minimist/1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
@@ -10264,7 +10366,7 @@ packages:
       debug: 4.3.4
       kolorist: 1.8.0
       typescript: 5.1.6
-      vite: 4.4.9_5mc7cazrbgggrp366jrhv5m4he
+      vite: 4.4.9_@types+node@18.17.18
       vue-tsc: 1.8.11_typescript@5.1.6
     transitivePeerDependencies:
       - '@types/node'

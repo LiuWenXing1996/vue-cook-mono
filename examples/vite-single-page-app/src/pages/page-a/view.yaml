@@ -97,7 +97,6 @@ context:
           ctx.setState("wrapperClassState", !wrapperClassState);
         }
 components:
-  - path: "@vue-cook/element-plus-materials"
+  - tag: el-button
+    path: "@vue-cook/element-plus-materials"
     type: destructuring
-    names:
-      - exportName: ElButton

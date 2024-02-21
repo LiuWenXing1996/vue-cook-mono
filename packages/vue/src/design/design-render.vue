@@ -1,6 +1,6 @@
 <template>
   <template v-if="schemaFile">
-    <view-render :schema-file="schemaFile" :components="{}" :design-components="{}" />
+    <view-render :schema-file="schemaFile" :components="{}" :design-components="{}" :deps="{}" />
   </template>
 </template>
 <script setup lang="ts">
@@ -25,7 +25,7 @@ watch([vfs, mainViewFilePath], ([vfs, mainViewFilePath]) => {
   currentFsWatcher.value?.close()
   const fs = vfs.getFs()
   currentFsWatcher.value = fs.watch('/', {}, () => {
-    getSchemaFile({ vfs, mainViewFilePath }).then((res) => {
+    getSchemaFile({ vfs, mainViewFilePath }).then((res) => {  
       schemaFile.value = {
         path: mainViewFilePath,
         content: res

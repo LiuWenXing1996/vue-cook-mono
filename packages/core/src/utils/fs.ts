@@ -102,14 +102,15 @@ export const createFsUtils = (fs: IFsPromisesApi) => {
     await writeFile(file, data, options)
   }
 
-  const copyFromFs = async (dir: string, fromFs: IFsPromisesApi) => {
+  const copyFromFs = async (inputdDir: string, fromFs: IFsPromisesApi, outputDir: string = '') => {
     const fromFsUtils = createFsUtils(fromFs)
     const toFsUtils = createFsUtils(fs)
-    const files = await fromFsUtils.listFiles(dir)
+    const files = await fromFsUtils.listFiles(inputdDir)
     await Promise.all(
       files.map(async (filePath) => {
         const content = await fromFs.readFile(filePath)
-        await toFsUtils.outputFile(filePath, content)
+        const outputFilePath = join(outputDir, filePath)
+        await toFsUtils.outputFile(outputFilePath, content)
       })
     )
   }

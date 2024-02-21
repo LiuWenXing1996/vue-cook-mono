@@ -2,7 +2,7 @@ import { relative, resolve } from 'node:path'
 import { emptyDir, outputFile } from 'fs-extra'
 import * as esbuild from 'esbuild'
 import * as swc from '@swc/core'
-import { getFielsContent, getFiles, resolveConfig, resolvePkgJson } from '../utils'
+import { getFielsContent, resolveConfig, resolvePkgJson } from '../utils'
 // import { createLowcodeBuildContext, createVfs } from '@vue-cook/schema-bundler'
 
 export interface IBuildDepsOptions {

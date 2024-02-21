@@ -231,6 +231,44 @@ autoLoadSchema()
   return true
 }
 
+const buildLoader = async (options: {
+  cookConfig: IDeepRequiredCookConfig
+  packageJson: IPkgJson
+  outDir: string
+  tempDir: string
+}) => {
+  const { cookConfig, packageJson, outDir, tempDir } = options
+  const loaderEntryTsFile = {
+    path: resolve(tempDir, `./deps-entry.ts`),
+    content: `
+import { a } from "@vue-cook/cli";
+console.log("ssss");
+console.log(a);
+`
+  }
+  await outputFile(loaderEntryTsFile.path, loaderEntryTsFile.content)
+  await build({
+    publicDir: false,
+    // FIX:有commonJs会造成cjsWrapperLoader加载失败
+    plugins: [nodeResolve(), commonjs(), nodePolyfills()],
+    // plugins: [nodeResolve(), nodePolyfills()],
+    build: {
+      minify: cookConfig.minify,
+      outDir: outDir,
+      sourcemap: cookConfig.sourcemap,
+      target: 'esnext',
+      lib: {
+        entry:loaderEntryTsFile.path,
+        name: 'deps',
+        formats: ['cjs'],
+        fileName: () => {
+          return 'index.js'
+        }
+      }
+    }
+  })
+}
+
 const buildDev = async (options: IBuildDepsOptions) => {
   const { configPath, pkgJsonPath } = options
   const _cookConfig = await resolveConfig(configPath)
@@ -248,23 +286,30 @@ const buildDev = async (options: IBuildDepsOptions) => {
   await remove(tempDir)
   await remove(outDir)
 
-  await buildDevDeps({
-    cookConfig,
-    packageJson,
-    outDir: resolve(outDir, './deps'),
-    tempDir: resolve(tempDir, './deps')
-  })
-  await buildAuto({
-    cookConfig,
-    outDir: resolve(outDir, './auto'),
-    tempDir: resolve(tempDir, './auto')
-  })
+  // await buildDevDeps({
+  //   cookConfig,
+  //   packageJson,
+  //   outDir: resolve(outDir, './deps'),
+  //   tempDir: resolve(tempDir, './deps')
+  // })
+  // await buildAuto({
+  //   cookConfig,
+  //   outDir: resolve(outDir, './auto'),
+  //   tempDir: resolve(tempDir, './auto')
+  // })
 
-  await buildSchema({
+  // await buildSchema({
+  //   cookConfig,
+  //   packageJson,
+  //   outDir: resolve(outDir, './schema'),
+  //   tempDir: resolve(tempDir, './schema')
+  // })
+
+  await buildLoader({
     cookConfig,
     packageJson,
-    outDir: resolve(outDir, './schema'),
-    tempDir: resolve(tempDir, './schema')
+    outDir: resolve(outDir, './loader'),
+    tempDir: resolve(tempDir, './loader')
   })
 }
 

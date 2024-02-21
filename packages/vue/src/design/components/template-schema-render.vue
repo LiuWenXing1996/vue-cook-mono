@@ -16,7 +16,7 @@ const props = defineProps<{
   templateSchema: ITemplateSchema
   states: Record<string, any>
   components: {
-    [tag: string]: Component
+    [tag: string]: Component | undefined
   }
 }>()
 const { templateSchema, components } = toRefs(props)
